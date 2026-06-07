@@ -1,0 +1,248 @@
+{
+    "goal": "Forward Deploy Engineer",
+    "current_day": 1,
+    "phases": [
+        {
+            "title": "Phase 1: Foundations",
+            "description": "Master the command line, version control, and core networking.",
+            "days": [
+                {
+                    "day": 1,
+                    "title": "Linux Commands & Scripting",
+                    "topics": [
+                        "CLI navigation",
+                        "file permissions",
+                        "pipes & redirects",
+                        "basic bash scripts"
+                    ],
+                    "resources": [
+                        {
+                            "title": "Linux Journey",
+                            "url": "https://linuxjourney.com/"
+                        },
+                        {
+                            "title": "Bash Scripting Cheat Sheet",
+                            "url": "https://devhints.io/bash"
+                        }
+                    ],
+                    "tasks": [
+                        "Write a script to automate log compression",
+                        "Configure user groups and permissions"
+                    ],
+                    "estimated_time": 60,
+                    "status": "pending"
+                },
+                {
+                    "day": 2,
+                    "title": "Git & Collaborative Workflows",
+                    "topics": [
+                        "Git branching",
+                        "rebase vs merge",
+                        "resolving conflicts",
+                        "GitHub Actions basics"
+                    ],
+                    "resources": [
+                        {
+                            "title": "Git Branching Game",
+                            "url": "https://learngitbranching.js.org/"
+                        }
+                    ],
+                    "tasks": [
+                        "Create a repo, create conflict, merge and resolve it",
+                        "Setup a simple pre-commit hook"
+                    ],
+                    "estimated_time": 60,
+                    "status": "pending"
+                },
+                {
+                    "day": 3,
+                    "title": "DevOps Networking Essentials",
+                    "topics": [
+                        "TCP/IP stack",
+                        "DNS resolution",
+                        "HTTP/HTTPS protocols",
+                        "Load Balancers"
+                    ],
+                    "resources": [
+                        {
+                            "title": "DNS in One Picture",
+                            "url": "https://dnsimple.com/how-dns-works"
+                        }
+                    ],
+                    "tasks": [
+                        "Dig DNS records for a domain",
+                        "Run a local python server and map traffic"
+                    ],
+                    "estimated_time": 60,
+                    "status": "pending"
+                }
+            ]
+        },
+        {
+            "title": "Phase 2: Containerization & Automation",
+            "description": "Learn to package applications and automate server setup.",
+            "days": [
+                {
+                    "day": 4,
+                    "title": "Docker Core Concepts",
+                    "topics": [
+                        "Docker images vs containers",
+                        "Dockerfile optimization",
+                        "Docker volumes & networking"
+                    ],
+                    "resources": [
+                        {
+                            "title": "Docker Documentation Guide",
+                            "url": "https://docs.docker.com/get-started/"
+                        }
+                    ],
+                    "tasks": [
+                        "Write a multi-stage Dockerfile for a Node/Python app",
+                        "Mount database volume locally"
+                    ],
+                    "estimated_time": 90,
+                    "status": "pending"
+                },
+                {
+                    "day": 5,
+                    "title": "Docker Compose",
+                    "topics": [
+                        "Multi-container orchestration",
+                        "compose environment files",
+                        "service dependencies"
+                    ],
+                    "resources": [
+                        {
+                            "title": "Awesome Docker Compose Templates",
+                            "url": "https://github.com/docker/awesome-compose"
+                        }
+                    ],
+                    "tasks": [
+                        "Spin up a Wordpress + MySQL stack using Compose",
+                        "Define healthchecks in Compose file"
+                    ],
+                    "estimated_time": 90,
+                    "status": "pending"
+                },
+                {
+                    "day": 6,
+                    "title": "CI/CD & Jenkins/GitHub Actions",
+                    "topics": [
+                        "CI/CD pipelines",
+                        "build automation",
+                        "declarative syntax",
+                        "artifact storage"
+                    ],
+                    "resources": [
+                        {
+                            "title": "GitHub Actions Docs",
+                            "url": "https://docs.github.com/en/actions"
+                        }
+                    ],
+                    "tasks": [
+                        "Setup GitHub Action to run linter on git push",
+                        "Build and push docker image to DockerHub automatically"
+                    ],
+                    "estimated_time": 120,
+                    "status": "pending"
+                }
+            ]
+        },
+        {
+            "title": "Phase 3: Orchestration & Infrastructure",
+            "description": "Learn production grade systems scaling and IaC.",
+            "days": [
+                {
+                    "day": 7,
+                    "title": "Kubernetes Architecture & Pods",
+                    "topics": [
+                        "Control plane components",
+                        "kubelet & kube-proxy",
+                        "Pods and namespaces"
+                    ],
+                    "resources": [
+                        {
+                            "title": "Kubernetes Interactive Tutorial",
+                            "url": "https://kubernetes.io/docs/tutorials/"
+                        }
+                    ],
+                    "tasks": [
+                        "Install Minikube or Kind",
+                        "Deploy an Nginx Pod via YAML configuration"
+                    ],
+                    "estimated_time": 120,
+                    "status": "pending"
+                },
+                {
+                    "day": 8,
+                    "title": "K8s Deployments & Services",
+                    "topics": [
+                        "ReplicaSets",
+                        "rolling updates",
+                        "ClusterIP, NodePort, and LoadBalancer services"
+                    ],
+                    "resources": [
+                        {
+                            "title": "Kubernetes Services Explained",
+                            "url": "https://kubernetes.io/docs/concepts/services-networking/service/"
+                        }
+                    ],
+                    "tasks": [
+                        "Create a Deployment with 3 replicas",
+                        "Expose deployment using ClusterIP and port-forward to test"
+                    ],
+                    "estimated_time": 120,
+                    "status": "pending"
+                },
+                {
+                    "day": 9,
+                    "title": "Infrastructure as Code with Terraform",
+                    "topics": [
+                        "Declarative infra",
+                        "Terraform providers & state",
+                        "HCL variables & outputs"
+                    ],
+                    "resources": [
+                        {
+                            "title": "Terraform HashiCorp Learn",
+                            "url": "https://learn.hashicorp.com/terraform"
+                        }
+                    ],
+                    "tasks": [
+                        "Deploy a local Docker container using Terraform",
+                        "Configure state locking or local file backend"
+                    ],
+                    "estimated_time": 90,
+                    "status": "pending"
+                }
+            ]
+        },
+        {
+            "title": "Phase 4: Interview & Production Readiness",
+            "description": "Refine architectures and practice common DevOps interview topics.",
+            "days": [
+                {
+                    "day": 10,
+                    "title": "DevOps Interview Q&A & System Design",
+                    "topics": [
+                        "DevOps lifecycle",
+                        "troubleshooting exercises",
+                        "high availability designs"
+                    ],
+                    "resources": [
+                        {
+                            "title": "DevOps Interview Questions Guide",
+                            "url": "https://github.com/bregman-arie/devops-exercises"
+                        }
+                    ],
+                    "tasks": [
+                        "Architect a resilient three-tier web application",
+                        "Review 15 common interview scenarios"
+                    ],
+                    "estimated_time": 120,
+                    "status": "pending"
+                }
+            ]
+        }
+    ]
+}

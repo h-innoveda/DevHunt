@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DevHunt — System Logs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0f14; --surface: #111820; --border: #1e2d3d;
+    --green: #00ffa3; --cyan: #00d4ff; --red: #ff4d6a;
+    --amber: #ffb547; --muted: #4a6070; --text: #c8d8e4;
+    --display: 'Orbitron', sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--mono); font-size: 13px; min-height: 100vh; }
+
+  .topbar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 20px; border-bottom: 1px solid var(--border);
+    background: rgba(0,0,0,.4); position: sticky; top: 0; z-index: 10;
+  }
+  .topbar h1 { font-family: var(--display); font-size: 14px; color: var(--green); letter-spacing: 3px; }
+  .topbar a { color: var(--cyan); text-decoration: none; font-size: 11px; margin-left: auto; }
+  .topbar a:hover { color: var(--green); }
+
+  .controls {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    background: rgba(0,0,0,.2);
+  }
+  select, input {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); font-family: var(--mono); font-size: 12px;
+    padding: 6px 10px; border-radius: 5px; outline: none;
+  }
+  select:focus, input:focus { border-color: var(--cyan); }
+
+  .btn { padding: 6px 14px; border-radius: 5px; font-family: var(--mono); font-size: 11px; cursor: pointer; border: none; letter-spacing: 1px; }
+  .btn-green { background: rgba(0,255,163,.15); color: var(--green); border: 1px solid rgba(0,255,163,.4); }
+  .btn-green:hover { background: rgba(0,255,163,.25); }
+  .btn-red { background: rgba(255,77,106,.15); color: var(--red); border: 1px solid rgba(255,77,106,.4); }
+  .btn-red:hover { background: rgba(255,77,106,.25); }
+  .btn-cyan { background: rgba(0,212,255,.15); color: var(--cyan); border: 1px solid rgba(0,212,255,.4); }
+  .btn-cyan:hover { background: rgba(0,212,255,.25); }
+
+  .stats-bar {
+    display: flex; gap: 20px; padding: 10px 20px;
+    border-bottom: 1px solid var(--border); font-size: 11px; color: var(--muted);
+  }
+  .stats-bar span b { color: var(--text); }
+
+  .log-container { padding: 16px 20px; }
+
+  .log-entry {
+    display: grid; grid-template-columns: 160px 70px 90px 1fr auto;
+    gap: 10px; align-items: start;
+    padding: 8px 12px; border-radius: 6px; margin-bottom: 4px;
+    border: 1px solid transparent; font-size: 12px;
+    transition: background .15s;
+  }
+  .log-entry:hover { background: rgba(255,255,255,.03); border-color: var(--border); }
+
+  .log-entry.INFO    { border-left: 3px solid var(--cyan); }
+  .log-entry.SUCCESS { border-left: 3px solid var(--green); }
+  .log-entry.WARN    { border-left: 3px solid var(--amber); }
+  .log-entry.ERROR   { border-left: 3px solid var(--red); background: rgba(255,77,106,.04); }
+
+  .log-ts    { color: var(--muted); font-size: 11px; }
+  .log-level { font-weight: 700; letter-spacing: 1px; }
+  .log-level.INFO    { color: var(--cyan); }
+  .log-level.SUCCESS { color: var(--green); }
+  .log-level.WARN    { color: var(--amber); }
+  .log-level.ERROR   { color: var(--red); }
+  .log-cat   { color: var(--muted); font-size: 11px; }
+  .log-msg   { color: var(--text); word-break: break-word; }
+  .log-meta-toggle { color: var(--muted); font-size: 10px; cursor: pointer; white-space: nowrap; }
+  .log-meta-toggle:hover { color: var(--cyan); }
+
+  .log-meta-panel {
+    grid-column: 1 / -1; display: none;
+    background: #060a0e; border: 1px solid var(--border);
+    border-radius: 4px; padding: 10px 12px; margin-top: 4px;
+    font-size: 11px; color: #7fa0b0;
+    white-space: pre-wrap; word-break: break-all;
+  }
+  .log-meta-panel.open { display: block; }
+
+  .empty { text-align: center; padding: 60px; color: var(--muted); }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  .cat-pill {
+    display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px;
+    letter-spacing: .5px; text-transform: uppercase;
+  }
+  .cat-api_call  { background: rgba(0,212,255,.12); color: var(--cyan); }
+  .cat-key_event { background: rgba(255,181,71,.12); color: var(--amber); }
+  .cat-chat      { background: rgba(0,255,163,.12);  color: var(--green); }
+  .cat-rag       { background: rgba(160,120,255,.12); color: #a870ff; }
+  .cat-backup    { background: rgba(255,77,106,.12);  color: var(--red); }
+  .cat-system    { background: rgba(100,130,150,.12); color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>⬡ SYSTEM LOGS</h1>
+  <span id="live-indicator" style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--green)">
+    <span class="live-dot"></span> LIVE
+  </span>
+  <a href="/">← Back to Dashboard</a>
+</div>
+
+<div class="controls">
+  <select id="filter-level">
+    <option value="">All Levels</option>
+    <option value="INFO">INFO</option>
+    <option value="SUCCESS">SUCCESS</option>
+    <option value="WARN">WARN</option>
+    <option value="ERROR">ERROR</option>
+  </select>
+  <select id="filter-category">
+    <option value="">All Categories</option>
+    <option value="api_call">API Call</option>
+    <option value="key_event">Key Event</option>
+    <option value="chat">Chat</option>
+    <option value="rag">RAG</option>
+    <option value="backup">Backup</option>
+    <option value="system">System</option>
+  </select>
+  <input type="text" id="filter-search" placeholder="Search messages..." style="width:220px"/>
+  <select id="filter-limit">
+    <option value="50">Last 50</option>
+    <option value="100">Last 100</option>
+    <option value="200" selected>Last 200</option>
+    <option value="500">Last 500</option>
+  </select>
+  <button class="btn btn-green" onclick="loadLogs()">⟳ Refresh</button>
+  <button class="btn btn-cyan" onclick="toggleAutoRefresh()" id="auto-btn">▶ Auto (5s)</button>
+  <button class="btn btn-red" onclick="clearLogs()">✕ Clear Logs</button>
+  <a href="/api/backup/export" class="btn btn-cyan" style="text-decoration:none">⬇ Full Backup</a>
+  <a href="/api/history/export" class="btn btn-green" style="text-decoration:none">⬇ Chat History</a>
+  <label class="btn btn-cyan" style="cursor:pointer">
+    ⬆ Import Backup
+    <input type="file" id="import-file" accept=".json" hidden onchange="importBackup(this)"/>
+  </label>
+</div>
+
+<div class="stats-bar" id="stats-bar">
+  <span>Total: <b id="s-total">0</b></span>
+  <span style="color:var(--green)">SUCCESS: <b id="s-success">0</b></span>
+  <span style="color:var(--cyan)">INFO: <b id="s-info">0</b></span>
+  <span style="color:var(--amber)">WARN: <b id="s-warn">0</b></span>
+  <span style="color:var(--red)">ERROR: <b id="s-error">0</b></span>
+</div>
+
+<div class="log-container" id="log-container">
+  <div class="empty">// loading logs...</div>
+</div>
+
+<script>
+const API = 'http://localhost:5000/api';
+let autoTimer = null;
+let autoActive = false;
+
+function catPill(cat) {
+  return `<span class="cat-pill cat-${cat}">${cat.replace('_',' ')}</span>`;
+}
+
+function formatTs(ts) {
+  try {
+    const d = new Date(ts.replace(' ', 'T'));
+    return d.toLocaleTimeString('en-GB', { hour12: false }) + ' ' +
+           d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+  } catch { return ts; }
+}
+
+function formatMeta(meta) {
+  if (!meta || Object.keys(meta).length === 0) return null;
+  return JSON.stringify(meta, null, 2);
+}
+
+async function loadLogs() {
+  const level = document.getElementById('filter-level').value;
+  const cat   = document.getElementById('filter-category').value;
+  const limit = document.getElementById('filter-limit').value;
+  const search = document.getElementById('filter-search').value.toLowerCase();
+
+  let url = `${API}/logs?limit=${limit}`;
+  if (level) url += `&level=${level}`;
+  if (cat)   url += `&category=${cat}`;
+
+  try {
+    const r = await fetch(url);
+    const d = await r.json();
+    if (!d.success) return;
+
+    let logs = d.logs;
+    if (search) logs = logs.filter(l => l.message.toLowerCase().includes(search));
+
+    // Stats
+    document.getElementById('s-total').textContent   = logs.length;
+    document.getElementById('s-success').textContent = logs.filter(l => l.level === 'SUCCESS').length;
+    document.getElementById('s-info').textContent    = logs.filter(l => l.level === 'INFO').length;
+    document.getElementById('s-warn').textContent    = logs.filter(l => l.level === 'WARN').length;
+    document.getElementById('s-error').textContent   = logs.filter(l => l.level === 'ERROR').length;
+
+    const container = document.getElementById('log-container');
+    if (logs.length === 0) {
+      container.innerHTML = '<div class="empty">// no logs found</div>';
+      return;
+    }
+
+    container.innerHTML = logs.map((log, i) => {
+      const meta = formatMeta(log.metadata);
+      const hasMeta = !!meta;
+      return `
+        <div class="log-entry ${log.level}">
+          <span class="log-ts">${formatTs(log.timestamp)}</span>
+          <span class="log-level ${log.level}">${log.level}</span>
+          <span class="log-cat">${catPill(log.category)}</span>
+          <span class="log-msg">${escHtml(log.message)}</span>
+          ${hasMeta ? `<span class="log-meta-toggle" onclick="toggleMeta(${log.id})">[ + meta ]</span>` : '<span></span>'}
+          ${hasMeta ? `<div class="log-meta-panel" id="meta-${log.id}">${escHtml(meta)}</div>` : ''}
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    document.getElementById('log-container').innerHTML =
+      `<div class="empty">// error loading logs: ${e.message}</div>`;
+  }
+}
+
+function toggleMeta(id) {
+  const el = document.getElementById(`meta-${id}`);
+  if (el) el.classList.toggle('open');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function clearLogs() {
+  if (!confirm('Clear all system logs?')) return;
+  await fetch(`${API}/logs`, { method: 'DELETE' });
+  loadLogs();
+}
+
+function toggleAutoRefresh() {
+  autoActive = !autoActive;
+  const btn = document.getElementById('auto-btn');
+  if (autoActive) {
+    btn.textContent = '⏹ Stop Auto';
+    btn.style.background = 'rgba(255,77,106,.15)';
+    btn.style.color = 'var(--red)';
+    autoTimer = setInterval(loadLogs, 5000);
+  } else {
+    btn.textContent = '▶ Auto (5s)';
+    btn.style.background = '';
+    btn.style.color = '';
+    clearInterval(autoTimer);
+  }
+}
+
+async function importBackup(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const form = new FormData();
+  form.append('file', file);
+  try {
+    const r = await fetch(`${API}/backup/import`, { method: 'POST', body: form });
+    const d = await r.json();
+    if (d.success) {
+      alert('Backup restored!\n' + JSON.stringify(d.restored, null, 2));
+      loadLogs();
+    } else {
+      alert('Import failed: ' + d.error);
+    }
+  } catch (e) {
+    alert('Import error: ' + e.message);
+  }
+  input.value = '';
+}
+
+// Add search filter listener
+document.getElementById('filter-search').addEventListener('input', loadLogs);
+['filter-level','filter-category','filter-limit'].forEach(id => {
+  document.getElementById(id).addEventListener('change', loadLogs);
+});
+
+loadLogs();
+</script>
+</body>
+</html>
