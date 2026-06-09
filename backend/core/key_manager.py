@@ -8,6 +8,7 @@ from config import KEYS_PATH, ENCRYPTION_SECRET, COOLING_DOWN_PERIOD
 class KeyManager:
     def __init__(self):
         self.fernet = Fernet(ENCRYPTION_SECRET)
+        self._current_key_index = 0  # round-robin pointer
         self._load_keys()
 
     def _load_keys(self):
@@ -112,20 +113,34 @@ class KeyManager:
 
     def get_active_key_string(self) -> tuple:
         """
-        Finds the first available Active key, decrypts and returns it.
+        Round-robin selection across Active keys.
+        Cycles through all keys so load is spread evenly.
+        Falls back to any Active key if the current index is not Active.
         Returns (key_string, key_id) or (None, None).
         """
         self._refresh_cooldowns()
-        for k in self.keys:
-            if k['status'] == "Active":
-                try:
-                    decrypted_key = self._decrypt(k['key_encrypted'])
-                    return decrypted_key, k['id']
-                except Exception as e:
-                    # If decryption fails, disable the key
-                    print("Decryption failed in get_active_key_string:", e)
-                    k['status'] = "Error"
-                    self._save_keys()
+        active_keys = [k for k in self.keys if k['status'] == "Active"]
+        if not active_keys:
+            return None, None
+
+        # Try to find a working key, up to len(active_keys) attempts
+        for _ in range(len(active_keys)):
+            self._current_key_index = self._current_key_index % len(active_keys)
+            k = active_keys[self._current_key_index]
+            self._current_key_index = (self._current_key_index + 1) % len(active_keys)
+
+            try:
+                decrypted_key = self._decrypt(k['key_encrypted'])
+                return decrypted_key, k['id']
+            except Exception as e:
+                print("Decryption failed in get_active_key_string:", e)
+                k['status'] = "Error"
+                self._save_keys()
+                # Re-evaluate active keys list since we disabled one
+                active_keys = [key for key in self.keys if key['status'] == "Active"]
+                if not active_keys:
+                    break
+
         return None, None
 
     def on_rate_limit_error(self, key_id: str):

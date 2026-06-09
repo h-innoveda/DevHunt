@@ -1,238 +1,166 @@
-# DevHunt — AI Assistant
+# 🌌 DevHunt — Local-First AI Assistant for Developers
 
-> A local-first, self-hosted AI assistant for developers. Built for problem solving, debugging, learning, and answering any question — powered by Google's free Gemini & Gemma models. No subscriptions. No cloud. Runs entirely on your machine.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
+[![Platform: Windows | macOS | Linux](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 
----
+DevHunt is a local-first, self-hosted developer productivity workspace. Designed for absolute privacy, it combines **Streaming Chat**, a **Knowledge Base (RAG)**, **Quest Board (Todo Kanban)**, and a **Learning Path generator** into a single cohesive system powered by free-tier Gemini API keys and local embedding pipelines.
 
-## Why DevHunt?
-
-Most AI tools either cost money or send your data to third-party servers. DevHunt is different — it runs 100% locally, uses Google's free-tier Gemini models, and keeps all your data on your own machine. It's designed for developers who want a serious AI workspace without the SaaS price tag.
-
----
-
-## Features
-
-### Streaming Chat
-Token-by-token responses as the model generates them — no waiting for the full answer. Ask anything: debug errors, explain concepts, write code, or just think out loud.
-
-### Knowledge Base (RAG)
-Upload PDFs, paste URLs to scrape, or write notes. The AI references your documents in answers and cites the source. Build a personal knowledge base that actually talks back.
-
-### Learning Path
-Generate a day-by-day learning roadmap tailored to your goals — built by AI, structured for consistency.
-
-### Quest Board
-Kanban-style task board with AI auto-detection of tasks from chat. Your conversations automatically surface action items — no manual tracking needed.
-
-### Terminal Stats
-Study hours, streaks, consistency score, and skills progress — all tracked locally so you can see how much you're actually learning.
-
-### API Key Manager
-Register multiple Gemini API keys from different Google accounts. When one hits its rate limit, DevHunt automatically rotates to the next available key. No downtime, no manual switching.
-
-### Backup & Restore
-Export everything — chat history, encrypted API keys, profile, settings, and learning path — as a single JSON file. Import it back on any machine.
-
-### System Logs
-Live log viewer with filters by level (INFO / SUCCESS / WARN / ERROR) and category (api_call / key_event / chat / rag / backup).
+No subscriptions. No third-party data tracking. Everything is stored on your machine.
 
 ---
 
-## Tech Stack
+## 🚀 Key Features
 
-| Layer | Technology |
-|---|---|
-| Backend | Python 3.10+, Flask 3.0 |
-| AI SDK | `google-genai` v2.8+ |
-| Models | Gemini 3.1 Flash-Lite (default), Gemini 2.5 Flash (RAG), Gemma 4 26B |
-| Embeddings | `gemini-embedding-2` |
-| Database | SQLite (local, zero-config) |
-| Frontend | Vanilla HTML / CSS / JS — no framework, no build step |
+*   **⚡ Zero-Config Automated Setup**: Run a single command (`run.bat` on Windows or `run.sh` on macOS/Linux) to test Python, configure a virtual environment, auto-install/verify all requirements, and launch the dashboard.
+*   **🔄 Intelligent Key Rotation**: Register multiple Gemini API keys. DevHunt performs round-robin rotation, automatically cooldowns keys that hit 429 rate limits, and bypasses faulty keys seamlessly.
+*   **🧠 Natural Quest Board Integration**: Manage tasks organically in chat. The AI assistant has real-time visibility into your Quest Board and updates, completes, or deletes tasks using LLM action-tag extraction with your permission.
+*   **📚 Personal Knowledge Base (RAG)**: Index notes, PDFs, or scrape URLs. DevHunt performs local similarity matches and feeds document context directly to the LLM with exact source citations.
+*   **📈 Local Analytics**: Track study streaks, consistency charts, log metrics, and model usage rates.
 
 ---
 
-## Free Tier Model Limits
+## 🛠️ System Requirements
 
-| Model | Use Case | RPM | Daily Limit |
-|---|---|---|---|
-| `gemini-3.1-flash-lite` | All regular chat (default) | 15 | 500/day |
-| `gemini-2.5-flash` | RAG queries | 5 | 20/day |
-| `gemma-4-26b-a4b-it` | Heavy reasoning | 15 | 1,500/day |
-| `gemini-embedding-2` | Vector embeddings | 100 | 1,000/day |
+Before setting up DevHunt, ensure your local environment satisfies the following:
 
-Add multiple API keys from different Google accounts — DevHunt automatically rotates them when rate limits are hit.
+### Software Requirements
+*   **OS**: Windows 10/11, macOS Big Sur+, or Ubuntu 20.04+
+*   **Python**: Version `3.10` or higher
+*   **Internet Connection**: Required for initial setup and communicating with the Gemini API.
+*   **Web Browser**: Chrome, Edge, Firefox, or Safari (launcher scripts open your default browser).
 
 ---
 
-## Project Structure
+## 🔌 Setup & Quickstart
+
+DevHunt is designed to require zero manual Python environment configuration.
+
+### The Easiest Way: Automated Launchers
+
+1.  **Clone the Repository**:
+    ```bash
+    git clone https://github.com/hitehsolanki2006/DevHunt.git
+    cd Local-AI
+    ```
+
+2.  **Run the Launcher**:
+    *   **Windows**: Double-click `run.bat` or run:
+        ```cmd
+        run.bat
+        ```
+    *   **macOS / Linux**: Set execute permissions and run:
+        ```bash
+        chmod +x run.sh
+        ./run.sh
+        ```
+
+    > [!NOTE]
+    > **What the Launcher Does:**
+    > 1. Checks if Python 3.10+ is installed and present in your system PATH.
+    > 2. Auto-creates a virtual environment (`backend/venv`) if not found.
+    > 3. Installs and upgrades all required modules from `backend/requirements.txt`.
+    > 4. *Pip Upgrade Fail-safe*: If a dependency installation fails, it asks if you'd like to update pip. If confirmed, it upgrades pip and automatically retries package setup.
+    > 5. Launches the Flask backend server and automatically opens DevHunt in your default browser.
+
+3.  **Register your Gemini API Key**:
+    *   Get a free key from the [Google AI Studio Console](https://aistudio.google.com/app/apikey).
+    *   Open the DevHunt dashboard at `http://localhost:5000`.
+    *   Navigate to **Settings & Nodes** in the sidebar, paste your key, and click **+ Register Key**.
+
+### Manual Installation (Optional fallback)
+
+If you prefer to set up your environment manually:
+```bash
+# 1. Navigate to backend and setup venv
+cd backend
+python -m venv venv
+
+# 2. Activate venv & install dependencies
+# On Windows:
+venv\Scripts\activate
+pip install -r requirements.txt
+# On macOS/Linux:
+source venv/bin/activate
+pip install -r requirements.txt
+
+# 3. Launch the server
+python app.py
+```
+
+---
+
+## 📁 Repository Structure
 
 ```
 Local-AI/
 ├── backend/
-│   ├── app.py                # Flask API server — all endpoints
-│   ├── config.py             # Paths, constants, encryption setup
-│   ├── requirements.txt      # Python dependencies
-│   ├── core/
-│   │   ├── chat_engine.py    # Chat + streaming response logic
-│   │   ├── rag_pipeline.py   # PDF/URL/note indexing + similarity search
-│   │   ├── key_manager.py    # API key rotation, cooldown, encryption
-│   │   ├── model_selector.py # Picks the right model per query type
-│   │   ├── learning_path.py  # AI-generated roadmap logic
-│   │   ├── todo_manager.py   # Quest board CRUD
-│   │   ├── profile_manager.py# User profile & settings
-│   │   ├── analytics.py      # Study stats & skills matrix
-│   │   ├── intent_detector.py# Detects task intent from chat messages
-│   │   ├── logger.py         # System log writer/reader
-│   │   └── db.py             # SQLite init & connection helper
-│   └── data/
-│       ├── devhunt.db        # SQLite database (auto-created)
-│       ├── keys.json         # Encrypted API keys (auto-created)
-│       ├── profile.json      # User profile (auto-created)
-│       ├── settings.json     # App settings (auto-created)
-│       └── learning_path.json# Current roadmap (auto-created)
+│   ├── app.py                # Flask API application entry point
+│   ├── config.py             # App paths, settings constants, and AES secrets
+│   ├── requirements.txt      # Python modules list
+│   └── core/
+│       ├── chat_engine.py    # SSE stream generation & tag extraction logic
+│       ├── rag_pipeline.py   # Vector ingestion, URLs parser, & DB matching
+│       ├── key_manager.py    # Stateful round-robin API key rotation
+│       ├── todo_manager.py   # SQLite CRUD operations for Quest board
+│       ├── learning_path.py  # AI roadmap compilation
+│       └── db.py             # SQLite connection pools & schema setup
 ├── frontend/
-│   ├── index.html            # Main dashboard
-│   ├── logs.html             # System logs page
-│   ├── app.js                # All frontend logic
-│   └── styles.css            # Dark theme UI
-├── run.bat                   # Windows launcher — starts server + opens browser
-├── run.sh                    # Linux/macOS launcher
+│   ├── index.html            # Core user interface
+│   ├── logs.html             # System logs debugger dashboard
+│   ├── app.js                # SSE receivers, state handlers, & rendering
+│   └── styles.css            # Custom CSS themes & glassmorphism styling
+├── run.bat                   # Automated Windows launcher
+├── run.sh                    # Automated macOS/Linux launcher
 └── README.md
 ```
 
 ---
 
-## Setup
+## 📡 Core API Reference
 
-### Prerequisites
+### Chat & Streams
+*   `POST /api/chat/stream`: Initiates an SSE token stream for user messages, returning real-time response chunks and Quest Board status updates.
+*   `GET /api/chat/history`: Retrieves chat session database records.
+*   `DELETE /api/chat/history`: Clears session history from the database.
 
-- Python 3.10 or higher
-- A Google Gemini API key (free) — get one at [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
-
-### 1. Clone the repo
-
-```bash
-git clone <your-repo-url>
-cd Local-AI
-```
-
-### 2. Create virtual environment and install dependencies
-
-```bash
-cd backend
-python -m venv venv
-```
-
-**Windows:**
-```cmd
-venv\Scripts\pip install -r requirements.txt
-```
-
-**Linux / macOS:**
-```bash
-venv/bin/pip install -r requirements.txt
-```
-
-### 3. Run the app
-
-**Windows — double-click `run.bat`** or from terminal:
-```cmd
-run.bat
-```
-
-**Linux / macOS:**
-```bash
-bash run.sh
-```
-
-**Manual start:**
-```bash
-# Windows
-cd backend && venv\Scripts\python app.py
-
-# Linux/macOS
-cd backend && venv/bin/python app.py
-```
-
-The server starts at **http://localhost:5000** — the launcher scripts automatically open your browser.
-
-### 4. Add your API key
-
-1. Open **http://localhost:5000**
-2. Go to **Settings & Nodes** in the sidebar
-3. Paste your Gemini API key and click **+ Register Key**
+### Key Management
+*   `GET /api/keys`: Lists registered keys (masked).
+*   `POST /api/keys`: Encrypts and saves a new Gemini API key.
+*   `DELETE /api/keys/<id>`: Deletes a key from storage.
+*   `POST /api/keys/<id>/test`: Live test connection to Gemini API.
 
 ---
 
-## API Reference
+## 🤝 How to Contribute
 
-### Chat
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/api/chat` | Send message, get full response |
-| POST | `/api/chat/stream` | Send message, stream tokens (SSE) |
-| GET | `/api/chat/history` | Get chat history for a session |
-| DELETE | `/api/chat/history` | Clear chat history for a session |
+We welcome contributions of all forms: bug fixes, UI enhancements, features, and documentation updates.
 
-### Keys
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/keys` | List all registered keys |
-| POST | `/api/keys` | Add a new key |
-| PUT | `/api/keys/<id>` | Enable or disable a key |
-| DELETE | `/api/keys/<id>` | Remove a key |
-| POST | `/api/keys/<id>/test` | Live-test a specific key |
+### Development Workflow
 
-### Backup
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/backup/export` | Download full backup JSON |
-| POST | `/api/backup/import` | Upload and restore a backup |
-| GET | `/api/history/export` | Download chat history JSON |
-
-### System
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/logs` | Get system logs |
-| DELETE | `/api/logs` | Clear system logs |
-| POST | `/api/reset` | Reset all data (irreversible) |
+1.  **Fork the Repo** and create a feature branch:
+    ```bash
+    git checkout -b feature/amazing-new-feature
+    ```
+2.  **Backend Rules**:
+    *   Keep modules inside `backend/core/` structured and single-purpose.
+    *   Maintain clean SQLite transactions and close connections correctly inside helper functions.
+3.  **Frontend Rules**:
+    *   Keep styling inside `frontend/styles.css` clean, clean variables, and ensure responsive design.
+    *   Handle asynchronous state changes gracefully in `frontend/app.js`.
+4.  **Open a Pull Request**: Submit your changes to the main repository for review.
 
 ---
 
-## Notes
+## 📄 License
 
-- No `.env` file needed. The encryption key for API key storage is auto-generated on first run and saved to `backend/data/.secret`. Keep this file if you want to restore encrypted key backups.
-- All data stays local — nothing leaves your machine except the API calls to Google.
-- The `data/` folder contains your database and settings. Back it up to preserve your history.
+DevHunt is open-source software released under the [MIT License](LICENSE).
 
 ---
 
-## Contribute
-
-DevHunt is open for collaboration. If you're a developer who cares about privacy-first tooling, local AI, or just building useful things — you're welcome here.
-
-**Ways to contribute:**
-- Fix bugs or improve existing features
-- Add new integrations (models, document types, exporters)
-- Improve the frontend UI/UX
-- Write tests or improve documentation
-- Share feedback, ideas, or feature requests via Issues
-
-To get started, fork the repo, make your changes, and open a pull request. For larger features, open an Issue first to discuss the direction.
-
-All skill levels welcome — whether you're fixing a typo or building a new module.
-
----
-
-## License
-
-MIT — free to use, modify, and distribute.
-
----
-
-## Created By
+## 👥 Created By
 
 **Hitesh Solanki**
-- Website: [hiteshsolanki.in](https://hiteshsolanki.in)
-- Email: solankihiteshpankajbhai7@gmail.com
-- Mobile: +91 9327810431
+*   **Website**: [hiteshsolanki.in](https://hiteshsolanki.in)
+*   **Email**: solankihiteshpankajbhai7@gmail.com
+*   **Mobile**: +91 9327810431

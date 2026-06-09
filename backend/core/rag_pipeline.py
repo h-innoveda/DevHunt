@@ -221,7 +221,7 @@ class RAGPipeline:
                 pass
                 
         cursor.execute("DELETE FROM knowledge_sources WHERE id = ?", (source_id,))
-        cursor.execute("DELETE FROM knowledge_chunks WHERE id = ?", (source_id,)) # cascade delete chunk embeddings
+        cursor.execute("DELETE FROM knowledge_chunks WHERE source_id = ?", (source_id,)) # cascade delete chunk embeddings
         conn.commit()
         conn.close()
         return True

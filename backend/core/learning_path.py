@@ -224,6 +224,8 @@ class LearningPath:
             # Try to build from profile if profile exists
             from core.profile_manager import ProfileManager
             profile = ProfileManager.get_profile()
+            if not self.key_manager:
+                return self._get_fallback_path(profile.get("goal"), profile.get("target_skills", []))
             return self.generate_initial_path(
                 profile.get("name"),
                 profile.get("goal"),

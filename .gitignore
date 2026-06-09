@@ -1,0 +1,21 @@
+# Virtual Environment
+venv/
+backend/venv/
+.env
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+backend/__pycache__/
+backend/core/__pycache__/
+
+# Local SQLite & User Configurations (DevHunt Personal Data)
+backend/data/*.db
+backend/data/*.json
+backend/data/.secret
+
+# Logs & Temporary Files
+*.log
+/tmp/
+backend/data/*.log

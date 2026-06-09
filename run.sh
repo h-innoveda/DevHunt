@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$SCRIPT_DIR/backend"
@@ -16,11 +15,44 @@ echo "  Mobile     : +91 9327810431"
 echo "  ----------------------------------------"
 echo ""
 
-# Check venv
-if [ ! -f "$BACKEND_DIR/venv/bin/python" ]; then
-    echo "[ERROR] Virtual environment not found."
-    echo "Run: cd backend && python3 -m venv venv && venv/bin/pip install -r requirements.txt"
+# 1. Check Python version and installation
+if ! command -v python3 &> /dev/null && ! command -v python &> /dev/null; then
+    echo "[ERROR] Python is not installed. Please install Python 3 and try again."
     exit 1
+fi
+
+PYTHON_CMD="python3"
+if ! command -v python3 &> /dev/null; then
+    PYTHON_CMD="python"
+fi
+
+# 2. Check if virtual environment exists, if not create it
+if [ ! -d "$BACKEND_DIR/venv" ]; then
+    echo "[INFO] Creating Python virtual environment..."
+    $PYTHON_CMD -m venv "$BACKEND_DIR/venv"
+    if [ $? -ne 0 ]; then
+        echo "[ERROR] Failed to create virtual environment."
+        exit 1
+    fi
+fi
+
+# 3. Install required libraries
+echo "[INFO] Installing required libraries from requirements.txt..."
+if ! "$BACKEND_DIR/venv/bin/pip" install -r "$BACKEND_DIR/requirements.txt"; then
+    echo ""
+    echo "[WARN] Dependency installation failed. This might be a pip version issue."
+    read -p "May I update pip? (Y/N): " choice
+    if [[ "$choice" =~ ^[Yy]$ ]]; then
+        echo "[INFO] Updating pip..."
+        "$BACKEND_DIR/venv/bin/python" -m pip install --upgrade pip
+        echo "[INFO] Retrying dependency installation..."
+        if ! "$BACKEND_DIR/venv/bin/pip" install -r "$BACKEND_DIR/requirements.txt"; then
+            echo "[ERROR] Dependency installation failed again. Please check your internet connection or package compatibility."
+            exit 1
+        fi
+    else
+        echo "[WARN] Skipping pip update. Trying to run the code anyway..."
+    fi
 fi
 
 cd "$BACKEND_DIR"

@@ -281,6 +281,40 @@ async function sendChatMessage(){
             }
             body += md(cleanResponse);
 
+            if (data.todo_detected) {
+              const td = data.todo_detected;
+              if (td.action === 'add') {
+                body += `<div class="callout" style="border-left-color: var(--cyan); background: rgba(0, 212, 255, 0.08); color: #ffd99a; margin-top: 12px;">
+                  <div class="callout-title" style="color: var(--cyan);">✦ QUEST AUTO-ADDED</div>
+                  Quest <b>${td.todo.title}</b> has been added to your Quest Board (${td.todo.priority} priority).
+                </div>`;
+              } else if (td.action === 'complete') {
+                body += `<div class="callout" style="border-left-color: var(--green); background: rgba(0, 255, 163, 0.08); color: #ffd99a; margin-top: 12px;">
+                  <div class="callout-title" style="color: var(--green);">✦ QUEST COMPLETED</div>
+                  Quest <b>${td.todo.title}</b> has been marked completed.
+                </div>`;
+              } else if (td.action === 'delete') {
+                body += `<div class="callout" style="border-left-color: #ff3e3e; background: rgba(255, 62, 62, 0.08); color: #ffd99a; margin-top: 12px;">
+                  <div class="callout-title" style="color: #ff3e3e;">✦ QUEST REMOVED</div>
+                  Quest <b>${td.todo.title}</b> has been removed from your Quest Board.
+                </div>`;
+              } else if (td.action === 'multi') {
+                body += `<div class="callout" style="border-left-color: var(--cyan); background: rgba(0, 212, 255, 0.08); color: #ffd99a; margin-top: 12px;">
+                  <div class="callout-title" style="color: var(--cyan);">✦ QUEST BOARD UPDATES</div>
+                  <ul style="margin: 4px 0 0 16px; padding: 0; list-style-type: disc;">`;
+                td.items.forEach(item => {
+                  if (item.action === 'add') {
+                    body += `<li style="margin-bottom: 2px;">Added: <b>${item.todo.title}</b> (${item.todo.priority} priority)</li>`;
+                  } else if (item.action === 'complete') {
+                    body += `<li style="margin-bottom: 2px;">Completed: <b>${item.todo.title}</b></li>`;
+                  } else if (item.action === 'delete') {
+                    body += `<li style="margin-bottom: 2px;">Removed: <b>${item.todo.title}</b></li>`;
+                  }
+                });
+                body += `</ul></div>`;
+              }
+            }
+
             const keyStr = data.key_used || 'None';
             const modelStr = data.model_used || 'Gemini';
             const citationsHtml = (data.citations || []).map(c =>
@@ -296,6 +330,9 @@ async function sendChatMessage(){
 
             loadRoadmap();
             loadActiveStateHeader();
+            if (data.todo_detected) {
+              loadTodos();
+            }
 
           } else if (data.type === 'error') {
             aiDiv.innerHTML = `⚠️ **Error transmitting query**: ${data.error}`;

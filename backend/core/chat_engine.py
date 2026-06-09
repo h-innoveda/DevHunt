@@ -27,31 +27,7 @@ class ChatEngine:
                 pass
         return False
 
-    def send_message(self, session_id: str, user_message: str, model_override: str = None) -> dict:
-        # 1. Fetch relevant content from RAG
-        rag_results = self.rag_pipeline.search_similarity(user_message, top_k=3)
-        has_rag = len(rag_results) > 0 and any(r['similarity'] > 0.45 for r in rag_results)
-        active_rag_docs = [r for r in rag_results if r['similarity'] > 0.45]
-
-        # 2. Classify query / select model
-        model_name = model_override
-        if not model_name:
-            model_name = classify_query(user_message, has_rag_docs=len(active_rag_docs) > 0)
-
-        # 3. Retrieve session history from DB
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            """SELECT role, content FROM messages
-               WHERE session_id = ?
-               ORDER BY timestamp DESC LIMIT 10""",
-            (session_id,)
-        )
-        history_rows = cursor.fetchall()
-        conn.close()
-        history = list(reversed(history_rows))
-
-        # 4. Construct System Instruction
+    def _build_system_instruction(self, user_message: str, active_rag_docs: list) -> str:
         system_instruction = (
             "You are DevHunt AI, a smart personal assistant that helps with problem solving, debugging, learning, and answering questions on any topic.\n"
             "You provide clear, structured, and example-rich answers. Always use clear headings, "
@@ -66,7 +42,7 @@ class ChatEngine:
                 "If it did, output a brief, polite correction and suggested phrasing in a blockquote format, "
                 "wrapped in italics. For example:\n"
                 "> *Grammar Tip: 'I needs learn Docker' -> 'I need to learn Docker' (Suggested: 'I want to study Docker today')*\n"
-                "Then proceed to answer their question normally. If there are no mistakes, do not include any grammar tip."
+                "Then proceed to answer their question normally. If there are no mistakes, do not include any grammar tip.\n"
             )
 
         if active_rag_docs:
@@ -79,6 +55,159 @@ class ChatEngine:
                 source_name = doc['metadata'].get('source_name', 'Unknown Source')
                 source_type = doc['metadata'].get('source_type', 'Note')
                 system_instruction += f"--- Source: {source_name} ({source_type}) ---\n{doc['content']}\n\n"
+
+        # Fetch active todos to inject into system prompt
+        try:
+            pending_todos = TodoManager.get_todos(status_filter="pending")
+            if pending_todos:
+                todos_context = "\n[User's Active Quests / To-Do List (Quest Board)]:\n" + "\n".join(
+                    f"- {t['title']} (Priority: {t['priority']})"
+                    for t in pending_todos
+                )
+                system_instruction += todos_context + "\n"
+        except Exception as e:
+            print(f"Error fetching todos for system instruction: {e}")
+
+        # Add instructions for managing the todo list
+        system_instruction += (
+            "\n[Quest Board Integration]\n"
+            "You can manage the user's Quest Board / To-Do list directly based on the conversation.\n"
+            "CRITICAL RULES FOR TASKS:\n"
+            "1. ONLY output action tags if the user's LATEST message explicitly commands or authorizes you to do so (e.g., 'add this', 'yes, go ahead and add it', 'please add X', 'mark Y done', 'remove Z', 'delete this task').\n"
+            "2. If you realize or suggest that a task should be added, but the user has not explicitly commanded it yet, do NOT output any tags. Instead, ask the user for permission (e.g., 'Would you like me to add this to your Quest Board?') and wait for their explicit approval in the next message before adding it.\n"
+            "3. Do NOT output tags if the user is merely asking a question, discussing history, or greeting you. Only modify tasks if they explicitly instruct or allow you to do so in the current turn.\n"
+            "4. Do NOT explain or display the raw action tags to the user; write them quietly at the very end.\n\n"
+            "Tag formats:\n"
+            "For adding a task (only when explicitly authorized in the latest message):\n"
+            "[TODO_ADD: Title | Priority (high/medium/low) | Description]\n"
+            "For completing a task (only when explicitly authorized in the latest message):\n"
+            "[TODO_COMPLETE: Title]\n"
+            "For deleting/removing a task (only when explicitly authorized in the latest message):\n"
+            "[TODO_DELETE: Title]\n\n"
+            "Examples:\n"
+            "- User: 'Add Docker to my quest list' -> append [TODO_ADD: ...]\n"
+            "- User: 'Remove the countdown post task' -> append [TODO_DELETE: countdown post]\n"
+            "- User: 'I need to study Python. Can you suggest tasks?' -> Suggest tasks and ask: 'Would you like me to add these tasks to your Quest Board?' (Do NOT append any tags yet! Wait for permission.)\n"
+            "- User: 'Yes, add them' (in response to suggestion) -> append [TODO_ADD: ...]\n"
+            "- User: 'Do you remember we discussed the summit?' -> Do NOT append any tags."
+        )
+
+        return system_instruction
+
+    def _process_todo_tags(self, text: str) -> tuple:
+        """
+        Parses [TODO_ADD: ...], [TODO_COMPLETE: ...], and [TODO_DELETE: ...] tags from the model's text,
+        executes the todo actions, strips the tags from the text, and returns (clean_text, todo_detected).
+        """
+        if not text:
+            return text, None
+
+        import re
+        todo_actions = []
+        
+        # Regex to find [TODO_ADD: Title | Priority | Description]
+        add_pattern = r"\[TODO_ADD:\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\]"
+        # Regex to find [TODO_COMPLETE: Title]
+        complete_pattern = r"\[TODO_COMPLETE:\s*(.*?)\s*\]"
+        # Regex to find [TODO_DELETE: Title]
+        delete_pattern = r"\[TODO_DELETE:\s*(.*?)\s*\]"
+
+        # Find all ADD actions
+        adds = re.findall(add_pattern, text)
+        for title, priority, desc in adds:
+            if not title.strip():
+                continue
+            priority = priority.strip().lower()
+            if priority not in ['high', 'medium', 'low']:
+                priority = 'medium'
+            
+            # Check if this task was already added to prevent duplicates
+            existing = TodoManager.get_todos(status_filter="pending")
+            duplicate = False
+            for t in existing:
+                if t['title'].lower() == title.strip().lower():
+                    duplicate = True
+                    break
+            
+            if not duplicate:
+                new_todo = TodoManager.create_todo(
+                    title=title.strip(),
+                    priority=priority,
+                    source="ai_detected",
+                    description=desc.strip() or f"Auto-added from chat."
+                )
+                todo_actions.append({"action": "add", "todo": new_todo})
+
+        # Find all COMPLETE actions
+        completes = re.findall(complete_pattern, text)
+        for title in completes:
+            if not title.strip():
+                continue
+            todos = TodoManager.get_todos(status_filter="pending")
+            completed_todo = None
+            for todo in todos:
+                if title.strip().lower() in todo['title'].lower() or todo['title'].lower() in title.strip().lower():
+                    TodoManager.complete_todo(todo['id'])
+                    completed_todo = todo
+                    break
+            if completed_todo:
+                todo_actions.append({"action": "complete", "todo": completed_todo})
+
+        # Find all DELETE actions
+        deletes = re.findall(delete_pattern, text)
+        for title in deletes:
+            if not title.strip():
+                continue
+            todos = TodoManager.get_todos() # get all, pending or completed
+            deleted_todo = None
+            for todo in todos:
+                if title.strip().lower() in todo['title'].lower() or todo['title'].lower() in title.strip().lower():
+                    TodoManager.delete_todo(todo['id'])
+                    deleted_todo = todo
+                    break
+            if deleted_todo:
+                todo_actions.append({"action": "delete", "todo": deleted_todo})
+
+        # Clean text by removing tag lines
+        clean_text = re.sub(r"\[TODO_ADD:.*?\]\n?", "", text)
+        clean_text = re.sub(r"\[TODO_COMPLETE:.*?\]\n?", "", clean_text)
+        clean_text = re.sub(r"\[TODO_DELETE:.*?\]\n?", "", clean_text).strip()
+
+        # Build todo_detected output
+        todo_detected = None
+        if len(todo_actions) == 1:
+            todo_detected = todo_actions[0]
+        elif len(todo_actions) > 1:
+            todo_detected = {"action": "multi", "items": todo_actions}
+
+        return clean_text, todo_detected
+
+    def send_message(self, session_id: str, user_message: str, model_override: str = None) -> dict:
+        # 1. Fetch relevant content from RAG
+        rag_results = self.rag_pipeline.search_similarity(user_message, top_k=3)
+        has_rag = len(rag_results) > 0 and any(r['similarity'] > 0.45 for r in rag_results)
+        active_rag_docs = [r for r in rag_results if r['similarity'] > 0.45]
+
+        # 2. Classify query / select model
+        model_name = model_override
+        if not model_name:
+            model_name = classify_query(user_message, has_rag_docs=len(active_rag_docs) > 0)
+
+        # 3. Retrieve session history from DB (longer limit for better history understanding)
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """SELECT role, content FROM messages
+               WHERE session_id = ?
+               ORDER BY timestamp DESC LIMIT 40""",
+            (session_id,)
+        )
+        history_rows = cursor.fetchall()
+        conn.close()
+        history = list(reversed(history_rows))
+
+        # 4. Construct System Instruction
+        system_instruction = self._build_system_instruction(user_message, active_rag_docs)
 
         # 5. Key rotation retry loop
         all_keys = self.key_manager.get_keys_list()
@@ -161,26 +290,7 @@ class ChatEngine:
             }
 
         # 6. Intent Detection & Auto-Todo
-        todo_detected = None
-        intent = IntentDetector.detect_todo_intent(user_message)
-        if intent['intent'] == 'add':
-            new_todo = TodoManager.create_todo(
-                title=intent['task_title'],
-                priority=intent['priority'],
-                source="ai_detected",
-                description=f"Auto-added from chat session topic: {user_message[:50]}..."
-            )
-            todo_detected = {"action": "add", "todo": new_todo}
-        elif intent['intent'] == 'complete':
-            todos = TodoManager.get_todos(status_filter="pending")
-            completed_todo = None
-            for todo in todos:
-                if intent['task_title'].lower() in todo['title'].lower() or todo['title'].lower() in intent['task_title'].lower():
-                    TodoManager.complete_todo(todo['id'])
-                    completed_todo = todo
-                    break
-            if completed_todo:
-                todo_detected = {"action": "complete", "todo": completed_todo}
+        response_text, todo_detected = self._process_todo_tags(response_text)
 
         # 7. Log to SQLite
         conn = get_db_connection()
@@ -237,60 +347,108 @@ class ChatEngine:
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT role, content FROM messages WHERE session_id = ? ORDER BY timestamp DESC LIMIT 10",
+            "SELECT role, content FROM messages WHERE session_id = ? ORDER BY timestamp DESC LIMIT 40",
             (session_id,)
         )
         history = list(reversed(cursor.fetchall()))
         conn.close()
 
         # System prompt
-        system_instruction = (
-            "You are DevHunt AI, a smart personal assistant that helps with problem solving, debugging, learning, and answering questions on any topic.\n"
-            "You provide clear, structured, and example-rich answers. Always use clear headings, "
-            "bullet points, and code blocks where appropriate.\n"
-        )
-        if self._get_english_mode():
-            system_instruction += (
-                "\n[Grammar Correction ENABLED] Start with a grammar tip blockquote if the user made mistakes, "
-                "then answer normally.\n"
-            )
-        if active_rag_docs:
-            system_instruction += "\n[Knowledge Base Context]\n"
-            for doc in active_rag_docs:
-                system_instruction += f"--- {doc['metadata'].get('source_name')} ---\n{doc['content']}\n\n"
+        system_instruction = self._build_system_instruction(user_message, active_rag_docs)
 
-        # Get key
-        api_key, key_id = self.key_manager.get_active_key_string()
-        if not api_key:
-            yield {"type": "error", "error": "No active API key. Add a Gemini key in Settings."}
+        # 5. Key rotation retry loop for stream
+        all_keys = self.key_manager.get_keys_list()
+        max_attempts = max(3, len(all_keys))
+        
+        full_response = ""
+        key_id = None
+        used_key_masked = "None"
+        tag_buffer = ""
+        in_tag = False
+
+        for attempt in range(max_attempts):
+            api_key, key_id = self.key_manager.get_active_key_string()
+            if not api_key:
+                yield {"type": "error", "error": "No active API key. Add a Gemini key in Settings."}
+                return
+
+            used_key_masked = next((k['masked_key'] for k in all_keys if k['id'] == key_id), "None")
+
+            try:
+                client = genai.Client(api_key=api_key)
+
+                contents = []
+                for msg in history:
+                    role = "user" if msg['role'] == "user" else "model"
+                    contents.append(types.Content(role=role, parts=[types.Part(text=msg['content'])]))
+                contents.append(types.Content(role="user", parts=[types.Part(text=user_message)]))
+
+                response_stream = client.models.generate_content_stream(
+                    model=model_name,
+                    contents=contents,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system_instruction,
+                        temperature=0.3,
+                    )
+                )
+
+                tag_buffer = ""
+                in_tag = False
+                full_response = ""
+
+                for chunk in response_stream:
+                    if chunk.text:
+                        text = chunk.text
+                        if in_tag:
+                            tag_buffer += text
+                        else:
+                            if "[" in text:
+                                parts = text.split("[", 1)
+                                if parts[0]:
+                                    full_response += parts[0]
+                                    yield {"type": "token", "text": parts[0]}
+                                tag_buffer = "[" + parts[1]
+                                in_tag = True
+                            else:
+                                full_response += text
+                                yield {"type": "token", "text": text}
+
+                # Success, break retry loop
+                break
+
+            except Exception as e:
+                err_str = str(e)
+                print(f"ChatEngine Stream Exception: {type(e).__name__} - {err_str}")
+                if "429" in err_str or "ResourceExhausted" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                    self.key_manager.on_rate_limit_error(key_id)
+                else:
+                    self.key_manager.on_other_error(key_id)
+
+                # If we've already streamed some text to the user, we cannot restart cleanly.
+                # In that case, or if this was the last attempt, yield the error and abort.
+                if len(full_response) > 0 or attempt == max_attempts - 1:
+                    yield {"type": "error", "error": f"API Error: {err_str[:200]}"}
+                    return
+
+        # If loop completed without full_response, tag_buffer and no error yielded
+        if not (full_response or tag_buffer):
+            yield {"type": "error", "error": "All API keys are exhausted or on cooldown. Please try again in 60 seconds."}
             return
 
-        all_keys = self.key_manager.get_keys_list()
-        used_key_masked = next((k['masked_key'] for k in all_keys if k['id'] == key_id), "None")
-
         try:
-            client = genai.Client(api_key=api_key)
-
-            contents = []
-            for msg in history:
-                role = "user" if msg['role'] == "user" else "model"
-                contents.append(types.Content(role=role, parts=[types.Part(text=msg['content'])]))
-            contents.append(types.Content(role="user", parts=[types.Part(text=user_message)]))
-
-            full_response = ""
-            for chunk in client.models.generate_content_stream(
-                model=model_name,
-                contents=contents,
-                config=types.GenerateContentConfig(
-                    system_instruction=system_instruction,
-                    temperature=0.3,
-                )
-            ):
-                if chunk.text:
-                    full_response += chunk.text
-                    yield {"type": "token", "text": chunk.text}
-
             self.key_manager.on_success(key_id)
+
+            # Process any buffered tag content
+            todo_detected = None
+            if tag_buffer:
+                clean_buffer, todo_detected = self._process_todo_tags(tag_buffer)
+                if todo_detected:
+                    if clean_buffer:
+                        full_response += clean_buffer
+                        yield {"type": "token", "text": clean_buffer}
+                else:
+                    full_response += tag_buffer
+                    yield {"type": "token", "text": tag_buffer}
 
             # Save to DB
             conn = get_db_connection()
@@ -316,15 +474,10 @@ class ChatEngine:
                 for d in active_rag_docs
             ]
 
-            yield {"type": "done", "model_used": model_name, "key_used": used_key_masked, "citations": citations}
+            yield {"type": "done", "model_used": model_name, "key_used": used_key_masked, "citations": citations, "todo_detected": todo_detected}
 
         except Exception as e:
-            err_str = str(e)
-            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
-                self.key_manager.on_rate_limit_error(key_id)
-            else:
-                self.key_manager.on_other_error(key_id)
-            yield {"type": "error", "error": f"API Error: {err_str[:200]}"}
+            yield {"type": "error", "error": f"Post-processing Error: {str(e)[:200]}"}
 
     def get_history(self, session_id: str) -> list:
         conn = get_db_connection()

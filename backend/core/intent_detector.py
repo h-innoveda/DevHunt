@@ -2,8 +2,12 @@ import re
 
 class IntentDetector:
     ADD_PATTERNS = [
-        r"(?:add|put)\s+(.+?)\s+(?:to|on)\s+(?:my\s+)?(?:todo|list|tasks)",
-        r"(?:remind\s+me\s+to|don't\s+forget\s+to|i\s+need\s+to\s+study|i\s+should\s+learn|i\s+want\s+to\s+learn|need\s+to\s+practice)\s+(.+)",
+        # Pattern 1: Match add/put/create/save/new followed by the task, optionally ending with "to my todo/list/tasks/etc"
+        r"\b(?:add|put|create|save|new)\s+(?:a\s+)?(.+?)(?:\s+(?:to|on)\s+(?:my\s+)?(?:todo|list|tasks|board|quests))?$",
+        # Pattern 2a: Match with explicit prefix anywhere in message
+        r"\b(?:remind\s+me\s+to|don't\s+forget\s+to|i\s+want\s+to|i\s+need\s+to|i\s+should|want\s+to|need\s+to|should|forget\s+to)\s+(learn|study|practice|read|check|review|master|understand|look\s+into)\s+(.+)$",
+        # Pattern 2b: Match starting directly with the verb at the beginning of the message
+        r"^(?:hey\s+|hi\s+|please\s+)?(?:learn|study|practice|read|check|review|master|understand|look\s+into)\s+(.+)$",
     ]
 
     COMPLETE_PATTERNS = [
@@ -23,7 +27,24 @@ class IntentDetector:
         for pattern in cls.ADD_PATTERNS:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
-                task = match.group(1).strip()
+                # If we captured a verb and a topic (Pattern 2a has 2 groups)
+                if len(match.groups()) >= 2 and match.group(1) and match.group(2):
+                    verb = match.group(1).strip().capitalize()
+                    topic = match.group(2).strip()
+                    task = f"{verb} {topic}"
+                elif pattern.startswith("^(?:hey"):
+                    # Pattern 2b captures the topic, but we know the verb from search.
+                    # Let's extract the actual matched verb from the text.
+                    matched_verb = "Learn"
+                    for v in ["learn", "study", "practice", "read", "check", "review", "master", "understand", "look into"]:
+                        if re.search(r"\b" + v + r"\b", text, re.IGNORECASE):
+                            matched_verb = v.capitalize()
+                            break
+                    topic = match.group(1).strip()
+                    task = f"{matched_verb} {topic}"
+                else:
+                    task = match.group(1).strip()
+                
                 # Clean up punctuation at the end
                 task = re.sub(r"[.!?]+$", "", task)
                 
@@ -67,3 +88,4 @@ class IntentDetector:
             "intent": "none",
             "task_title": None
         }
+
