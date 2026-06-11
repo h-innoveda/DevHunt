@@ -17,6 +17,7 @@ from core.profile_manager import ProfileManager
 from core.analytics import Analytics
 from core import logger
 from core.terminal_engine import TerminalEngine
+from core.update_manager import UpdateManager
 
 app = Flask(__name__, static_folder='../frontend', static_url_path='')
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -615,6 +616,25 @@ def reset_everything():
         ProfileManager.update_settings({"english_correction": False, "selected_model": "auto"})
         logger.info("system", "Full reset performed by user")
         return jsonify({"success": True, "message": "All data cleared"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+# ── UPDATES ───────────────────────────────────────────────────────────────────
+@app.route('/api/updates/check', methods=['GET'])
+def check_updates_endpoint():
+    try:
+        result = UpdateManager.check_for_updates()
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/updates/apply', methods=['POST'])
+def apply_updates_endpoint():
+    try:
+        result = UpdateManager.apply_update()
+        return jsonify(result)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 

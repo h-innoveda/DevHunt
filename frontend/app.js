@@ -104,7 +104,10 @@ function switchPanel(panelId) {
     loadProfileAndSettings();
     loadAnalytics();
   }
-  if (panelId === 'settings') loadKeys();
+  if (panelId === 'settings') {
+    loadKeys();
+    checkUpdates();
+  }
 }
 
 navItems.forEach(item => {
@@ -1202,6 +1205,8 @@ window.addEventListener('DOMContentLoaded', () => {
   loadSources();
   loadAnalytics();
   loadKeys();
+  // Check updates in background on load
+  checkUpdates();
 });
 
 
@@ -1574,3 +1579,148 @@ function mdEscape(src) {
   if (!src) return "";
   return src.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
+
+/* ========== Auto-Update Checker ========== */
+let latestUpdateInfo = null;
+
+async function checkUpdates(isManual = false) {
+  const statusText = document.getElementById('update-status-text');
+  const versionText = document.getElementById('update-version-text');
+  const badge = document.getElementById('header-update-badge');
+  const applyBtn = document.getElementById('apply-update-btn');
+  const detailsBox = document.getElementById('update-details-box');
+  const commitsList = document.getElementById('update-commits-list');
+  const modalCommitsList = document.getElementById('modal-update-commits-list');
+
+  if (isManual && statusText) {
+    statusText.textContent = 'Checking remote repository...';
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/updates/check`);
+    const data = await res.json();
+
+    if (!data.success) {
+      if (statusText) statusText.innerHTML = `<span style="color:var(--red)">✕ Error: ${data.error}</span>`;
+      if (versionText) versionText.textContent = 'Unable to check version details.';
+      if (badge) badge.style.display = 'none';
+      if (applyBtn) applyBtn.style.display = 'none';
+      if (detailsBox) detailsBox.style.display = 'none';
+      return;
+    }
+
+    latestUpdateInfo = data;
+
+    if (versionText) {
+      versionText.innerHTML = `Local commit: <span style="color:var(--cyan); font-family:var(--mono);">${data.current_commit || 'unknown'}</span>${data.current_branch ? ` (${data.current_branch})` : ''}`;
+    }
+
+    if (data.update_available) {
+      if (statusText) statusText.innerHTML = `<span style="color:var(--amber)">⚡ Update available (latest: ${data.latest_commit})</span>`;
+      if (badge) badge.style.display = 'inline-block';
+      if (applyBtn) applyBtn.style.display = 'inline-block';
+      
+      const commitsHtml = (data.commits || []).map(c => 
+        `<li><span style="color:var(--cyan);">${c.hash}</span>: ${mdEscape(c.message)} <span class="muted">(${mdEscape(c.author)})</span></li>`
+      ).join('');
+      
+      if (commitsList) commitsList.innerHTML = commitsHtml;
+      if (modalCommitsList) modalCommitsList.innerHTML = commitsHtml;
+      if (detailsBox) detailsBox.style.display = 'block';
+    } else {
+      if (statusText) statusText.innerHTML = `<span style="color:var(--green)">✓ System is up to date</span>`;
+      if (badge) badge.style.display = 'none';
+      if (applyBtn) applyBtn.style.display = 'none';
+      if (detailsBox) detailsBox.style.display = 'none';
+    }
+  } catch (err) {
+    console.error("Failed to check for updates:", err);
+    if (statusText) statusText.innerHTML = `<span style="color:var(--red)">✕ Connection error</span>`;
+  }
+}
+
+async function applyUpdate() {
+  const applyBtn = document.getElementById('apply-update-btn');
+  const modalApplyBtn = document.getElementById('modal-apply-update-btn');
+  const progressInfo = document.getElementById('update-progress-info');
+  const modalProgress = document.getElementById('modal-update-progress');
+  const statusText = document.getElementById('update-status-text');
+
+  if (confirm("Apply updates? This will pull remote commits and restart the server node. Your settings/keys will be preserved.")) {
+    if (applyBtn) applyBtn.disabled = true;
+    if (modalApplyBtn) modalApplyBtn.disabled = true;
+    
+    if (progressInfo) progressInfo.style.display = 'block';
+    if (modalProgress) modalProgress.style.display = 'block';
+    if (statusText) statusText.textContent = 'Applying update codebase...';
+
+    try {
+      const res = await fetch(`${API_BASE}/updates/apply`, { method: 'POST' });
+      const data = await res.json();
+
+      if (data.success) {
+        let msg = "✓ Update applied successfully!";
+        if (data.conflict) {
+          msg += " Note: Local merge conflicts were found and stashed; check status.";
+        }
+        alert(msg + " Reloading DevHunt workspace.");
+        location.reload();
+      } else {
+        alert(`Failed to apply updates: ${data.error}`);
+        if (applyBtn) applyBtn.disabled = false;
+        if (modalApplyBtn) modalApplyBtn.disabled = false;
+        if (progressInfo) progressInfo.style.display = 'none';
+        if (modalProgress) modalProgress.style.display = 'none';
+        checkUpdates();
+      }
+    } catch (err) {
+      if (statusText) statusText.innerHTML = `<span style="color:var(--cyan)">✓ Server reloading with new updates...</span>`;
+      setTimeout(() => {
+        location.reload();
+      }, 4000);
+    }
+  }
+}
+
+// Bind Update Event Listeners
+(() => {
+  const updateModal = document.getElementById('update-modal');
+  const headerBadge = document.getElementById('header-update-badge');
+  const closeUpdateModalBtn = document.getElementById('close-update-modal');
+  const cancelUpdateBtn = document.getElementById('cancel-update-btn');
+  const manualCheckBtn = document.getElementById('manual-check-update-btn');
+  const applyBtn = document.getElementById('apply-update-btn');
+  const modalApplyBtn = document.getElementById('modal-apply-update-btn');
+
+  if (headerBadge) {
+    headerBadge.addEventListener('click', () => {
+      if (updateModal) updateModal.classList.add('show');
+    });
+  }
+
+  if (closeUpdateModalBtn) {
+    closeUpdateModalBtn.addEventListener('click', () => {
+      if (updateModal) updateModal.classList.remove('show');
+    });
+  }
+
+  if (cancelUpdateBtn) {
+    cancelUpdateBtn.addEventListener('click', () => {
+      if (updateModal) updateModal.classList.remove('show');
+    });
+  }
+
+  if (manualCheckBtn) {
+    manualCheckBtn.addEventListener('click', () => {
+      checkUpdates(true);
+    });
+  }
+
+  if (applyBtn) {
+    applyBtn.addEventListener('click', applyUpdate);
+  }
+
+  if (modalApplyBtn) {
+    modalApplyBtn.addEventListener('click', applyUpdate);
+  }
+})();
