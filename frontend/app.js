@@ -109,6 +109,9 @@ function switchPanel(panelId) {
     checkUpdates();
     loadAIMemory();
   }
+  if (panelId === 'notifications') {
+    loadNotifications(true);
+  }
 }
 
 navItems.forEach(item => {
@@ -1895,5 +1898,139 @@ async function loadAIMemory() {
         }
       });
     }
+
+    // Load system notifications and set unread badge initially
+    loadNotifications(false);
+
+    // Refresh notifications button
+    const refreshNotifBtn = document.getElementById('btn-notifications-refresh');
+    if (refreshNotifBtn) {
+      refreshNotifBtn.addEventListener('click', () => {
+        loadNotifications(true);
+      });
+    }
+
+    // Mark all as read button
+    const readAllNotifBtn = document.getElementById('btn-notifications-read-all');
+    if (readAllNotifBtn) {
+      readAllNotifBtn.addEventListener('click', async () => {
+        const unreadIds = currentNotificationsList.map(n => n.id);
+        if (unreadIds.length > 0) {
+          await markNotificationsAsRead(unreadIds, []);
+          loadNotifications(false);
+        }
+      });
+    }
   });
 })();
+
+/* ========== System Notifications & Messages Controller ========== */
+let currentNotificationsList = [];
+
+async function loadNotifications(autoMarkRead = false) {
+  const container = document.getElementById('notifications-feed-container');
+  const badge = document.getElementById('notification-unread-count');
+  if (!container) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/notifications`);
+    const data = await res.json();
+    if (!data.success) {
+      container.innerHTML = `<div style="color:var(--red); text-align:center; padding:20px;">Error loading messages: ${data.error}</div>`;
+      return;
+    }
+
+    currentNotificationsList = data.notifications || [];
+    const readIds = data.read_notifications || [];
+
+    // Compute unread count
+    const unreadNotifications = currentNotificationsList.filter(n => !readIds.includes(n.id));
+    const unreadCount = unreadNotifications.length;
+
+    if (badge) {
+      if (unreadCount > 0) {
+        badge.textContent = unreadCount;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    // Auto-mark as read if viewing panel
+    if (autoMarkRead && unreadCount > 0) {
+      await markNotificationsAsRead(unreadNotifications.map(n => n.id), readIds);
+    }
+
+    if (currentNotificationsList.length === 0) {
+      container.innerHTML = `<div class="muted" style="text-align:center; padding:40px;">No system messages or notifications.</div>`;
+      return;
+    }
+
+    // Render notifications
+    container.innerHTML = currentNotificationsList.map(n => {
+      const isUnread = !readIds.includes(n.id) && !autoMarkRead;
+      let typeTag = n.type;
+      let actionBtnHtml = '';
+
+      if (n.type === 'update') {
+        typeTag = 'update';
+        actionBtnHtml = `<button class="btn-ghost notification-action-btn" onclick="triggerUpdateFromNotification()" style="font-size:10px; padding:3px 8px; margin-top:6px;">View Update Dialog</button>`;
+      } else if (n.type === 'log_error') {
+        typeTag = 'error';
+      } else if (n.type === 'log_warn') {
+        typeTag = 'warning';
+      }
+
+      return `
+        <div class="notification-item ${isUnread ? 'unread' : ''} type-${n.type}">
+          <div class="notification-header">
+            <div>
+              <span class="notification-tag">${typeTag}</span>
+              <span class="notification-title">${mdEscape(n.title)}</span>
+            </div>
+            <span class="notification-time">${n.timestamp}</span>
+          </div>
+          <div class="notification-msg">${mdEscape(n.message)}</div>
+          ${actionBtnHtml}
+        </div>
+      `;
+    }).join('');
+
+  } catch (e) {
+    container.innerHTML = `<div style="color:var(--red); text-align:center; padding:20px;">Network error loading messages: ${e.message}</div>`;
+  }
+}
+
+async function markNotificationsAsRead(newReadIds, existingReadIds) {
+  const mergedReadIds = Array.from(new Set([...existingReadIds, ...newReadIds]));
+  try {
+    const res = await fetch(`${API_BASE}/profile`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        settings: { read_notifications: mergedReadIds }
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      const badge = document.getElementById('notification-unread-count');
+      if (badge) badge.style.display = 'none';
+    }
+  } catch (e) {
+    console.error("Failed to mark notifications as read", e);
+  }
+}
+
+function triggerUpdateFromNotification() {
+  const badge = document.getElementById('header-update-badge');
+  if (badge) {
+    badge.click();
+  } else {
+    switchPanel('settings');
+  }
+}
+
+// Bind globally for inline HTML click handlers
+window.triggerUpdateFromNotification = triggerUpdateFromNotification;
+window.loadNotifications = loadNotifications;
+

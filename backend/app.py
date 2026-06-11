@@ -702,6 +702,99 @@ def reset_everything():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+# ── NOTIFICATIONS ─────────────────────────────────────────────────────────────
+@app.route('/api/notifications', methods=['GET'])
+def get_system_notifications():
+    try:
+        import requests
+        from core.update_manager import UpdateManager
+        from core.logger import get_logs
+        
+        settings = ProfileManager.get_settings()
+        read_notifications = settings.get("read_notifications", [])
+        
+        notifications = []
+        
+        # 1. Fetch Remote Announcements
+        try:
+            res = requests.get(
+                "https://raw.githubusercontent.com/hitehsolanki2006/DevHunt/main/notifications.json",
+                timeout=2.0
+            )
+            if res.status_code == 200:
+                remote_data = res.json()
+                if isinstance(remote_data, list):
+                    for item in remote_data:
+                        notifications.append({
+                            "id": item.get("id"),
+                            "title": item.get("title", "Announcement"),
+                            "message": item.get("message", ""),
+                            "type": item.get("type", "release"),
+                            "timestamp": item.get("timestamp", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                        })
+        except Exception:
+            pass
+            
+        # Fallback welcome announcement if offline or repo lacks notifications.json
+        if not any(n["type"] in ["release", "news"] for n in notifications):
+            notifications.append({
+                "id": "announcement-welcome",
+                "title": "Welcome to DevHunt!",
+                "message": "Welcome to your premium developer dashboard. System Messages consolidates software updates, remote release announcements, and local warnings.",
+                "type": "info",
+                "timestamp": "2026-06-11 12:00:00"
+            })
+            
+        # 2. Git Update Status
+        try:
+            update_status = UpdateManager.check_for_updates()
+            if update_status.get("success") and update_status.get("update_available"):
+                latest_commit = update_status.get("latest_commit")
+                commit_msg_list = [c["message"] for c in update_status.get("commits", [])]
+                commit_msgs = "; ".join(commit_msg_list) if commit_msg_list else "New changes available."
+                notifications.append({
+                    "id": f"git-update-{latest_commit}",
+                    "title": "⚡ Software Update Available",
+                    "message": f"New commit: {latest_commit}. Changes: {commit_msgs}",
+                    "type": "update",
+                    "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                })
+        except Exception:
+            pass
+            
+        # 3. Local System Log Warning/Error Alerts
+        try:
+            system_errors = get_logs(limit=15, level="ERROR")
+            system_warnings = get_logs(limit=15, level="WARN")
+            merged_logs = system_errors + system_warnings
+            merged_logs.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+            for log_entry in merged_logs[:15]:
+                notifications.append({
+                    "id": f"log-{log_entry['id']}",
+                    "title": f"⚠️ System Log: {log_entry['category'].upper()} ({log_entry['level']})",
+                    "message": log_entry["message"],
+                    "type": "log_error" if log_entry["level"] == "ERROR" else "log_warn",
+                    "timestamp": log_entry.get("timestamp", "")
+                })
+        except Exception:
+            pass
+            
+        # Sort notifications by timestamp descending
+        def get_notification_time(n):
+            t = n.get("timestamp", "")
+            return t if t else "1970-01-01 00:00:00"
+            
+        notifications.sort(key=get_notification_time, reverse=True)
+        
+        return jsonify({
+            "success": True,
+            "notifications": notifications,
+            "read_notifications": read_notifications
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 # ── UPDATES ───────────────────────────────────────────────────────────────────
 @app.route('/api/updates/check', methods=['GET'])
 def check_updates_endpoint():

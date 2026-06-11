@@ -38,6 +38,9 @@
       <a class="nav-item" data-panel="history"><span class="ico">⧖</span> Chat History</a>
       <a class="nav-item" data-panel="stats"><span class="ico">▰</span> Terminal Stats</a>
       <a class="nav-item" data-panel="terminal"><span class="ico">⚡</span> Hunt Terminal</a>
+      <a class="nav-item" data-panel="notifications" id="nav-notifications">
+        <span class="ico">◰</span> System Messages <span class="badge" id="notification-unread-count" style="display:none; margin-left:auto; background:var(--red); color:#000; border-color:var(--red); font-weight:bold; font-size:10px; padding:2px 6px; border-radius:10px; line-height:1.2;">0</span>
+      </a>
       <a class="nav-item" data-panel="settings"><span class="ico">⚙</span> Settings &amp; Nodes</a>
       <a class="nav-item" href="/logs" target="_blank" style="margin-top:auto;border-top:1px solid var(--border);padding-top:10px"><span class="ico">◎</span> System Logs ↗</a>
     </nav>
@@ -330,6 +333,23 @@
             </div>
           </div>
         </div>
+    </section>
+
+    <!-- 9. SYSTEM MESSAGES / NOTIFICATIONS -->
+    <section class="panel" id="panel-notifications">
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-head">
+          <h2>System Messages &amp; Announcements</h2>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-ghost" id="btn-notifications-refresh" style="font-size:11px;">⟳ Refresh</button>
+            <button class="btn-primary" id="btn-notifications-read-all" style="font-size:11px; padding:6px 14px;">Mark All As Read</button>
+          </div>
+        </div>
+        <p class="muted" style="margin:0;">Monitor remote product news, system status updates, and local error notifications.</p>
+      </div>
+
+      <div id="notifications-feed-container" class="notifications-feed" style="display:flex; flex-direction:column; gap:12px; max-height:calc(100vh - 240px); overflow-y:auto; padding-right:4px;">
+        <div class="muted" style="text-align:center; padding:40px;">Initializing connection to notification feed...</div>
       </div>
     </section>
   </main>

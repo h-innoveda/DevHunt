@@ -73,14 +73,19 @@ class ProfileManager:
             default_settings = {
                 "english_correction": False,
                 "selected_model": "auto", # "auto", "gemini-2.0-flash", "gemini-1.5-pro"
-                "dismissed_update": None
+                "dismissed_update": None,
+                "read_notifications": []
             }
             ProfileManager.save_settings(default_settings)
             return default_settings
             
         try:
             with open(SETTINGS_PATH, 'r') as f:
-                return json.load(f)
+                # Add default key if missing in existing file
+                data = json.load(f)
+                if "read_notifications" not in data:
+                    data["read_notifications"] = []
+                return data
         except Exception:
             return {}
 
@@ -93,7 +98,7 @@ class ProfileManager:
     def update_settings(updates: dict) -> dict:
         settings = ProfileManager.get_settings()
         for k, v in updates.items():
-            if k in ['english_correction', 'selected_model', 'dismissed_update']:
+            if k in ['english_correction', 'selected_model', 'dismissed_update', 'read_notifications']:
                 settings[k] = v
         ProfileManager.save_settings(settings)
         return settings
