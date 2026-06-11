@@ -161,9 +161,30 @@ class TerminalEngine:
                 "Options:\n"
                 "  -r <range>  Port range to scan (e.g. 20-100 or 'common') (default: common)\n"
                 "  -t <timeout> Latency timeout per port in seconds (default: 0.5)"
+            ),
+            "quest": (
+                "Usage: hunt quest [add <title> [priority] [desc] | done <id> | rm <id>]\n\n"
+                "Manages your Quest Board todos directly from terminal.\n"
+                "Running 'hunt quest' alone lists all active quests."
+            ),
+            "keys": (
+                "Usage: hunt keys [list | add <key> [label] | rm <id> | test <id>]\n\n"
+                "Manages the Gemini API key pool for active nodes."
+            ),
+            "memory": (
+                "Usage: hunt memory [refine | clear]\n\n"
+                "Views and operates AI consolidated memory facts."
+            ),
+            "backup": (
+                "Usage: hunt backup export\n\n"
+                "Exports full data structures into a local JSON backup."
+            ),
+            "history": (
+                "Usage: hunt history [limit]\n\n"
+                "Prints raw logs of the active conversation session."
             )
         }
-        return helps.get(cmd, f"No detailed help available for '{cmd}'.")
+        return list(helps.get(cmd, f"No detailed help available for '{cmd}'.").split("\n")) if isinstance(helps.get(cmd), list) else helps.get(cmd, f"No detailed help available for '{cmd}'.")
 
     def execute(self, cmd_line, current_dir=None):
         """Execute the command and return (output_text, updated_cwd)."""
@@ -236,7 +257,13 @@ class TerminalEngine:
             f"{self.format_bold('LOCAL DEVELOPMENT TOOLS:')}\n"
             f"  {self.format_green('hunt git <args>')}          - Run git commands securely in workspace.\n"
             f"  {self.format_green('hunt python -c <code>')}   - Run Python code execution.\n"
-            f"  {self.format_green('hunt calc <expr>')}         - Safe math evaluation utility.\n"
+            f"  {self.format_green('hunt calc <expr>')}         - Safe math evaluation utility.\n\n"
+            f"{self.format_bold('DEVHUNT CORE DATA CLIENTS:')}\n"
+            f"  {self.format_green('hunt quest')}               - List active Quest Board todos.\n"
+            f"  {self.format_green('hunt keys')}                - List registered API key status.\n"
+            f"  {self.format_green('hunt memory')}              - View long-term AI memories.\n"
+            f"  {self.format_green('hunt backup')}              - Run full system backup exports.\n"
+            f"  {self.format_green('hunt history')}              - Print raw logs of chat session.\n"
         )
         return help_menu, current_dir
 
@@ -1251,3 +1278,224 @@ class TerminalEngine:
         output_lines.append(f"Scan finished. Identified {open_ports_count} active listening ports.")
 
         return "\n".join(output_lines), current_dir
+
+    def cmd_quest(self, args, current_dir):
+        from core.todo_manager import TodoManager
+        
+        if not args:
+            # List all pending todos
+            todos = TodoManager.get_todos(status_filter="pending")
+            if not todos:
+                return self.format_muted("// No active quests found on the Quest Board."), current_dir
+            
+            output = [self.format_bold("--- QUEST BOARD ACTIVE ---")]
+            for t in todos:
+                color = self.format_red if t['priority'] == 'high' else (self.format_yellow if t['priority'] == 'medium' else self.format_cyan)
+                output.append(f"  [{t['id']}] {t['title']} (Priority: {color(t['priority'].upper())})")
+                if t['description']:
+                    output.append(f"      {self.format_muted(t['description'])}")
+            return "\n".join(output), current_dir
+
+        sub_cmd = args[0].lower()
+        if sub_cmd == "done" and len(args) > 1:
+            try:
+                TodoManager.complete_todo(int(args[1]))
+                return self.format_green(f"Quest {args[1]} marked completed!"), current_dir
+            except Exception as e:
+                return self.format_red(f"Error: {e}"), current_dir
+        
+        elif sub_cmd == "rm" and len(args) > 1:
+            try:
+                TodoManager.delete_todo(int(args[1]))
+                return self.format_green(f"Quest {args[1]} deleted from board."), current_dir
+            except Exception as e:
+                return self.format_red(f"Error: {e}"), current_dir
+        
+        elif sub_cmd == "add" and len(args) > 1:
+            title = args[1]
+            prio = args[2].lower() if len(args) > 2 else "medium"
+            desc = args[3] if len(args) > 3 else "Added via Terminal CLI."
+            if prio not in ["high", "medium", "low"]:
+                prio = "medium"
+            try:
+                todo = TodoManager.create_todo(title=title, priority=prio, description=desc, source="manual")
+                return self.format_green(f"Quest added! ID: {todo['id']}"), current_dir
+            except Exception as e:
+                return self.format_red(f"Error: {e}"), current_dir
+            
+        return self.format_red("Usage: hunt quest [add <title> [prio] [desc] | done <id> | rm <id>]"), current_dir
+
+    def cmd_keys(self, args, current_dir):
+        from core.key_manager import KeyManager
+        km = KeyManager()
+        
+        if not args or args[0].lower() == "list":
+            keys = km.get_keys_list()
+            if not keys:
+                return self.format_muted("// No API keys registered in key pool."), current_dir
+            
+            output = [self.format_bold("--- REGISTERED API KEYS ---")]
+            for k in keys:
+                status_color = self.format_green if k['status'] == 'Active' else self.format_yellow
+                output.append(f"  Label: {self.format_cyan(k['label'])} | ID: {k['id'][:8]}... | Status: {status_color(k['status'])}")
+            return "\n".join(output), current_dir
+
+        sub_cmd = args[0].lower()
+        if sub_cmd == "add" and len(args) > 1:
+            raw_key = args[1]
+            label = args[2] if len(args) > 2 else "unnamed"
+            try:
+                res = km.add_key(raw_key, label)
+                if res.get("success"):
+                    return self.format_green(f"Key successfully registered with label '{label}'!"), current_dir
+                return self.format_red(f"Error: {res.get('error')}"), current_dir
+            except Exception as e:
+                return self.format_red(f"Error: {e}"), current_dir
+
+        elif sub_cmd == "rm" and len(args) > 1:
+            key_id = args[1]
+            try:
+                success = km.remove_key(key_id)
+                if success:
+                    return self.format_green(f"Key '{key_id}' removed from pool."), current_dir
+                return self.format_red(f"Error: Key '{key_id}' not found."), current_dir
+            except Exception as e:
+                return self.format_red(f"Error: {e}"), current_dir
+
+        elif sub_cmd == "test" and len(args) > 1:
+            key_id = args[1]
+            import time as _t
+            from google import genai
+            try:
+                raw_key = None
+                key_label = key_id
+                for k in km.keys:
+                    if k['id'] == key_id or k['id'].startswith(key_id):
+                        raw_key = km._decrypt(k['key_encrypted'])
+                        key_label = k['label']
+                        break
+                if not raw_key:
+                    return self.format_red(f"Key '{key_id}' not found."), current_dir
+                t0 = _t.time()
+                client = genai.Client(api_key=raw_key)
+                resp = client.models.generate_content(model="gemini-2.5-flash", contents="Reply: OK")
+                ms = int((_t.time() - t0) * 1000)
+                return self.format_green(f"Key test PASSED: {key_label} ({ms}ms) -> reply: \"{resp.text.strip()[:30]}\""), current_dir
+            except Exception as e:
+                return self.format_red(f"Key test FAILED: {e}"), current_dir
+
+        return self.format_red("Usage: hunt keys [list | add <key> [label] | rm <id> | test <id>]"), current_dir
+
+    def cmd_memory(self, args, current_dir):
+        from core.db import get_db_connection
+        import json
+        
+        if not args or args[0].lower() == "list":
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT consolidated_facts FROM user_memories WHERE session_id = ?", ("default_session",))
+            row = cursor.fetchone()
+            conn.close()
+            
+            memories = json.loads(row['consolidated_facts']) if (row and row['consolidated_facts']) else []
+            if not memories:
+                return self.format_muted("AI has no consolidated long-term memories yet."), current_dir
+                
+            output = [self.format_bold("--- DISTILLED AI MEMORY ---")]
+            for idx, fact in enumerate(memories, 1):
+                output.append(f"  {idx}. {fact}")
+            return "\n".join(output), current_dir
+            
+        sub_cmd = args[0].lower()
+        if sub_cmd == "refine":
+            from core.key_manager import KeyManager
+            from core.memory_manager import MemoryManager
+            mm = MemoryManager(KeyManager())
+            res = mm.refine_memories("default_session")
+            if res.get("success"):
+                return self.format_green("Memory consolidation complete! Type 'hunt memory' to view."), current_dir
+            return self.format_red(f"Refinement error: {res.get('error')}"), current_dir
+
+        elif sub_cmd == "clear":
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM user_memories WHERE session_id = ?", ("default_session",))
+            conn.commit()
+            conn.close()
+            return self.format_green("Core memories successfully wiped."), current_dir
+
+        return self.format_red("Usage: hunt memory [list | refine | clear]"), current_dir
+
+    def cmd_backup(self, args, current_dir):
+        if not args or args[0].lower() != "export":
+            return self.format_red("Usage: hunt backup export"), current_dir
+
+        from core.db import get_db_connection
+        from config import KEYS_PATH, LEARNING_PATH_JSON
+        from core.profile_manager import ProfileManager
+        import json
+        
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM messages ORDER BY timestamp ASC")
+            messages = [dict(r) for r in cursor.fetchall()]
+            cursor.execute("SELECT id, name, type, path, status, chunk_count, created_at FROM knowledge_sources")
+            knowledge_sources = [dict(r) for r in cursor.fetchall()]
+            conn.close()
+
+            keys_data = json.load(open(KEYS_PATH)) if os.path.exists(KEYS_PATH) else []
+            lp_data = json.load(open(LEARNING_PATH_JSON)) if os.path.exists(LEARNING_PATH_JSON) else {}
+
+            backup = {
+                "backup_version": "1.0",
+                "exported_at": datetime.datetime.now().isoformat(),
+                "chat_history": messages,
+                "knowledge_sources": knowledge_sources,
+                "keys": keys_data,
+                "profile": ProfileManager.get_profile(),
+                "settings": ProfileManager.get_settings(),
+                "learning_path": lp_data,
+            }
+            
+            fname = f"devhunt_backup_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            bpath = os.path.join(self.workspace_root, fname)
+            with open(bpath, 'w') as f:
+                json.dump(backup, f, indent=2)
+
+            return self.format_green(f"Full system backup successfully exported:\n  {bpath}"), current_dir
+        except Exception as e:
+            return self.format_red(f"Backup failed: {str(e)}"), current_dir
+
+    def cmd_history(self, args, current_dir):
+        limit = 20
+        if args:
+            try:
+                limit = int(args[0])
+            except ValueError:
+                pass
+                
+        from core.db import get_db_connection
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                """SELECT role, content, timestamp FROM messages 
+                   WHERE session_id = ? 
+                   ORDER BY timestamp DESC LIMIT ?""",
+                ("default_session", limit)
+            )
+            rows = cursor.fetchall()
+            conn.close()
+
+            if not rows:
+                return self.format_muted("// No chat messages in active session."), current_dir
+
+            output = [self.format_bold(f"--- RECENT CHAT HISTORY (Last {limit}) ---")]
+            for r in reversed(rows):
+                role_label = self.format_cyan("You") if r['role'] == "user" else self.format_green("AI")
+                ts = r['timestamp'].split(".")[0] if r['timestamp'] else ""
+                output.append(f"[{ts}] {role_label}: {r['content']}")
+            return "\n".join(output), current_dir
+        except Exception as e:
+            return self.format_red(f"Error: {e}"), current_dir

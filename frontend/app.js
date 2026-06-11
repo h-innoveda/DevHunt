@@ -1370,7 +1370,9 @@ const HUNT_COMMANDS = [
   "hunt cat", "hunt mkdir", "hunt rm", "hunt ping", "hunt dns",
   "hunt dig", "hunt whois", "hunt ssl", "hunt headers", "hunt port",
   "hunt portscan", "hunt localports", "hunt myip", "hunt trace",
-  "hunt subdomains", "hunt git", "hunt python", "hunt calc", "clear"
+  "hunt subdomains", "hunt git", "hunt python", "hunt calc",
+  "hunt quest", "hunt keys", "hunt memory", "hunt backup", "hunt history",
+  "clear"
 ];
 
 function initTerminal() {
