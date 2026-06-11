@@ -39,6 +39,15 @@ rag_pipeline   = RAGPipeline(key_manager)
 chat_engine    = ChatEngine(key_manager, rag_pipeline)
 learning_path  = LearningPath(key_manager)
 
+# Run initial memory refinement on startup in a background thread
+try:
+    from core.memory_manager import MemoryManager
+    import threading
+    mm = MemoryManager(key_manager)
+    threading.Thread(target=mm.refine_memories, args=("default_session",), daemon=True).start()
+except Exception as e:
+    print(f"Failed to start startup memory refinement: {e}")
+
 
 # ── CHAT ──────────────────────────────────────────────────────────────────────
 @app.route('/api/chat', methods=['POST'])
@@ -397,6 +406,79 @@ def update_user_profile():
                 daily_study_time=updated_profile.get("daily_study_time", 60)
             )
         return jsonify({"success": True, "profile": updated_profile, "settings": updated_settings})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+# ── AI MEMORY ─────────────────────────────────────────────────────────────────
+@app.route('/api/memory', methods=['GET'])
+def get_ai_memory():
+    session_id = request.args.get('session_id', 'default_session')
+    try:
+        from core.db import get_db_connection
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT consolidated_facts FROM user_memories WHERE session_id = ?", (session_id,))
+        row = cursor.fetchone()
+        conn.close()
+        memories = json.loads(row['consolidated_facts']) if (row and row['consolidated_facts']) else []
+        return jsonify({"success": True, "memories": memories})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/memory', methods=['PUT'])
+def update_ai_memory():
+    data = request.get_json() or {}
+    session_id = data.get('session_id', 'default_session')
+    memories = data.get('memories', [])
+    if not isinstance(memories, list):
+        return jsonify({"success": False, "error": "memories must be a JSON array of strings"}), 400
+    try:
+        from core.db import get_db_connection
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """INSERT INTO user_memories (session_id, consolidated_facts, last_updated)
+               VALUES (?, ?, CURRENT_TIMESTAMP)
+               ON CONFLICT(session_id) DO UPDATE SET
+               consolidated_facts = excluded.consolidated_facts,
+               last_updated = CURRENT_TIMESTAMP""",
+            (session_id, json.dumps(memories))
+        )
+        conn.commit()
+        conn.close()
+        logger.info("system", f"AI memories manually updated for session '{session_id}'")
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/memory/refine', methods=['POST'])
+def refine_ai_memory():
+    data = request.get_json() or {}
+    session_id = data.get('session_id', 'default_session')
+    try:
+        from core.memory_manager import MemoryManager
+        mm = MemoryManager(key_manager)
+        result = mm.refine_memories(session_id)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/memory', methods=['DELETE'])
+def clear_ai_memory():
+    session_id = request.args.get('session_id', 'default_session')
+    try:
+        from core.db import get_db_connection
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM user_memories WHERE session_id = ?", (session_id,))
+        conn.commit()
+        conn.close()
+        logger.info("system", f"AI memories cleared for session '{session_id}'")
+        return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 

@@ -107,6 +107,7 @@ function switchPanel(panelId) {
   if (panelId === 'settings') {
     loadKeys();
     checkUpdates();
+    loadAIMemory();
   }
 }
 
@@ -1723,4 +1724,123 @@ async function applyUpdate() {
   if (modalApplyBtn) {
     modalApplyBtn.addEventListener('click', applyUpdate);
   }
+})();
+
+/* ========== AI Core Memory management ========== */
+async function loadAIMemory() {
+  const memoryTextarea = document.getElementById('ai-memory-text');
+  const memoryStatus = document.getElementById('memory-status');
+  if (!memoryTextarea) return;
+
+  memoryStatus.textContent = '// fetching cognitive core memory...';
+  try {
+    const res = await fetch(`${API_BASE}/memory?session_id=default_session`);
+    const data = await res.json();
+    if (data.success) {
+      const memories = data.memories || [];
+      if (memories.length > 0) {
+        // Format as bullet points in the textarea
+        memoryTextarea.value = memories.map(m => `- ${m}`).join('\n');
+        memoryStatus.innerHTML = `<span style="color:var(--green)">✓ Core memories retrieved (${memories.length} facts)</span>`;
+      } else {
+        memoryTextarea.value = '';
+        memoryStatus.innerHTML = '<span style="color:var(--muted)">No memories consolidated yet.</span>';
+      }
+    } else {
+      memoryStatus.innerHTML = `<span style="color:var(--red)">✕ Failed to load: ${data.error}</span>`;
+    }
+  } catch (e) {
+    memoryStatus.innerHTML = `<span style="color:var(--red)">✕ Network error: ${e.message}</span>`;
+  }
+}
+
+// Wire up AI Core Memory Buttons
+(() => {
+  window.addEventListener('DOMContentLoaded', () => {
+    const saveBtn = document.getElementById('save-memory-btn');
+    const refineBtn = document.getElementById('refine-memory-btn');
+    const clearBtn = document.getElementById('clear-memory-btn');
+    const memoryTextarea = document.getElementById('ai-memory-text');
+    const memoryStatus = document.getElementById('memory-status');
+
+    if (saveBtn) {
+      saveBtn.addEventListener('click', async () => {
+        const text = memoryTextarea.value.trim();
+        // Parse lines. Split by newline, strip leading bullet points (- or *), and filter empty lines
+        const memories = text.split('\n')
+          .map(line => line.replace(/^[\s\-\*]+/, '').trim())
+          .filter(Boolean);
+
+        saveBtn.textContent = 'Saving...';
+        memoryStatus.textContent = '// transmitting updated memories...';
+        try {
+          const res = await fetch(`${API_BASE}/memory`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: 'default_session', memories })
+          });
+          const data = await res.json();
+          if (data.success) {
+            memoryStatus.innerHTML = `<span style="color:var(--green)">✓ Memories saved successfully (${memories.length} facts)</span>`;
+            loadAIMemory();
+          } else {
+            memoryStatus.innerHTML = `<span style="color:var(--red)">✕ Save failed: ${data.error}</span>`;
+          }
+        } catch (e) {
+          memoryStatus.innerHTML = `<span style="color:var(--red)">✕ Error: ${e.message}</span>`;
+        } finally {
+          saveBtn.textContent = 'Save Changes';
+        }
+      });
+    }
+
+    if (refineBtn) {
+      refineBtn.addEventListener('click', async () => {
+        refineBtn.textContent = 'Refining...';
+        memoryStatus.textContent = '// running cognitive consolidation on chat history...';
+        try {
+          const res = await fetch(`${API_BASE}/memory/refine`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: 'default_session' })
+          });
+          const data = await res.json();
+          if (data.success) {
+            memoryStatus.innerHTML = `<span style="color:var(--green)">✓ Refinement complete! Loaded updated facts.</span>`;
+            loadAIMemory();
+          } else {
+            memoryStatus.innerHTML = `<span style="color:var(--red)">✕ Refinement failed: ${data.error}</span>`;
+          }
+        } catch (e) {
+          memoryStatus.innerHTML = `<span style="color:var(--red)">✕ Error: ${e.message}</span>`;
+        } finally {
+          refineBtn.textContent = 'Refine Now';
+        }
+      });
+    }
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', async () => {
+        if (!confirm("Are you sure you want to clear AI's memories? This cannot be undone.")) return;
+        clearBtn.textContent = 'Clearing...';
+        memoryStatus.textContent = '// deleting memories...';
+        try {
+          const res = await fetch(`${API_BASE}/memory?session_id=default_session`, {
+            method: 'DELETE'
+          });
+          const data = await res.json();
+          if (data.success) {
+            memoryStatus.innerHTML = `<span style="color:var(--green)">✓ Core memories cleared successfully</span>`;
+            memoryTextarea.value = '';
+          } else {
+            memoryStatus.innerHTML = `<span style="color:var(--red)">✕ Clear failed: ${data.error}</span>`;
+          }
+        } catch (e) {
+          memoryStatus.innerHTML = `<span style="color:var(--red)">✕ Error: ${e.message}</span>`;
+        } finally {
+          clearBtn.textContent = 'Clear Memory';
+        }
+      });
+    }
+  });
 })();

@@ -89,5 +89,15 @@ def init_db():
     )
     ''')
 
+    # Create user_memories table for consolidated long-term AI memory
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS user_memories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id TEXT UNIQUE,
+        consolidated_facts TEXT, -- JSON array of strings
+        last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+
     conn.commit()
     conn.close()

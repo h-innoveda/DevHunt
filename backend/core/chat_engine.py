@@ -27,7 +27,7 @@ class ChatEngine:
                 pass
         return False
 
-    def _build_system_instruction(self, user_message: str, active_rag_docs: list) -> str:
+    def _build_system_instruction(self, user_message: str, active_rag_docs: list, session_id: str) -> str:
         system_instruction = (
             "You are DevHunt AI, a smart personal assistant that helps with problem solving, debugging, learning, and answering questions on any topic.\n"
             "You provide clear, structured, and example-rich answers. Always use clear headings, "
@@ -91,6 +91,23 @@ class ChatEngine:
             "- User: 'Yes, add them' (in response to suggestion) -> append [TODO_ADD: ...]\n"
             "- User: 'Do you remember we discussed the summit?' -> Do NOT append any tags."
         )
+
+        # Fetch consolidated memory list
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT consolidated_facts FROM user_memories WHERE session_id = ?", (session_id,))
+            row = cursor.fetchone()
+            conn.close()
+            if row and row['consolidated_facts']:
+                memories = json.loads(row['consolidated_facts'])
+                if memories:
+                    memories_text = "\n[LONG-TERM MEMORY (Distilled Facts About User)]:\n" + "\n".join(
+                        f"- {m}" for m in memories
+                    )
+                    system_instruction += memories_text + "\n"
+        except Exception as e:
+            print(f"Error fetching memories for system instruction: {e}")
 
         return system_instruction
 
@@ -193,13 +210,13 @@ class ChatEngine:
         if not model_name:
             model_name = classify_query(user_message, has_rag_docs=len(active_rag_docs) > 0)
 
-        # 3. Retrieve session history from DB (longer limit for better history understanding)
+        # 3. Retrieve session history from DB (shorter limit since we have consolidated long-term memory)
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute(
             """SELECT role, content FROM messages
                WHERE session_id = ?
-               ORDER BY timestamp DESC LIMIT 40""",
+               ORDER BY timestamp DESC LIMIT 12""",
             (session_id,)
         )
         history_rows = cursor.fetchall()
@@ -207,7 +224,7 @@ class ChatEngine:
         history = list(reversed(history_rows))
 
         # 4. Construct System Instruction
-        system_instruction = self._build_system_instruction(user_message, active_rag_docs)
+        system_instruction = self._build_system_instruction(user_message, active_rag_docs, session_id)
 
         # 5. Key rotation retry loop
         all_keys = self.key_manager.get_keys_list()
@@ -310,6 +327,15 @@ class ChatEngine:
         conn.commit()
         conn.close()
 
+        # Trigger background memory check/refinement
+        try:
+            from core.memory_manager import MemoryManager
+            mm = MemoryManager(self.key_manager)
+            import threading
+            threading.Thread(target=mm.auto_consolidate_if_needed, args=(session_id,), daemon=True).start()
+        except Exception as e:
+            print(f"Failed to start background memory consolidation: {e}")
+
         # 8. Citations
         citations = []
         for doc in active_rag_docs:
@@ -343,18 +369,18 @@ class ChatEngine:
         # Model
         model_name = model_override or classify_query(user_message, has_rag_docs=has_rag)
 
-        # History
+        # History (shorter limit since we have consolidated long-term memory)
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT role, content FROM messages WHERE session_id = ? ORDER BY timestamp DESC LIMIT 40",
+            "SELECT role, content FROM messages WHERE session_id = ? ORDER BY timestamp DESC LIMIT 12",
             (session_id,)
         )
         history = list(reversed(cursor.fetchall()))
         conn.close()
 
         # System prompt
-        system_instruction = self._build_system_instruction(user_message, active_rag_docs)
+        system_instruction = self._build_system_instruction(user_message, active_rag_docs, session_id)
 
         # 5. Key rotation retry loop for stream
         all_keys = self.key_manager.get_keys_list()
@@ -467,6 +493,15 @@ class ChatEngine:
             )
             conn.commit()
             conn.close()
+
+            # Trigger background memory check/refinement
+            try:
+                from core.memory_manager import MemoryManager
+                mm = MemoryManager(self.key_manager)
+                import threading
+                threading.Thread(target=mm.auto_consolidate_if_needed, args=(session_id,), daemon=True).start()
+            except Exception as e:
+                print(f"Failed to start background memory consolidation: {e}")
 
             # Citations
             citations = [
