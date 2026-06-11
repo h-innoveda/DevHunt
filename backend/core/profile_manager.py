@@ -72,7 +72,8 @@ class ProfileManager:
         if not os.path.exists(SETTINGS_PATH):
             default_settings = {
                 "english_correction": False,
-                "selected_model": "auto" # "auto", "gemini-2.0-flash", "gemini-1.5-pro"
+                "selected_model": "auto", # "auto", "gemini-2.0-flash", "gemini-1.5-pro"
+                "dismissed_update": None
             }
             ProfileManager.save_settings(default_settings)
             return default_settings
@@ -92,7 +93,7 @@ class ProfileManager:
     def update_settings(updates: dict) -> dict:
         settings = ProfileManager.get_settings()
         for k, v in updates.items():
-            if k in ['english_correction', 'selected_model']:
+            if k in ['english_correction', 'selected_model', 'dismissed_update']:
                 settings[k] = v
         ProfileManager.save_settings(settings)
         return settings

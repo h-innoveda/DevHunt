@@ -1618,9 +1618,30 @@ async function checkUpdates(isManual = false) {
       versionText.innerHTML = `Local commit: <span style="color:var(--cyan); font-family:var(--mono);">${data.current_commit || 'unknown'}</span>${data.current_branch ? ` (${data.current_branch})` : ''}`;
     }
 
+    // Fetch user settings to check if the latest update was already dismissed
+    let dismissedUpdate = null;
+    try {
+      const resProfile = await fetch(`${API_BASE}/profile`);
+      const dataProfile = await resProfile.json();
+      if (dataProfile.success) {
+        dismissedUpdate = dataProfile.settings.dismissed_update || null;
+      }
+    } catch (e) {
+      console.error("Failed to load settings in checkUpdates", e);
+    }
+
     if (data.update_available) {
       if (statusText) statusText.innerHTML = `<span style="color:var(--amber)">⚡ Update available (latest: ${data.latest_commit})</span>`;
-      if (badge) badge.style.display = 'inline-block';
+      
+      // Only show the header notification badge if not explicitly dismissed
+      if (badge) {
+        if (data.latest_commit === dismissedUpdate) {
+          badge.style.display = 'none';
+        } else {
+          badge.style.display = 'inline-block';
+        }
+      }
+      
       if (applyBtn) applyBtn.style.display = 'inline-block';
       
       const commitsHtml = (data.commits || []).map(c => 
@@ -1695,6 +1716,24 @@ async function applyUpdate() {
   const applyBtn = document.getElementById('apply-update-btn');
   const modalApplyBtn = document.getElementById('modal-apply-update-btn');
 
+  const dismissUpdate = async () => {
+    if (latestUpdateInfo && latestUpdateInfo.latest_commit) {
+      try {
+        await fetch(`${API_BASE}/profile`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            settings: { dismissed_update: latestUpdateInfo.latest_commit }
+          })
+        });
+        const badge = document.getElementById('header-update-badge');
+        if (badge) badge.style.display = 'none';
+      } catch (e) {
+        console.error("Failed to save update dismissal", e);
+      }
+    }
+  };
+
   if (headerBadge) {
     headerBadge.addEventListener('click', () => {
       if (updateModal) updateModal.classList.add('show');
@@ -1704,17 +1743,29 @@ async function applyUpdate() {
   if (closeUpdateModalBtn) {
     closeUpdateModalBtn.addEventListener('click', () => {
       if (updateModal) updateModal.classList.remove('show');
+      dismissUpdate();
     });
   }
 
   if (cancelUpdateBtn) {
     cancelUpdateBtn.addEventListener('click', () => {
       if (updateModal) updateModal.classList.remove('show');
+      dismissUpdate();
     });
   }
 
   if (manualCheckBtn) {
-    manualCheckBtn.addEventListener('click', () => {
+    manualCheckBtn.addEventListener('click', async () => {
+      // Clear dismissed state upon manual update check request
+      try {
+        await fetch(`${API_BASE}/profile`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            settings: { dismissed_update: null }
+          })
+        });
+      } catch (e) {}
       checkUpdates(true);
     });
   }
