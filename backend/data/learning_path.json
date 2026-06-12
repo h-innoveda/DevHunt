@@ -1,6 +1,6 @@
 {
     "goal": "Forward Deploy Engineer",
-    "current_day": 1,
+    "current_day": 2,
     "phases": [
         {
             "title": "Phase 1: Foundations",
@@ -30,7 +30,7 @@
                         "Configure user groups and permissions"
                     ],
                     "estimated_time": 60,
-                    "status": "pending"
+                    "status": "completed"
                 },
                 {
                     "day": 2,

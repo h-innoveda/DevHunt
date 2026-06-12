@@ -376,6 +376,65 @@ window.sendQuickQuery = (queryText) => {
 };
 
 /* ========== Hunt Path (Roadmap) ========== */
+const expandedDays = new Set();
+
+window.toggleRoadmapDay = (event, dayNum) => {
+  if (event.target.tagName === 'BUTTON' || event.target.tagName === 'A' || event.target.closest('button') || event.target.closest('a')) {
+    return;
+  }
+  
+  const card = document.querySelector(`.node[data-day="${dayNum}"]`);
+  if (!card) return;
+  
+  if (expandedDays.has(dayNum)) {
+    expandedDays.delete(dayNum);
+    card.classList.remove('expanded');
+    const toggleIcon = card.querySelector('.node-toggle-icon');
+    if (toggleIcon) toggleIcon.textContent = '▼';
+  } else {
+    expandedDays.add(dayNum);
+    card.classList.add('expanded');
+    const toggleIcon = card.querySelector('.node-toggle-icon');
+    if (toggleIcon) toggleIcon.textContent = '▲';
+  }
+};
+
+window.addRoadmapQuest = async (event, taskTitle, dayNum, dayTitle) => {
+  event.stopPropagation();
+  const btn = event.currentTarget;
+  if (btn.disabled) return;
+  
+  btn.textContent = 'Adding...';
+  btn.disabled = true;
+  
+  try {
+    const res = await fetch(`${API_BASE}/todos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: `[Day ${dayNum}] ${taskTitle}`,
+        description: `Hands-on task from Hunt Path Roadmap Day ${dayNum} (${dayTitle})`,
+        priority: 'medium',
+        tags: ['roadmap', `day-${dayNum}`]
+      })
+    });
+    
+    const result = await res.json();
+    if (result.success) {
+      btn.textContent = '✓ Added';
+      btn.classList.add('added');
+      loadTodos();
+    } else {
+      btn.textContent = 'Error';
+      btn.disabled = false;
+    }
+  } catch (err) {
+    console.error('Failed to add roadmap task as todo', err);
+    btn.textContent = 'Error';
+    btn.disabled = false;
+  }
+};
+
 async function loadRoadmap() {
   const container = document.getElementById('phases');
   if (!container) return;
@@ -390,12 +449,9 @@ async function loadRoadmap() {
     }
     
     const path = data.path;
-    
-    // Render progress indicators
     let totalDays = 0;
     let completedDays = 0;
     
-    // Build roadmap HTML
     container.innerHTML = '';
     
     if (!path.phases || path.phases.length === 0) {
@@ -409,17 +465,57 @@ async function loadRoadmap() {
         if (day.status === 'completed') completedDays++;
         
         const topicsBadges = (day.topics || []).map(t => `<span>${t}</span>`).join('');
-        
-        // Show tasks and resources metrics
         const rCount = day.resources ? day.resources.length : 0;
         const tCount = day.tasks ? day.tasks.length : 0;
+        const isExpanded = expandedDays.has(day.day);
         
         return `
-          <div class="node ${day.status || 'upcoming'}">
-            <div class="node-day">DAY ${String(day.day).padStart(2, '0')}</div>
-            <div class="node-title">${day.title}</div>
+          <div class="node ${day.status || 'upcoming'} ${isExpanded ? 'expanded' : ''}" data-day="${day.day}" onclick="toggleRoadmapDay(event, ${day.day})">
+            <div class="node-header">
+              <div class="node-header-main">
+                <div class="node-day">DAY ${String(day.day).padStart(2, '0')}</div>
+                <div class="node-title">${day.title}</div>
+              </div>
+              <div class="node-toggle-icon">${isExpanded ? '▲' : '▼'}</div>
+            </div>
             <div class="node-topics">${topicsBadges}</div>
             <div class="node-meta">⏱ ${day.estimated_time || 60}m · 🔗 ${rCount} resource(s) · ✓ ${tCount} task(s)</div>
+            
+            <div class="node-details">
+              <div class="detail-section">
+                <h4>What to Learn</h4>
+                <ul>
+                  ${(day.topics || []).map(t => `<li>${t}</li>`).join('') || '<li class="muted">No topics listed</li>'}
+                </ul>
+              </div>
+              
+              <div class="detail-section">
+                <h4>Study Resources</h4>
+                <ul>
+                  ${(day.resources || []).map(r => {
+                    const isLink = r.url && (r.url.startsWith('http://') || r.url.startsWith('https://'));
+                    return `
+                      <li>
+                        ${isLink ? `<a href="${r.url}" target="_blank" class="resource-link">🔗 ${r.title}</a>` : `<span class="resource-text">🔗 ${r.title} (${r.url || 'No URL'})</span>`}
+                      </li>
+                    `;
+                  }).join('') || '<li class="muted">No resources listed</li>'}
+                </ul>
+              </div>
+              
+              <div class="detail-section">
+                <h4>Hands-on Quests</h4>
+                <ul>
+                  ${(day.tasks || []).map(t => `
+                    <li>
+                      <span class="task-text">${t}</span>
+                      <button class="btn-ghost btn-xs btn-add-quest" onclick="addRoadmapQuest(event, '${t.replace(/'/g, "\\'")}', ${day.day}, '${day.title.replace(/'/g, "\\'")}')">+ Add Quest</button>
+                    </li>
+                  `).join('') || '<li class="muted">No tasks listed</li>'}
+                </ul>
+              </div>
+            </div>
+            
             <div class="node-actions">
               ${day.status !== 'completed' ? `<button class="btn-ghost" onclick="updateRoadmapDay(${day.day}, 'completed')">✓ Complete</button>` : ''}
               ${day.status === 'completed' ? `<button class="btn-ghost" onclick="updateRoadmapDay(${day.day}, 'pending')">↺ Reset</button>` : ''}
@@ -440,7 +536,6 @@ async function loadRoadmap() {
       container.insertAdjacentHTML('beforeend', phaseHtml);
     });
     
-    // Update progress percentages
     const pct = totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
     const bar = document.getElementById('roadmap-progress-bar');
     const txt = document.getElementById('roadmap-progress-text');
@@ -448,7 +543,6 @@ async function loadRoadmap() {
     if (bar) bar.style.width = `${pct}%`;
     if (txt) txt.textContent = `${pct}% complete (${completedDays}/${totalDays} days)`;
     
-    // Update Chat Targets Sidebar
     updateChatSidebarTargets(path);
     
   } catch (error) {
@@ -466,7 +560,7 @@ async function updateRoadmapDay(day, status) {
     const result = await res.json();
     if (result.success) {
       loadRoadmap();
-      loadAnalytics(); // Refresh hours completed
+      loadAnalytics();
     }
   } catch (error) {
     console.error('Roadmap update failure', error);
@@ -492,6 +586,38 @@ async function regenerateRoadmap() {
 
 const regenPathBtn = document.getElementById('regenerate-path');
 if (regenPathBtn) regenPathBtn.addEventListener('click', regenerateRoadmap);
+
+const expandAllPathBtn = document.getElementById('expand-all-path');
+if (expandAllPathBtn) {
+  expandAllPathBtn.addEventListener('click', () => {
+    const allCards = document.querySelectorAll('.node');
+    allCards.forEach(card => {
+      const dayNum = parseInt(card.dataset.day);
+      if (!isNaN(dayNum)) {
+        expandedDays.add(dayNum);
+        card.classList.add('expanded');
+        const toggleIcon = card.querySelector('.node-toggle-icon');
+        if (toggleIcon) toggleIcon.textContent = '▲';
+      }
+    });
+  });
+}
+
+const collapseAllPathBtn = document.getElementById('collapse-all-path');
+if (collapseAllPathBtn) {
+  collapseAllPathBtn.addEventListener('click', () => {
+    const allCards = document.querySelectorAll('.node');
+    allCards.forEach(card => {
+      const dayNum = parseInt(card.dataset.day);
+      if (!isNaN(dayNum)) {
+        expandedDays.delete(dayNum);
+        card.classList.remove('expanded');
+        const toggleIcon = card.querySelector('.node-toggle-icon');
+        if (toggleIcon) toggleIcon.textContent = '▼';
+      }
+    });
+  });
+}
 
 function updateChatSidebarTargets(path) {
   const listEl = document.querySelector('.target-list');
