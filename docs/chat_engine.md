@@ -15,12 +15,13 @@ The `ChatEngine` class compiles system instructions, feeds database/RAG contexts
 ---
 
 ### `_build_system_instruction`
-* **Signature**: `_build_system_instruction(user_message: str, active_rag_docs: list, session_id: str) -> str`
-* **Description**: Generates the dynamic system instruction prompt for the Gemini LLM. It injects active RAG documents, pending todos, long-term memory facts, grammar rules (if enabled), and strict Quest Board integration rules. It encapsulates memory and todo lists inside `[INTERNAL CONTEXT]` bounds to prevent the LLM from outputting them in normal answers.
+* **Signature**: `_build_system_instruction(user_message: str, active_rag_docs: list, session_id: str, source_id: int = None) -> str`
+* **Description**: Generates the dynamic system instruction prompt for the Gemini LLM. It injects active RAG documents, pending todos, long-term memory facts, grammar rules (if enabled), and strict Quest Board integration rules. If `source_id` is supplied, it configures the AI in Document Analyst mode, grounding its responses strictly in the context of that specific active document. It encapsulates memory and todo lists inside `[INTERNAL CONTEXT]` bounds to prevent the LLM from outputting them in normal answers.
 * **Parameters**:
   - `user_message` (`str`): The incoming user question.
   - `active_rag_docs` (`list`): List of retrieved RAG documents.
   - `session_id` (`str`): Current session identifier.
+  - `source_id` (`int`, optional): Unique database ID of the active document being viewed.
 * **Returns**:
   - `str`: The complete system instruction string.
 
@@ -37,24 +38,26 @@ The `ChatEngine` class compiles system instructions, feeds database/RAG contexts
 ---
 
 ### `send_message`
-* **Signature**: `send_message(session_id: str, user_message: str, model_override: str = None) -> dict`
-* **Description**: Sends a synchronous chat message to the Gemini API. Executes RAG matching, handles key rotation with a retry loop on rate limits, registers API call durations/results to `system_logs`, parses action tags, records user/assistant messages to SQLite, and triggers background memory consolidation.
+* **Signature**: `send_message(session_id: str, user_message: str, model_override: str = None, source_id: int = None) -> dict`
+* **Description**: Sends a synchronous chat message to the Gemini API. Executes RAG matching (restricted to `source_id` if provided), handles key rotation with a retry loop on rate limits, registers API call durations/results to `system_logs`, parses action tags, records user/assistant messages to SQLite, and triggers background memory consolidation.
 * **Parameters**:
   - `session_id` (`str`): Chat session ID.
   - `user_message` (`str`): User input message.
   - `model_override` (`str`, optional): Specific model ID to use.
+  - `source_id` (`int`, optional): Scopes vector retrieval exclusively to this source ID.
 * **Returns**:
   - `dict`: Response metadata (`success`, `response`, `model_used`, `key_used`, `citations`, `todo_detected`).
 
 ---
 
 ### `stream_message`
-* **Signature**: `stream_message(session_id: str, user_message: str, model_override: str = None) -> Generator`
-* **Description**: Initiates a streaming token session with Gemini. Yields chunks as Server-Sent Events (SSE). Processes tags, saves conversation logs, and handles API errors or key rotations on the fly.
+* **Signature**: `stream_message(session_id: str, user_message: str, model_override: str = None, source_id: int = None) -> Generator`
+* **Description**: Initiates a streaming token session with Gemini. Yields chunks as Server-Sent Events (SSE). Restricts RAG similarity matching strictly to the active `source_id` if provided. Processes tags, saves conversation logs, and handles API errors or key rotations on the fly.
 * **Parameters**:
   - `session_id` (`str`): Chat session ID.
   - `user_message` (`str`): User input message.
   - `model_override` (`str`, optional): Specific model ID to use.
+  - `source_id` (`int`, optional): Scopes vector retrieval exclusively to this source ID.
 * **Returns**:
   - `Generator`: A generator yielding SSE-compatible dictionaries.
 

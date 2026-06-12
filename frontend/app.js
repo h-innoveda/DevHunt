@@ -6,70 +6,70 @@ const API_BASE = '/api';
   if (!c) return;
   const ctx = c.getContext('2d');
   let W, H, nodes = [];
-  function resize(){
+  function resize() {
     W = c.width = window.innerWidth * devicePixelRatio;
     H = c.height = window.innerHeight * devicePixelRatio;
   }
   resize(); window.addEventListener('resize', resize);
 
   const N = 80;
-  for (let i=0;i<N;i++) nodes.push({
-    x: Math.random()*W, y: Math.random()*H,
-    vx: (Math.random()-.5)*.3, vy: (Math.random()-.5)*.3,
-    r: Math.random()*1.6+.4
+  for (let i = 0; i < N; i++) nodes.push({
+    x: Math.random() * W, y: Math.random() * H,
+    vx: (Math.random() - .5) * .3, vy: (Math.random() - .5) * .3,
+    r: Math.random() * 1.6 + .4
   });
 
   // Dragon silhouette path points (stylized)
   const dragon = [
-    [.15,.7],[.22,.55],[.30,.58],[.36,.45],[.45,.40],[.52,.30],
-    [.60,.25],[.68,.30],[.74,.42],[.80,.40],[.86,.50],[.82,.62],
-    [.74,.66],[.66,.60],[.58,.66],[.50,.62],[.42,.70],[.34,.68],
-    [.26,.76],[.18,.78]
+    [.15, .7], [.22, .55], [.30, .58], [.36, .45], [.45, .40], [.52, .30],
+    [.60, .25], [.68, .30], [.74, .42], [.80, .40], [.86, .50], [.82, .62],
+    [.74, .66], [.66, .60], [.58, .66], [.50, .62], [.42, .70], [.34, .68],
+    [.26, .76], [.18, .78]
   ];
 
   let t = 0;
-  function loop(){
+  function loop() {
     t += .005;
-    ctx.clearRect(0,0,W,H);
+    ctx.clearRect(0, 0, W, H);
 
     // dragon glow
     ctx.save();
-    ctx.translate(W*0.05, H*0.05);
+    ctx.translate(W * 0.05, H * 0.05);
     ctx.scale(0.9, 0.9);
     ctx.beginPath();
-    dragon.forEach((p,i)=>{
-      const x = p[0]*W + Math.sin(t+i*.3)*4*devicePixelRatio;
-      const y = p[1]*H + Math.cos(t+i*.4)*4*devicePixelRatio;
-      i ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
+    dragon.forEach((p, i) => {
+      const x = p[0] * W + Math.sin(t + i * .3) * 4 * devicePixelRatio;
+      const y = p[1] * H + Math.cos(t + i * .4) * 4 * devicePixelRatio;
+      i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
     });
     ctx.closePath();
     ctx.strokeStyle = 'rgba(0,255,163,0.35)';
-    ctx.lineWidth = 1.2*devicePixelRatio;
+    ctx.lineWidth = 1.2 * devicePixelRatio;
     ctx.shadowColor = '#00ffa3';
-    ctx.shadowBlur = 25*devicePixelRatio;
+    ctx.shadowBlur = 25 * devicePixelRatio;
     ctx.stroke();
     ctx.restore();
 
     // nodes + connections
-    for (const n of nodes){
-      n.x += n.vx*devicePixelRatio; n.y += n.vy*devicePixelRatio;
-      if (n.x<0||n.x>W) n.vx*=-1;
-      if (n.y<0||n.y>H) n.vy*=-1;
+    for (const n of nodes) {
+      n.x += n.vx * devicePixelRatio; n.y += n.vy * devicePixelRatio;
+      if (n.x < 0 || n.x > W) n.vx *= -1;
+      if (n.y < 0 || n.y > H) n.vy *= -1;
       ctx.beginPath();
-      ctx.arc(n.x,n.y,n.r*devicePixelRatio,0,Math.PI*2);
-      ctx.fillStyle='rgba(0,212,255,0.7)';
-      ctx.shadowColor='#00d4ff';ctx.shadowBlur=8*devicePixelRatio;
+      ctx.arc(n.x, n.y, n.r * devicePixelRatio, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,212,255,0.7)';
+      ctx.shadowColor = '#00d4ff'; ctx.shadowBlur = 8 * devicePixelRatio;
       ctx.fill();
     }
-    ctx.shadowBlur=0;
-    for (let i=0;i<nodes.length;i++){
-      for (let j=i+1;j<nodes.length;j++){
-        const a=nodes[i],b=nodes[j];
-        const dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy);
-        if (d<140*devicePixelRatio){
-          ctx.strokeStyle=`rgba(0,255,163,${.15*(1-d/(140*devicePixelRatio))})`;
-          ctx.lineWidth=.5*devicePixelRatio;
-          ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+    ctx.shadowBlur = 0;
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const a = nodes[i], b = nodes[j];
+        const dx = a.x - b.x, dy = a.y - b.y, d = Math.hypot(dx, dy);
+        if (d < 140 * devicePixelRatio) {
+          ctx.strokeStyle = `rgba(0,255,163,${.15 * (1 - d / (140 * devicePixelRatio))})`;
+          ctx.lineWidth = .5 * devicePixelRatio;
+          ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
         }
       }
     }
@@ -93,7 +93,7 @@ function switchPanel(panelId) {
     panel.classList.toggle('active', active);
   });
   if (crumb) crumb.textContent = panelId;
-  
+
   // Refresh content on view switch
   if (panelId === 'path') loadRoadmap();
   if (panelId === 'quests') loadTodos();
@@ -128,28 +128,28 @@ if (toggleSidebarBtn) {
 }
 
 /* ========== Mini Markdown renderer ========== */
-function md(src){
+function md(src) {
   if (!src) return '';
   let s = src
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   // code fences
-  s = s.replace(/```(\w+)?\n([\s\S]*?)```/g, (_,lang,code)=>
-    `<pre><code class="lang-${lang||''}">${code.trim()}</code></pre>`);
+  s = s.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) =>
+    `<pre><code class="lang-${lang || ''}">${code.trim()}</code></pre>`);
   // headings
-  s = s.replace(/^### (.*)$/gm,'<h3>$1</h3>')
-       .replace(/^## (.*)$/gm,'<h2>$1</h2>')
-       .replace(/^# (.*)$/gm,'<h1>$1</h1>');
+  s = s.replace(/^### (.*)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.*)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.*)$/gm, '<h1>$1</h1>');
   // inline code
-  s = s.replace(/`([^`]+)`/g,'<code>$1</code>');
+  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
   // bold + italic
-  s = s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\*(.+?)\*/g,'<i>$1</i>');
+  s = s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\*(.+?)\*/g, '<i>$1</i>');
   // bullets
-  s = s.replace(/(^|\n)([-*] .+(?:\n[-*] .+)*)/g, (_,pre,block)=>{
-    const items = block.split('\n').map(l=>`<li>${l.replace(/^[-*] /,'')}</li>`).join('');
-    return pre+`<ul>${items}</ul>`;
+  s = s.replace(/(^|\n)([-*] .+(?:\n[-*] .+)*)/g, (_, pre, block) => {
+    const items = block.split('\n').map(l => `<li>${l.replace(/^[-*] /, '')}</li>`).join('');
+    return pre + `<ul>${items}</ul>`;
   });
   // paragraphs
-  s = s.split(/\n{2,}/).map(p => /^<(h\d|ul|pre|blockquote)/.test(p)?p:`<p>${p.replace(/\n/g,'<br/>')}</p>`).join('');
+  s = s.split(/\n{2,}/).map(p => /^<(h\d|ul|pre|blockquote)/.test(p) ? p : `<p>${p.replace(/\n/g, '<br/>')}</p>`).join('');
   return s;
 }
 
@@ -158,35 +158,35 @@ const feed = document.getElementById('chat-feed');
 const inputEl = document.getElementById('chat-input');
 const sendBtn = document.getElementById('chat-send');
 
-function addMsg(role, text, meta){
+function addMsg(role, text, meta) {
   if (!feed) return;
   const div = document.createElement('div');
   div.className = 'msg ' + (role === 'assistant' ? 'ai' : role);
   let body = '';
-  
+
   // English correction block injection
   if (role === 'assistant' && meta && meta.grammarTip) {
     body += `<div class="callout"><div class="callout-title">✎ GRAMMAR &amp; PHRASING TIP</div>
       <i>${meta.grammarTip}</i></div>`;
   }
-  
+
   body += md(text);
-  
+
   // Citations and metadata block
   if (role === 'assistant' && meta) {
     const keyStr = meta.key_used || 'None';
     const modelStr = meta.model_used || 'Gemini';
-    const citationsHtml = (meta.citations || []).map(c => 
+    const citationsHtml = (meta.citations || []).map(c =>
       `<span class="citation">📄 ${c.source_name} (${c.source_type}) · ${Math.round(c.similarity * 100)}% match</span>`
     ).join('');
-    
+
     body += `<div class="meta-hud">
       <span><i class="dot dot-green"></i> MODEL: ${modelStr}</span>
       <span><i class="dot dot-cyan"></i> KEY: ${keyStr}</span>
       ${citationsHtml}
     </div>`;
   }
-  
+
   div.innerHTML = body;
   feed.appendChild(div);
   feed.scrollTop = feed.scrollHeight;
@@ -212,7 +212,7 @@ if (feed) {
   addMsg('assistant', seedAI);
 }
 
-async function sendChatMessage(){
+async function sendChatMessage() {
   if (!inputEl) return;
   const message = inputEl.value.trim();
   if (!message) return;
@@ -382,10 +382,10 @@ window.toggleRoadmapDay = (event, dayNum) => {
   if (event.target.tagName === 'BUTTON' || event.target.tagName === 'A' || event.target.closest('button') || event.target.closest('a')) {
     return;
   }
-  
+
   const card = document.querySelector(`.node[data-day="${dayNum}"]`);
   if (!card) return;
-  
+
   if (expandedDays.has(dayNum)) {
     expandedDays.delete(dayNum);
     card.classList.remove('expanded');
@@ -403,10 +403,10 @@ window.addRoadmapQuest = async (event, taskTitle, dayNum, dayTitle) => {
   event.stopPropagation();
   const btn = event.currentTarget;
   if (btn.disabled) return;
-  
+
   btn.textContent = 'Adding...';
   btn.disabled = true;
-  
+
   try {
     const res = await fetch(`${API_BASE}/todos`, {
       method: 'POST',
@@ -418,7 +418,7 @@ window.addRoadmapQuest = async (event, taskTitle, dayNum, dayTitle) => {
         tags: ['roadmap', `day-${dayNum}`]
       })
     });
-    
+
     const result = await res.json();
     if (result.success) {
       btn.textContent = '✓ Added';
@@ -438,37 +438,37 @@ window.addRoadmapQuest = async (event, taskTitle, dayNum, dayTitle) => {
 async function loadRoadmap() {
   const container = document.getElementById('phases');
   if (!container) return;
-  
+
   try {
     const res = await fetch(`${API_BASE}/path`);
     const data = await res.json();
-    
+
     if (!data.success) {
       container.innerHTML = `<div class="muted">// failed loading roadmap</div>`;
       return;
     }
-    
+
     const path = data.path;
     let totalDays = 0;
     let completedDays = 0;
-    
+
     container.innerHTML = '';
-    
+
     if (!path.phases || path.phases.length === 0) {
       container.innerHTML = `<div class="muted">// hunt path empty. click regenerate.</div>`;
       return;
     }
-    
+
     path.phases.forEach((phase, pIdx) => {
       const daysHtml = (phase.days || []).map(day => {
         totalDays++;
         if (day.status === 'completed') completedDays++;
-        
+
         const topicsBadges = (day.topics || []).map(t => `<span>${t}</span>`).join('');
         const rCount = day.resources ? day.resources.length : 0;
         const tCount = day.tasks ? day.tasks.length : 0;
         const isExpanded = expandedDays.has(day.day);
-        
+
         return `
           <div class="node ${day.status || 'upcoming'} ${isExpanded ? 'expanded' : ''}" data-day="${day.day}" onclick="toggleRoadmapDay(event, ${day.day})">
             <div class="node-header">
@@ -493,13 +493,13 @@ async function loadRoadmap() {
                 <h4>Study Resources</h4>
                 <ul>
                   ${(day.resources || []).map(r => {
-                    const isLink = r.url && (r.url.startsWith('http://') || r.url.startsWith('https://'));
-                    return `
+          const isLink = r.url && (r.url.startsWith('http://') || r.url.startsWith('https://'));
+          return `
                       <li>
                         ${isLink ? `<a href="${r.url}" target="_blank" class="resource-link">🔗 ${r.title}</a>` : `<span class="resource-text">🔗 ${r.title} (${r.url || 'No URL'})</span>`}
                       </li>
                     `;
-                  }).join('') || '<li class="muted">No resources listed</li>'}
+        }).join('') || '<li class="muted">No resources listed</li>'}
                 </ul>
               </div>
               
@@ -524,7 +524,7 @@ async function loadRoadmap() {
           </div>
         `;
       }).join('');
-      
+
       const phaseHtml = `
         <div class="phase">
           <div class="phase-title">${phase.title.toUpperCase()}</div>
@@ -535,16 +535,16 @@ async function loadRoadmap() {
       `;
       container.insertAdjacentHTML('beforeend', phaseHtml);
     });
-    
+
     const pct = totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
     const bar = document.getElementById('roadmap-progress-bar');
     const txt = document.getElementById('roadmap-progress-text');
-    
+
     if (bar) bar.style.width = `${pct}%`;
     if (txt) txt.textContent = `${pct}% complete (${completedDays}/${totalDays} days)`;
-    
+
     updateChatSidebarTargets(path);
-    
+
   } catch (error) {
     container.innerHTML = `<div class="muted">// error communicating with API</div>`;
   }
@@ -570,7 +570,7 @@ async function updateRoadmapDay(day, status) {
 async function regenerateRoadmap() {
   const btn = document.getElementById('regenerate-path');
   if (btn) btn.textContent = 'Generating...';
-  
+
   try {
     const res = await fetch(`${API_BASE}/path/generate`, { method: 'POST' });
     const result = await res.json();
@@ -622,9 +622,9 @@ if (collapseAllPathBtn) {
 function updateChatSidebarTargets(path) {
   const listEl = document.querySelector('.target-list');
   if (!listEl) return;
-  
+
   listEl.innerHTML = '';
-  
+
   // Find current active day topics
   let activeDay = null;
   for (const phase of (path.phases || [])) {
@@ -636,16 +636,16 @@ function updateChatSidebarTargets(path) {
     }
     if (activeDay) break;
   }
-  
+
   if (activeDay) {
-    const topicsHtml = (activeDay.topics || []).map(topic => 
+    const topicsHtml = (activeDay.topics || []).map(topic =>
       `<li><span class="tag tag-high">ACTIVE</span> ${topic}</li>`
     ).join('');
-    
-    const tasksHtml = (activeDay.tasks || []).map(task => 
+
+    const tasksHtml = (activeDay.tasks || []).map(task =>
       `<li><span class="tag tag-med">TASK</span> ${task}</li>`
     ).join('');
-    
+
     listEl.innerHTML = `
       <div style="font-weight:700; font-size:11px; margin-bottom:6px; color:var(--neon-cyan)">
         Day ${activeDay.day}: ${activeDay.title}
@@ -662,30 +662,30 @@ function updateChatSidebarTargets(path) {
 async function loadTodos() {
   const kanban = document.getElementById('kanban');
   if (!kanban) return;
-  
+
   try {
     const res = await fetch(`${API_BASE}/todos`);
     const data = await res.json();
-    
+
     if (!data.success) {
       kanban.innerHTML = `<div class="muted">// failed loading quests</div>`;
       return;
     }
-    
+
     const list = data.todos;
     const columns = ['high', 'medium', 'low'];
-    
+
     kanban.innerHTML = columns.map(c => {
       const colList = list.filter(q => q.priority.toLowerCase() === c);
-      
+
       // Update header counters
       const counterEl = document.getElementById(`todo-count-${c}`);
       if (counterEl) counterEl.textContent = colList.length;
-      
+
       const cardsHtml = colList.map(q => {
         const tagBadges = (q.tags || []).map(t => `<span>#${t}</span>`).join('');
         const isAi = q.source === 'ai_detected';
-        
+
         return `
           <div class="quest-card">
             <div class="qc-title">${q.title}</div>
@@ -702,7 +702,7 @@ async function loadTodos() {
           </div>
         `;
       }).join('');
-      
+
       return `
         <div class="column col-${c}">
           <div class="col-head">
@@ -713,10 +713,10 @@ async function loadTodos() {
         </div>
       `;
     }).join('');
-    
+
     // Update Chat Sidebar Mini Quest list
     updateChatSidebarQuests(list);
-    
+
   } catch (error) {
     kanban.innerHTML = `<div class="muted">// error communicating with API</div>`;
   }
@@ -748,11 +748,11 @@ window.deleteQuest = async (id) => {
 function updateChatSidebarQuests(todos) {
   const miniList = document.querySelector('.quest-mini');
   if (!miniList) return;
-  
+
   const activeQuests = todos.filter(t => t.status !== 'done').slice(0, 4);
-  
+
   if (activeQuests.length > 0) {
-    miniList.innerHTML = activeQuests.map(q => 
+    miniList.innerHTML = activeQuests.map(q =>
       `<li><label><input type="checkbox" onclick="completeQuest(${q.id})"/> ${q.title}</label></li>`
     ).join('');
   } else {
@@ -773,13 +773,13 @@ if (saveQuestBtn) {
   saveQuestBtn.addEventListener('click', async () => {
     const title = document.getElementById('q-title').value.trim();
     if (!title) return;
-    
+
     const description = document.getElementById('q-desc').value.trim();
     const priority = document.getElementById('q-prio').value.toLowerCase();
     const due_date = document.getElementById('q-due').value;
     const tagsStr = document.getElementById('q-tags').value;
     const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
-    
+
     try {
       const res = await fetch(`${API_BASE}/todos`, {
         method: 'POST',
@@ -803,18 +803,18 @@ if (saveQuestBtn) {
 async function loadSources() {
   const table = document.getElementById('vault-table');
   if (!table) return;
-  
+
   try {
     const res = await fetch(`${API_BASE}/knowledge`);
     const data = await res.json();
-    
+
     if (!data.success) {
       table.innerHTML = `<tr><td class="muted">Failed to load sources</td></tr>`;
       return;
     }
-    
+
     const list = data.sources;
-    
+
     table.innerHTML = `
       <thead>
         <tr>
@@ -874,28 +874,28 @@ function addDocMsg(role, text) {
 
 window.openDocViewer = async (event, sourceId) => {
   if (event) event.preventDefault();
-  
+
   const vaultGrid = document.getElementById('vault-grid');
   const viewerGrid = document.getElementById('vault-viewer-grid');
   const docTitle = document.getElementById('doc-viewer-title');
   const docContent = document.getElementById('doc-viewer-content');
   const docFeed = document.getElementById('doc-chat-feed');
-  
+
   if (!viewerGrid || !vaultGrid) return;
-  
+
   docContent.innerHTML = `<span class="muted">// retrieving document from local vaults...</span>`;
   docFeed.innerHTML = '';
-  
+
   vaultGrid.style.display = 'none';
   viewerGrid.style.display = 'grid';
-  
+
   window.activeDocSourceId = sourceId;
   window.activeDocSessionId = `doc_chat_${sourceId}`;
-  
+
   try {
     const res = await fetch(`${API_BASE}/knowledge/${sourceId}/content`);
     const data = await res.json();
-    
+
     if (data.success) {
       docTitle.textContent = data.name;
       docContent.textContent = data.content || '// Document has no text content.';
@@ -906,7 +906,7 @@ window.openDocViewer = async (event, sourceId) => {
     console.error(err);
     docContent.innerHTML = `<span style="color:var(--red);">Error: Failed to fetch document content.</span>`;
   }
-  
+
   try {
     const res = await fetch(`${API_BASE}/chat/history?session_id=${window.activeDocSessionId}`);
     const data = await res.json();
@@ -939,21 +939,21 @@ window.sendDocChatMessage = async () => {
   const input = document.getElementById('doc-chat-input');
   const docFeed = document.getElementById('doc-chat-feed');
   if (!input || !docFeed || !window.activeDocSourceId) return;
-  
+
   const message = input.value.trim();
   if (!message) return;
-  
+
   addDocMsg('user', message);
   input.value = '';
-  
+
   const aiDiv = document.createElement('div');
   aiDiv.className = 'msg ai';
   aiDiv.innerHTML = `<span class="muted streaming-cursor">// consulting document segments...</span>`;
   docFeed.appendChild(aiDiv);
   docFeed.scrollTop = docFeed.scrollHeight;
-  
+
   let fullText = '';
-  
+
   try {
     const response = await fetch(`${API_BASE}/chat/stream`, {
       method: 'POST',
@@ -964,25 +964,25 @@ window.sendDocChatMessage = async () => {
         source_id: window.activeDocSourceId
       })
     });
-    
+
     if (!response.ok) {
       aiDiv.innerHTML = `⚠️ **Server error**: ${response.status}`;
       return;
     }
-    
+
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
     let firstToken = true;
-    
+
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      
+
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
       buffer = lines.pop();
-      
+
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue;
         try {
@@ -1001,7 +1001,7 @@ window.sendDocChatMessage = async () => {
         }
       }
     }
-    
+
     aiDiv.innerHTML = md(fullText);
     docFeed.scrollTop = docFeed.scrollHeight;
   } catch (err) {
@@ -1056,7 +1056,7 @@ if (urlBtn) {
     const input = document.getElementById('url-in');
     const url = input.value.trim();
     if (!url) return;
-    
+
     urlBtn.textContent = 'Scraping...';
     try {
       const res = await fetch(`${API_BASE}/knowledge/url`, {
@@ -1087,9 +1087,9 @@ if (noteBtn) {
     const bodyInput = document.getElementById('note-body');
     const title = titleInput.value.trim();
     const content = bodyInput.value.trim();
-    
+
     if (!title || !content) return;
-    
+
     noteBtn.textContent = 'Saving...';
     try {
       const res = await fetch(`${API_BASE}/knowledge/note`, {
@@ -1119,18 +1119,18 @@ const fileInput = document.getElementById('filein');
 
 if (dropzone && fileInput) {
   dropzone.addEventListener('click', () => fileInput.click());
-  
+
   dropzone.addEventListener('dragover', e => {
     e.preventDefault();
     dropzone.classList.add('drag');
   });
   dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
-  
+
   const handleFilesUpload = async (files) => {
     for (const file of files) {
       const formData = new FormData();
       formData.append('file', file);
-      
+
       try {
         const res = await fetch(`${API_BASE}/knowledge/upload`, {
           method: 'POST',
@@ -1147,13 +1147,13 @@ if (dropzone && fileInput) {
       }
     }
   };
-  
+
   dropzone.addEventListener('drop', e => {
     e.preventDefault();
     dropzone.classList.remove('drag');
     handleFilesUpload(e.dataTransfer.files);
   });
-  
+
   fileInput.addEventListener('change', e => {
     handleFilesUpload(e.target.files);
   });
@@ -1164,35 +1164,35 @@ async function loadProfileAndSettings() {
   try {
     const res = await fetch(`${API_BASE}/profile`);
     const data = await res.json();
-    
+
     if (!data.success) return;
-    
+
     const profile = data.profile;
     const settings = data.settings;
-    
+
     // Header & Info HUDs
     const streakDays = profile.streak_counter || 0;
     const streakEl = document.getElementById('stat-streak');
     if (streakEl) streakEl.textContent = `${streakDays}🔥`;
-    
+
     const hStreak = document.getElementById('header-streak');
     if (hStreak) hStreak.textContent = `${streakDays} day${streakDays !== 1 ? 's' : ''}`;
-    
+
     // Load inputs in Profile Editor
     const nameInput = document.getElementById('profile-name');
     const goalInput = document.getElementById('profile-goal');
     const targetInput = document.getElementById('profile-target');
     const dateInput = document.getElementById('profile-start-date');
-    
+
     if (nameInput) nameInput.value = profile.name || '';
     if (goalInput) goalInput.value = profile.goal || '';
     if (targetInput) targetInput.value = profile.daily_study_time || 60;
     if (dateInput) dateInput.value = profile.start_date || '';
-    
+
     // Load Settings Toggles
     const toggle = document.getElementById('grammar-toggle');
     if (toggle) toggle.checked = settings.english_correction || false;
-    
+
   } catch (error) {
     console.error('Failed to load profile', error);
   }
@@ -1206,7 +1206,7 @@ if (saveProfileBtn) {
     const goal = document.getElementById('profile-goal').value.trim();
     const daily_study_time = parseInt(document.getElementById('profile-target').value, 10) || 60;
     const start_date = document.getElementById('profile-start-date').value;
-    
+
     saveProfileBtn.textContent = 'Saving...';
     try {
       const res = await fetch(`${API_BASE}/profile`, {
@@ -1258,13 +1258,13 @@ async function loadAnalytics() {
   try {
     const resOverview = await fetch(`${API_BASE}/analytics/overview`);
     const dataOverview = await resOverview.json();
-    
+
     if (dataOverview.success) {
       const stats = dataOverview.overview;
       const hoursEl = document.getElementById('stat-hours');
       const questsEl = document.getElementById('stat-quests');
       const consistencyEl = document.getElementById('stat-consistency');
-      
+
       if (hoursEl) hoursEl.textContent = stats.study_hours;
       if (questsEl) questsEl.textContent = stats.completed_todos;
       if (consistencyEl) consistencyEl.textContent = `${stats.consistency_score}%`;
@@ -1272,12 +1272,12 @@ async function loadAnalytics() {
   } catch (e) {
     console.error('Analytics overview load failure', e);
   }
-  
+
   // 2. Skills matrix
   try {
     const resSkills = await fetch(`${API_BASE}/analytics/skills`);
     const dataSkills = await resSkills.json();
-    
+
     if (dataSkills.success) {
       const list = dataSkills.skills;
       const skillsContainer = document.getElementById('skills');
@@ -1293,12 +1293,12 @@ async function loadAnalytics() {
   } catch (e) {
     console.error('Skills load failure', e);
   }
-  
+
   // 3. Render 7-day SVG chart
   try {
     const resWeekly = await fetch(`${API_BASE}/analytics/weekly`);
     const dataWeekly = await resWeekly.json();
-    
+
     if (dataWeekly.success) {
       const list = dataWeekly.weekly;
       renderSVGChart(list);
@@ -1311,34 +1311,34 @@ async function loadAnalytics() {
 function renderSVGChart(weeklyData) {
   const svg = document.getElementById('chart');
   if (!svg || !weeklyData || weeklyData.length === 0) return;
-  
+
   const days = weeklyData.map(d => d.day.toUpperCase());
   const q = weeklyData.map(d => d.questions);
   const t = weeklyData.map(d => d.tasks_completed);
-  
+
   const W = 420, H = 200, pad = 28;
   const max = Math.max(...q, ...t, 5) + 2; // Default scale height at least 5
-  
+
   const x = i => pad + (i * (W - pad * 2) / (days.length - 1));
   const y = v => H - pad - (v / max) * (H - pad * 2);
-  
+
   let g = '';
   // grid lines
   for (let i = 0; i < 5; i++) {
     const yy = pad + i * (H - pad * 2) / 4;
     g += `<line x1="${pad}" y1="${yy}" x2="${W - pad / 2}" y2="${yy}" stroke="rgba(0,255,163,.08)" />`;
   }
-  
+
   // axes labels
   days.forEach((d, i) => {
     g += `<text x="${x(i)}" y="${H - 8}" fill="#6c8290" font-size="9" text-anchor="middle" font-family="JetBrains Mono">${d}</text>`;
   });
-  
+
   // lines paths
   const path = arr => arr.map((v, i) => `${i ? 'L' : 'M'}${x(i)},${y(v)}`).join(' ');
   g += `<path d="${path(q)}" stroke="#00ffa3" stroke-width="2" fill="none" filter="drop-shadow(0 0 6px #00ffa3)"/>`;
   g += `<path d="${path(t)}" stroke="#00d4ff" stroke-width="2" fill="none" filter="drop-shadow(0 0 6px #00d4ff)"/>`;
-  
+
   // node dots
   q.forEach((v, i) => {
     g += `<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="#00ffa3"/>`;
@@ -1346,7 +1346,7 @@ function renderSVGChart(weeklyData) {
   t.forEach((v, i) => {
     g += `<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="#00d4ff"/>`;
   });
-  
+
   svg.innerHTML = g;
 }
 
@@ -1354,13 +1354,13 @@ function renderSVGChart(weeklyData) {
 async function loadKeys() {
   const table = document.getElementById('keys-table');
   if (!table) return;
-  
+
   try {
     const res = await fetch(`${API_BASE}/keys`);
     const data = await res.json();
-    
+
     if (!data.success) return;
-    
+
     const list = data.keys;
     table.innerHTML = `
       <thead>
@@ -1374,12 +1374,12 @@ async function loadKeys() {
       </thead>
       <tbody>
         ${list.map(k => {
-          let stLabel = k.status;
-          if (k.status === 'Cooling Down') {
-            const left = Math.max(0, Math.round((k.cooldown_until - Date.now() / 1000)));
-            stLabel = `Cooling (${left}s)`;
-          }
-          return `
+      let stLabel = k.status;
+      if (k.status === 'Cooling Down') {
+        const left = Math.max(0, Math.round((k.cooldown_until - Date.now() / 1000)));
+        stLabel = `Cooling (${left}s)`;
+      }
+      return `
             <tr id="key-row-${k.id}">
               <td><b>${k.label}</b></td>
               <td style="font-size:11px">${k.masked_key}</td>
@@ -1394,10 +1394,10 @@ async function loadKeys() {
               <td colspan="5" id="test-msg-${k.id}" style="padding:6px 12px;font-size:11px"></td>
             </tr>
           `;
-        }).join('') || '<tr><td colspan="5" class="muted" style="text-align:center;padding:20px">// no keys registered</td></tr>'}
+    }).join('') || '<tr><td colspan="5" class="muted" style="text-align:center;padding:20px">// no keys registered</td></tr>'}
       </tbody>
     `;
-    
+
     // Automatically update the top active key HUD
     const activeKeyInfo = list.find(k => k.status === 'Active');
     const headerKey = document.getElementById('header-active-key');
@@ -1456,9 +1456,9 @@ if (registerKeyBtn) {
     const labelInput = document.getElementById('new-label');
     const key = keyInput.value.trim();
     const label = labelInput.value.trim() || 'unnamed';
-    
+
     if (!key) return;
-    
+
     try {
       const res = await fetch(`${API_BASE}/keys`, {
         method: 'POST',
@@ -1484,7 +1484,7 @@ async function loadActiveStateHeader() {
   try {
     const resKeys = await fetch(`${API_BASE}/keys`);
     const dataKeys = await resKeys.json();
-    
+
     if (dataKeys.success) {
       const list = dataKeys.keys;
       const activeKeyInfo = list.find(k => k.status === 'Active');
@@ -1493,7 +1493,7 @@ async function loadActiveStateHeader() {
         headerKey.textContent = activeKeyInfo ? activeKeyInfo.masked_key : 'None';
       }
     }
-    
+
     const resProfile = await fetch(`${API_BASE}/profile`);
     const dataProfile = await resProfile.json();
     if (dataProfile.success) {
@@ -1545,7 +1545,7 @@ window.importBackupFromSettings = async (input) => {
     const d = await r.json();
     if (d.success) {
       const summary = Object.entries(d.restored || {})
-        .map(([k,v]) => `${k}: ${v}`)
+        .map(([k, v]) => `${k}: ${v}`)
         .join(' · ');
       if (statusEl) statusEl.innerHTML = `<span style="color:var(--green)">✓ Restored — ${summary}</span>`;
       // Reload UI
@@ -1566,15 +1566,15 @@ window.importBackupFromSettings = async (input) => {
 /* ========== Chat History Viewer ========== */
 async function loadHistoryPanel() {
   const sessionSel = document.getElementById('history-session-select');
-  const feed       = document.getElementById('history-feed');
-  const statsEl    = document.getElementById('history-stats');
+  const feed = document.getElementById('history-feed');
+  const statsEl = document.getElementById('history-stats');
   if (!feed) return;
 
   const sessionId = sessionSel ? sessionSel.value : 'default_session';
   feed.innerHTML = '<div class="muted">// loading history...</div>';
 
   try {
-    const res  = await fetch(`${API_BASE}/chat/history?session_id=${encodeURIComponent(sessionId)}`);
+    const res = await fetch(`${API_BASE}/chat/history?session_id=${encodeURIComponent(sessionId)}`);
     const data = await res.json();
     if (!data.success) { feed.innerHTML = '<div class="muted">// failed to load</div>'; return; }
 
@@ -1582,16 +1582,16 @@ async function loadHistoryPanel() {
 
     // Stats bar
     const userMsgs = msgs.filter(m => m.role === 'user');
-    const aiMsgs   = msgs.filter(m => m.role === 'assistant');
-    const models   = [...new Set(aiMsgs.map(m => m.model_used).filter(Boolean))];
+    const aiMsgs = msgs.filter(m => m.role === 'assistant');
+    const models = [...new Set(aiMsgs.map(m => m.model_used).filter(Boolean))];
     if (statsEl) {
       statsEl.innerHTML = `
         <span>Messages: <b>${msgs.length}</b></span>
         <span>User: <b>${userMsgs.length}</b></span>
         <span>AI: <b>${aiMsgs.length}</b></span>
         <span>Models: <b>${models.join(', ') || 'N/A'}</b></span>
-        ${msgs.length ? `<span>First: <b>${msgs[0].timestamp?.slice(0,16)}</b></span>` : ''}
-        ${msgs.length ? `<span>Last: <b>${msgs[msgs.length-1].timestamp?.slice(0,16)}</b></span>` : ''}
+        ${msgs.length ? `<span>First: <b>${msgs[0].timestamp?.slice(0, 16)}</b></span>` : ''}
+        ${msgs.length ? `<span>Last: <b>${msgs[msgs.length - 1].timestamp?.slice(0, 16)}</b></span>` : ''}
       `;
     }
 
@@ -1602,8 +1602,8 @@ async function loadHistoryPanel() {
 
     feed.innerHTML = msgs.map(msg => {
       const isUser = msg.role === 'user';
-      const ts     = msg.timestamp?.slice(0, 16) || '';
-      const model  = msg.model_used || '';
+      const ts = msg.timestamp?.slice(0, 16) || '';
+      const model = msg.model_used || '';
       return `
         <div style="display:flex;flex-direction:column;align-items:${isUser ? 'flex-end' : 'flex-start'}">
           <div style="font-size:10px;color:var(--muted);margin-bottom:3px;${isUser ? 'text-align:right' : ''}">
@@ -1612,8 +1612,8 @@ async function loadHistoryPanel() {
           <div style="
             max-width:85%; padding:10px 14px; border-radius:8px; font-size:13px; line-height:1.55;
             ${isUser
-              ? 'background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);'
-              : 'background:rgba(0,255,163,.05);border:1px solid var(--border);'}
+          ? 'background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);'
+          : 'background:rgba(0,255,163,.05);border:1px solid var(--border);'}
           ">${md(msg.content || '')}</div>
         </div>
       `;
@@ -1629,7 +1629,7 @@ async function loadHistoryPanel() {
 
 window.clearSessionHistory = async () => {
   const sessionSel = document.getElementById('history-session-select');
-  const sessionId  = sessionSel ? sessionSel.value : 'default_session';
+  const sessionId = sessionSel ? sessionSel.value : 'default_session';
   if (!confirm(`Clear history for session "${sessionId}"?`)) return;
   try {
     await fetch(`${API_BASE}/chat/history?session_id=${encodeURIComponent(sessionId)}`, { method: 'DELETE' });
@@ -1731,7 +1731,7 @@ function initTerminal() {
         // Find CWD
         terminalCwd = data.cwd;
         updatePrompt(promptEl);
-        
+
         // Find OS in output or extract it
         if (osEl) {
           const raw = data.output;
@@ -1755,7 +1755,7 @@ function initTerminal() {
       if (!cmd.trim()) return;
 
       inputEl.value = "";
-      
+
       // Append prompt and command to history output
       const linePrompt = document.createElement('div');
       linePrompt.className = 'terminal-line';
@@ -1788,7 +1788,7 @@ function initTerminal() {
           body: JSON.stringify({ command: cmd, cwd: terminalCwd })
         });
         const data = await res.json();
-        
+
         // Remove loader
         if (outputEl.contains(lineLoader)) {
           outputEl.removeChild(lineLoader);
@@ -1822,8 +1822,8 @@ function initTerminal() {
         outputEl.appendChild(lineResult);
       }
       scrollToBottom(bodyEl);
-    } 
-    
+    }
+
     else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (terminalHistory.length === 0) return;
@@ -1831,8 +1831,8 @@ function initTerminal() {
         terminalHistoryIndex--;
         inputEl.value = terminalHistory[terminalHistoryIndex];
       }
-    } 
-    
+    }
+
     else if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (terminalHistoryIndex < terminalHistory.length - 1) {
@@ -1842,8 +1842,8 @@ function initTerminal() {
         terminalHistoryIndex = terminalHistory.length;
         inputEl.value = "";
       }
-    } 
-    
+    }
+
     else if (e.key === 'Tab') {
       e.preventDefault();
       const val = inputEl.value;
@@ -1853,7 +1853,7 @@ function initTerminal() {
         scrollToBottom(bodyEl);
         return;
       }
-      
+
       const matches = HUNT_COMMANDS.filter(c => c.startsWith(val.toLowerCase()));
       if (matches.length === 1) {
         inputEl.value = matches[0] + " ";
@@ -1870,7 +1870,7 @@ function updatePrompt(promptEl) {
   if (!promptEl) return;
   // Format CWD cleanly: show ~ if inside workspace root
   let displayCwd = terminalCwd;
-  
+
   // Try to find the root folder path and substitute with ~
   const rootIndex = terminalCwd.indexOf("Local-AI");
   if (rootIndex !== -1) {
@@ -1881,7 +1881,7 @@ function updatePrompt(promptEl) {
     const parts = terminalCwd.split(/[\\/]/);
     displayCwd = parts[parts.length - 1] || terminalCwd;
   }
-  
+
   promptEl.textContent = `guest@devhunt:${displayCwd || '/'}$`;
 }
 
@@ -1900,7 +1900,7 @@ function scrollToBottom(el) {
 
 function mdEscape(src) {
   if (!src) return "";
-  return src.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return src.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 /* ========== Auto-Update Checker ========== */
@@ -1952,7 +1952,7 @@ async function checkUpdates(isManual = false) {
 
     if (data.update_available) {
       if (statusText) statusText.innerHTML = `<span style="color:var(--amber)">⚡ Update available (latest: ${data.latest_commit})</span>`;
-      
+
       // Only show the header notification badge if not explicitly dismissed
       if (badge) {
         if (data.latest_commit === dismissedUpdate) {
@@ -1961,13 +1961,13 @@ async function checkUpdates(isManual = false) {
           badge.style.display = 'inline-block';
         }
       }
-      
+
       if (applyBtn) applyBtn.style.display = 'inline-block';
-      
-      const commitsHtml = (data.commits || []).map(c => 
+
+      const commitsHtml = (data.commits || []).map(c =>
         `<li><span style="color:var(--cyan);">${c.hash}</span>: ${mdEscape(c.message)} <span class="muted">(${mdEscape(c.author)})</span></li>`
       ).join('');
-      
+
       if (commitsList) commitsList.innerHTML = commitsHtml;
       if (modalCommitsList) modalCommitsList.innerHTML = commitsHtml;
       if (detailsBox) detailsBox.style.display = 'block';
@@ -1993,7 +1993,7 @@ async function applyUpdate() {
   if (confirm("Apply updates? This will pull remote commits and restart the server node. Your settings/keys will be preserved.")) {
     if (applyBtn) applyBtn.disabled = true;
     if (modalApplyBtn) modalApplyBtn.disabled = true;
-    
+
     if (progressInfo) progressInfo.style.display = 'block';
     if (modalProgress) modalProgress.style.display = 'block';
     if (statusText) statusText.textContent = 'Applying update codebase...';
@@ -2085,7 +2085,7 @@ async function applyUpdate() {
             settings: { dismissed_update: null }
           })
         });
-      } catch (e) {}
+      } catch (e) { }
       checkUpdates(true);
     });
   }
@@ -2326,7 +2326,7 @@ async function loadNotifications(autoMarkRead = false) {
     // Auto trigger popups on startup/page load (once per browser tab session)
     if (!sessionStorage.getItem('notif_popup_shown')) {
       sessionStorage.setItem('notif_popup_shown', 'true');
-      
+
       const importantUnread = currentNotificationsList.find(n => !readIds.includes(n.id) && (n.type === 'update' || n.type === 'release' || n.type === 'news'));
       if (importantUnread) {
         if (importantUnread.type === 'update') {
@@ -2377,10 +2377,10 @@ function openNotificationDetail(id, event) {
   if (event && event.target && event.target.tagName.toLowerCase() === 'button') {
     return;
   }
-  
+
   const notif = currentNotificationsList.find(n => n.id === id);
   if (!notif) return;
-  
+
   const modal = document.getElementById('notification-detail-modal');
   const titleEl = document.getElementById('notif-detail-title');
   const metaEl = document.getElementById('notif-detail-meta');
@@ -2388,13 +2388,13 @@ function openNotificationDetail(id, event) {
   const metaContainer = document.getElementById('notif-detail-metadata-container');
   const metaPre = document.getElementById('notif-detail-metadata');
   const actionBtn = document.getElementById('btn-action-notif-detail');
-  
+
   if (!modal) return;
-  
+
   titleEl.textContent = notif.title;
   metaEl.textContent = `Category: ${notif.type.toUpperCase()} | Timestamp: ${notif.timestamp || 'N/A'}`;
   msgEl.textContent = notif.message;
-  
+
   if (notif.metadata && Object.keys(notif.metadata).length > 0) {
     metaContainer.style.display = 'block';
     metaPre.textContent = JSON.stringify(notif.metadata, null, 2);
@@ -2402,7 +2402,7 @@ function openNotificationDetail(id, event) {
     metaContainer.style.display = 'none';
     metaPre.textContent = '';
   }
-  
+
   if (notif.type === 'update') {
     actionBtn.style.display = 'inline-block';
     actionBtn.textContent = 'Update Now';
@@ -2414,9 +2414,9 @@ function openNotificationDetail(id, event) {
     actionBtn.style.display = 'none';
     actionBtn.onclick = null;
   }
-  
+
   modal.classList.add('show');
-  
+
   // Mark read in background
   const badge = document.getElementById('notification-unread-count');
   fetch(`${API_BASE}/profile`)

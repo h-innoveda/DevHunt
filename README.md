@@ -14,11 +14,13 @@ No subscriptions. No third-party data tracking. Everything is stored on your mac
 
 *   **🛠️ Self-Healing Setup**: Run a single command (`run.bat` or `run.sh`) to verify Python 3.10+, check virtual environment health (auto-rebuilds if broken), and use a fast dependency checker to skip installation checks if satisfied.
 *   **🖥️ Hunt Terminal CLI**: Run cross-platform shell commands, manage todos, test API keys, view memory, and check notifications via the `hunt` command-line utility directly in the browser.
+*   **🗺️ Interactive Roadmap Path & Quest Sync**: Generate custom learning roadmaps. Expand cards to view daily milestones, study resources, reference badges, and use the quick `+ Add Quest` shortcut to directly add tasks to your Quest Board.
 *   **🧠 Long-Term AI Memory**: Automatically aggregates and saves facts, user details, and preferences from conversation history to SQLite. View and edit facts directly on the settings page.
-*   **📡 System Messages & Git Auto-Updater**: Dedicate announcements tab that displays software updates, git pull releases, and local warnings. Automatically checks and pulls updates.
+*   **📡 System Messages & Git Auto-Updater**: Dedicated announcements tab that displays software updates, git pull releases, and local warnings. Automatically checks and pulls updates.
 *   **🔄 Intelligent Key Rotation**: Register multiple Gemini API keys. DevHunt performs round-robin rotation, handles 429 rate limit cooldowns, and bypasses faulty keys seamlessly.
 *   **🧠 Natural Quest Board Integration**: Manage tasks organically in chat. The AI assistant has real-time visibility into your Quest Board and updates, completes, or deletes tasks using LLM action-tag extraction.
-*   **📚 Personal Knowledge Base (RAG)**: Index notes, PDFs, or scrape URLs. DevHunt performs local similarity matches and feeds document context directly to the LLM with exact source citations.
+*   **📚 Personal Knowledge Base & Analyst (RAG)**: Index notes, PDFs, or scrape URLs. Includes a **Split-Screen Document Analyst** side-by-side workspace inside the **Intel Vault** with source-grounded RAG chat sessions.
+*   **🌐 Upgraded URL Ingestion Scraper**: Scrape web documentation pages with protocol auto-prepending, customizable user-agent browser header masking, and self-signed SSL verification fallback bypasses.
 *   **📊 Comprehensive Activity Logging**: Every action (chat messages, terminal commands, Quest Board changes, startup checks) is logged to SQLite with level and category filters (`chat`, `todo`, `terminal`, `updates`, etc.) from a live developer logs dashboard.
 
 ---
@@ -114,6 +116,11 @@ Local-AI/
 │       ├── profile_manager.py# User profile & settings manager
 │       ├── analytics.py      # Local usage & streak calculations
 │       └── db.py             # SQLite connection pools & schema setup
+├── docs/                     # System and module documentation guide
+│   ├── roadmap.md            # Collapsible study roadmap completed & future milestones
+│   ├── hunt_terminal_docs.md # Hunt terminal emulator commands detailed specification
+│   ├── app_endpoints.md      # Full listing of backend HTTP REST/SSE endpoints
+│   └── ...
 ├── frontend/
 │   ├── index.html            # Core user interface
 │   ├── logs.html             # System logs debugger dashboard
@@ -121,7 +128,6 @@ Local-AI/
 │   └── styles.css            # Custom CSS themes & glassmorphism styling
 ├── run.bat                   # Automated Windows launcher
 ├── run.sh                    # Automated macOS/Linux launcher
-├── ROADMAP.md                # Development roadmap
 └── README.md
 ```
 
@@ -130,7 +136,8 @@ Local-AI/
 ## 📡 Core API Reference
 
 ### Chat & Streams
-*   `POST /api/chat/stream`: Initiates an SSE token stream for user messages, returning real-time response chunks and Quest Board status updates.
+*   `POST /api/chat`: Processes synchronous chat messages (optional `source_id`).
+*   `POST /api/chat/stream`: Initiates an SSE token stream for user messages, returning real-time response chunks and Quest Board status updates (optional `source_id`).
 *   `GET /api/chat/history`: Retrieves chat session database records.
 *   `DELETE /api/chat/history`: Clears session history from the database.
 
@@ -146,6 +153,8 @@ Local-AI/
 
 Comprehensive documentation describing every single function, parameters, outputs, and internal execution pipelines is available in the [docs/](file:///d:/My%20projects/Local-AI/docs/) directory:
 
+*   [roadmap.md](file:///d:/My%20projects/Local-AI/docs/roadmap.md): Completed milestones (roadmaps, document analyst, scraper upgrades) and future architectural layout.
+*   [hunt_terminal_docs.md](file:///d:/My%20projects/Local-AI/docs/hunt_terminal_docs.md): Comprehensive reference guide of all available `hunt` terminal CLI commands.
 *   [check_requirements.py](file:///d:/My%20projects/Local-AI/docs/check_requirements.md): Package version matching & system path verification.
 *   [todo_manager.py](file:///d:/My%20projects/Local-AI/docs/todo_manager.md): CRUD transactions for Quest Board tasks.
 *   [chat_engine.py](file:///d:/My%20projects/Local-AI/docs/chat_engine.md): SSE streaming, key rotation, and context aggregation.

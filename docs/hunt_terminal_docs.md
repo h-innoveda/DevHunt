@@ -149,3 +149,36 @@ All commands behave **identically** on both Windows and Linux hosts:
 #### `hunt neofetch`
 - **Description**: Renders system configurations alongside a DevHunt ASCII logo.
 - **Usage**: `hunt neofetch`
+
+---
+
+### 4. System, Node & Memory Operations
+
+#### `hunt quest`
+- **Description**: Manages your Quest Board (Todo Kanban) tasks directly from the terminal. Running `hunt quest` without subcommands lists all active quests.
+- **Usage**: `hunt quest [add <title> [priority] [desc] | done <id> | rm <id>]`
+- **Example**: `hunt quest add "Study Docker" high "Learn container basics"` or `hunt quest done 5`
+
+#### `hunt keys`
+- **Description**: Manages the Gemini API key pool for active nodes. Supports listing registered keys, adding/registering a new key, removing a key, and testing key status.
+- **Usage**: `hunt keys [list | add <key> [label] | rm <id> | test <id>]`
+- **Example**: `hunt keys list` or `hunt keys test 1`
+
+#### `hunt memory`
+- **Description**: Views and operates the AI's consolidated long-term memory facts.
+- **Usage**: `hunt memory [refine | clear]`
+- **Example**: `hunt memory refine`
+
+#### `hunt backup`
+- **Description**: Exports full data structures (messages, todos, settings, roadmaps, keys, etc.) into a local JSON backup.
+- **Usage**: `hunt backup export`
+
+#### `hunt history`
+- **Description**: Prints raw chat message logs of the active conversation session for debugging.
+- **Usage**: `hunt history [limit]`
+- **Example**: `hunt history 10`
+
+#### `hunt notifications`
+- **Description**: Manages system messages, remote announcements, and warning logs. Supports listing, reading, or viewing details.
+- **Usage**: `hunt notifications [list | read [all | <id>] | detail <id>]`
+- **Example**: `hunt notifications list`

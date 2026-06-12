@@ -11,8 +11,8 @@ This document details every route handler mapped in `backend/app.py` to operate 
 ---
 
 ## Chat & LLM Interfaces
-* **`POST /api/chat`**: Processes synchronous chat prompts. Resolves RAG documents, queries Gemini, logs latency statistics, parses Todo action tags, and returns the response.
-* **`POST /api/chat/stream`**: Establishes a Server-Sent Events (SSE) token stream for real-time chat replies.
+* **`POST /api/chat`**: Processes synchronous chat prompts. Accepts JSON payload `{"message": str, "session_id": str, "model_override": str, "source_id": int}`. If `source_id` is passed, scopes RAG context search strictly to that document and runs in Grounded Document Analyst mode.
+* **`POST /api/chat/stream`**: Establishes a Server-Sent Events (SSE) token stream for real-time chat replies. Accepts the same JSON payload parameters as `POST /api/chat` (including `source_id`).
 * **`GET /api/chat/history`**: Retrieves session logs.
 * **`DELETE /api/chat/history`**: Deletes all chat logs.
 
@@ -39,9 +39,10 @@ This document details every route handler mapped in `backend/app.py` to operate 
 ## RAG Knowledge Base
 * **`GET /api/knowledge`**: Lists indexed documents/resources.
 * **`POST /api/knowledge/upload`**: Uploads local PDFs or text files to generate vectors.
-* **`POST /api/knowledge/url`**: Crawls/scrapes target URLs to index text.
+* **`POST /api/knowledge/url`**: Crawls/scrapes target URLs to index text. Prepend protocol, browser header masking, and self-signed certificate SSL fallbacks.
 * **`POST /api/knowledge/note`**: Indexes typed textual snippets.
 * **`DELETE /api/knowledge/<source_id>`**: Deletes indexed resources.
+* **`GET /api/knowledge/<source_id>/content`**: Retrieves the full reconstructed text content of an indexed document from its constituent chunks.
 
 ---
 
