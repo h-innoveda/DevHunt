@@ -60,9 +60,11 @@ class ChatEngine:
         try:
             pending_todos = TodoManager.get_todos(status_filter="pending")
             if pending_todos:
-                todos_context = "\n[User's Active Quests / To-Do List (Quest Board)]:\n" + "\n".join(
-                    f"- {t['title']} (Priority: {t['priority']})"
-                    for t in pending_todos
+                todos_context = (
+                    "\n[INTERNAL CONTEXT: User's Active Quests / To-Do List (Quest Board)]\n"
+                    "This is for your internal reference to know what the user is working on. "
+                    "Do NOT copy, repeat, or list these tasks in your response unless the user explicitly asks to see their Quest Board / To-Do list.\n" +
+                    "\n".join(f"- {t['title']} (Priority: {t['priority']})" for t in pending_todos)
                 )
                 system_instruction += todos_context + "\n"
         except Exception as e:
@@ -76,7 +78,8 @@ class ChatEngine:
             "1. ONLY output action tags if the user's LATEST message explicitly commands or authorizes you to do so (e.g., 'add this', 'yes, go ahead and add it', 'please add X', 'mark Y done', 'remove Z', 'delete this task').\n"
             "2. If you realize or suggest that a task should be added, but the user has not explicitly commanded it yet, do NOT output any tags. Instead, ask the user for permission (e.g., 'Would you like me to add this to your Quest Board?') and wait for their explicit approval in the next message before adding it.\n"
             "3. Do NOT output tags if the user is merely asking a question, discussing history, or greeting you. Only modify tasks if they explicitly instruct or allow you to do so in the current turn.\n"
-            "4. Do NOT explain or display the raw action tags to the user; write them quietly at the very end.\n\n"
+            "4. Do NOT explain or display the raw action tags to the user; write them quietly at the very end.\n"
+            "5. Do NOT output Quest Board summaries or updates unless explicitly requested by the user.\n\n"
             "Tag formats:\n"
             "For adding a task (only when explicitly authorized in the latest message):\n"
             "[TODO_ADD: Title | Priority (high/medium/low) | Description]\n"
@@ -102,8 +105,12 @@ class ChatEngine:
             if row and row['consolidated_facts']:
                 memories = json.loads(row['consolidated_facts'])
                 if memories:
-                    memories_text = "\n[LONG-TERM MEMORY (Distilled Facts About User)]:\n" + "\n".join(
-                        f"- {m}" for m in memories
+                    memories_text = (
+                        "\n[INTERNAL CONTEXT: LONG-TERM MEMORY (Distilled Facts About User)]\n"
+                        "This is for your internal reference to customize your replies. "
+                        "Do NOT copy, print, or list these facts or the 'Long-Term Memory' header "
+                        "in your response unless the user explicitly asks you to show what you know about them.\n" +
+                        "\n".join(f"- {m}" for m in memories)
                     )
                     system_instruction += memories_text + "\n"
         except Exception as e:
