@@ -99,5 +99,21 @@ def init_db():
     )
     ''')
 
+    # Create document_analyses table for AI Document Intelligence reports
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS document_analyses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        source_id INTEGER UNIQUE,
+        final_score REAL,
+        verdict TEXT,
+        risk_level TEXT,
+        report_json TEXT,
+        ela_image_path TEXT,
+        dashboard_image_path TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(source_id) REFERENCES knowledge_sources(id) ON DELETE CASCADE
+    )
+    ''')
+
     conn.commit()
     conn.close()
