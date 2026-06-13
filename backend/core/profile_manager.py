@@ -75,6 +75,7 @@ class ProfileManager:
                 "selected_model": "auto", # "auto", "gemini-2.0-flash", "gemini-1.5-pro"
                 "dismissed_update": None,
                 "read_notifications": [],
+                "theme": "slate",
                 "feature_toggles": {
                     "music": True,
                     "path": True,
@@ -93,6 +94,8 @@ class ProfileManager:
                 data = json.load(f)
                 if "read_notifications" not in data:
                     data["read_notifications"] = []
+                if "theme" not in data:
+                    data["theme"] = "slate"
                 if "feature_toggles" not in data:
                     data["feature_toggles"] = {
                         "music": True,
@@ -118,7 +121,7 @@ class ProfileManager:
     def update_settings(updates: dict) -> dict:
         settings = ProfileManager.get_settings()
         for k, v in updates.items():
-            if k in ['english_correction', 'selected_model', 'dismissed_update', 'read_notifications', 'feature_toggles']:
+            if k in ['english_correction', 'selected_model', 'dismissed_update', 'read_notifications', 'feature_toggles', 'theme']:
                 settings[k] = v
         ProfileManager.save_settings(settings)
         return settings
