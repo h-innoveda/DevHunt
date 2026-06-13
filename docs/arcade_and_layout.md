@@ -93,6 +93,25 @@ DevHunt has transitioned to a professional, slate-gray IDE-like workspace with s
   - Clicking the `+` button in the explorer sidebar header or pressing **`Ctrl + N`** inserts an inline text input box at the top of the file tree.
   - Typing the filename and pressing `Enter` creates an empty file on disk immediately via backend `POST /api/ide/file`, refreshes the explorer tree, and opens it. Pressing `Escape` or blurring cancels.
 
+
+---
+
+## 🤖 AI Assistant UI & Interactive Targets
+
+The **AI Assistant (Mentor)** panel features a completely redesigned, premium layout with tactile dashboard components.
+
+### 1. Interactive Today's Targets Redirection
+* **Touchable Day Card**: Today's active curriculum Day and lesson title are grouped in a dedicated, glowing gradient card (`.target-day-card`). Clicking it instantly transitions the user to the **Hunt Path (Roadmap)**, expands the active day's details, scrolls the viewport to it smoothly, and triggers a pulsing indicator animation.
+* **Redirection Shortcut targets**: Each topic and task in the targets list is styled as an interactive button (`.touchable-target`). Hovering shows a pointer cursor and reveals a sliding arrow (`→`). Clicking any target triggers the same roadmap day redirection and expansion for rapid lesson verification.
+
+### 2. Premium Quick Quests UI
+* **Custom Checkboxes**: Replaced native browser checkboxes with custom SVG-styled checkbox containers (`.checkbox-box`). 
+* **State Animation**: Checking off a mini quest initiates a smooth CSS strikethrough transition and dims the text before committing the completion to the backend database.
+
+### 3. Asymmetric Chat Bubbles & Unified Input Pill
+* **Modern Chat Bubbles**: Text bubbles (`.msg.user` and `.msg.ai`) feature asymmetric border-radii (`16px 16px 2px 16px` for user, `16px 16px 16px 2px` for AI) to feel more fluid and natural.
+* **Unified Input Pill**: The chat textarea and send button are consolidated into a single rounded pill-like box with inner margins, a dark background shade, and a focus glow.
+
 ---
 
 ## 🎵 Background Music Playback
