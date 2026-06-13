@@ -29,6 +29,11 @@ const API_BASE = '/api';
 
   let t = 0;
   function loop() {
+    if (!document.body.classList.contains('theme-neon')) {
+      ctx.clearRect(0, 0, W, H);
+      requestAnimationFrame(loop);
+      return;
+    }
     t += .005;
     ctx.clearRect(0, 0, W, H);
 
@@ -78,13 +83,60 @@ const API_BASE = '/api';
   loop();
 })();
 
-/* ========== Sidebar navigation ========== */
-const navItems = document.querySelectorAll('.nav-item');
+/* ========== Sidebar navigation & Themes ========== */
+// Apply initial theme from localStorage immediately to prevent FOUC
+const initialTheme = localStorage.getItem('devhunt-theme') || 'slate';
+if (initialTheme === 'neon') {
+  document.body.classList.remove('theme-slate');
+  document.body.classList.add('theme-neon');
+} else {
+  document.body.classList.remove('theme-neon');
+  document.body.classList.add('theme-slate');
+}
+
 const panels = document.querySelectorAll('.panel');
 const crumb = document.getElementById('crumb-current');
 
+window.setAppTheme = async (themeName, saveToBackend = true) => {
+  const body = document.body;
+  if (themeName === 'neon') {
+    body.classList.remove('theme-slate');
+    body.classList.add('theme-neon');
+  } else {
+    body.classList.remove('theme-neon');
+    body.classList.add('theme-slate');
+  }
+  
+  // Update select dropdown if present
+  const selector = document.getElementById('theme-selector');
+  if (selector) {
+    selector.value = themeName;
+  }
+  
+  // Store in localStorage
+  localStorage.setItem('devhunt-theme', themeName);
+  
+  if (saveToBackend) {
+    try {
+      await fetch(`${API_BASE}/profile`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          settings: { theme: themeName }
+        })
+      });
+    } catch (error) {
+      console.error('Failed to save theme setting to backend', error);
+    }
+  }
+};
+
 function switchPanel(panelId) {
-  navItems.forEach(item => {
+  document.querySelectorAll('.activity-item').forEach(item => {
+    const active = item.dataset.tabPanel === panelId;
+    item.classList.toggle('active', active);
+  });
+  document.querySelectorAll('.tab-item').forEach(item => {
     const active = item.dataset.panel === panelId;
     item.classList.toggle('active', active);
   });
@@ -124,51 +176,78 @@ function switchPanel(panelId) {
   }
 }
 
-navItems.forEach(item => {
+document.querySelectorAll('.activity-item').forEach(item => {
+  item.addEventListener('click', () => {
+    switchPanel(item.dataset.tabPanel);
+  });
+});
+
+document.querySelectorAll('.tab-item').forEach(item => {
   item.addEventListener('click', () => {
     switchPanel(item.dataset.panel);
   });
 });
 
-const toggleSidebarBtn = document.getElementById('toggle-sidebar');
-const sidebarCollapseToggle = document.getElementById('sidebar-collapse-toggle');
+window.triggerPanelSwitch = (panelId) => {
+  switchPanel(panelId);
+};
 
-// Helper to toggle sidebar state and sync toggle checkbox + localStorage
-function toggleSidebarState(forceState) {
-  const isCollapsed = forceState !== undefined ? forceState : !document.body.classList.contains('collapsed');
+// Collapsible Explorer Sidebar
+function toggleExplorerSidebar(forceState) {
+  const sidebar = document.getElementById('explorer-sidebar');
+  if (!sidebar) return;
+  const isCollapsed = forceState !== undefined ? forceState : !sidebar.classList.contains('collapsed');
   
   if (isCollapsed) {
-    document.body.classList.add('collapsed');
+    sidebar.classList.add('collapsed');
   } else {
-    document.body.classList.remove('collapsed');
+    sidebar.classList.remove('collapsed');
   }
   
-  localStorage.setItem('sidebar-collapsed', isCollapsed);
+  localStorage.setItem('explorer-collapsed', isCollapsed);
+  
+  const sidebarCollapseToggle = document.getElementById('sidebar-collapse-toggle');
   if (sidebarCollapseToggle) {
     sidebarCollapseToggle.checked = isCollapsed;
   }
 }
 
-// Apply initial collapsed state immediately
-const savedCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
-if (savedCollapsed) {
-  document.body.classList.add('collapsed');
+// Apply initial explorer sidebar state immediately
+const explorerCollapsed = localStorage.getItem('explorer-collapsed') === 'true';
+const explorerSidebar = document.getElementById('explorer-sidebar');
+if (explorerSidebar) {
+  if (explorerCollapsed) {
+    explorerSidebar.classList.add('collapsed');
+  } else {
+    explorerSidebar.classList.remove('collapsed');
+  }
 }
+const sidebarCollapseToggle = document.getElementById('sidebar-collapse-toggle');
 if (sidebarCollapseToggle) {
-  sidebarCollapseToggle.checked = savedCollapsed;
+  sidebarCollapseToggle.checked = explorerCollapsed;
 }
 
-// Sidebar toggle button click (Header hamburger button)
-if (toggleSidebarBtn) {
-  toggleSidebarBtn.addEventListener('click', () => {
-    toggleSidebarState();
+// Explorer collapse button click
+const explorerCollapseBtn = document.getElementById('explorer-collapse-btn');
+if (explorerCollapseBtn) {
+  explorerCollapseBtn.addEventListener('click', () => {
+    toggleExplorerSidebar();
+  });
+}
+
+// Menu view toggle sidebar action
+const menuToggleSidebar = document.getElementById('menu-toggle-sidebar');
+if (menuToggleSidebar) {
+  menuToggleSidebar.addEventListener('click', (e) => {
+    e.preventDefault();
+    toggleExplorerSidebar();
   });
 }
 
 // Settings toggle switch checkbox
 if (sidebarCollapseToggle) {
   sidebarCollapseToggle.addEventListener('change', (e) => {
-    toggleSidebarState(e.target.checked);
+    toggleExplorerSidebar(e.target.checked);
   });
 }
 
@@ -180,7 +259,7 @@ window.addEventListener('keydown', (e) => {
   }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
     e.preventDefault();
-    toggleSidebarState();
+    toggleExplorerSidebar();
   }
 });
 
@@ -1790,6 +1869,11 @@ async function loadProfileAndSettings() {
     if (targetInput) targetInput.value = profile.daily_study_time || 60;
     if (dateInput) dateInput.value = profile.start_date || '';
 
+    // Load Theme setting
+    if (settings.theme) {
+      setAppTheme(settings.theme, false);
+    }
+
     // Load Settings Toggles
     const toggle = document.getElementById('grammar-toggle');
     if (toggle) toggle.checked = settings.english_correction || false;
@@ -2958,6 +3042,14 @@ async function loadAIMemory() {
     if (closeNotifDetailBtn2) {
       closeNotifDetailBtn2.addEventListener('click', closeNotificationDetailModal);
     }
+
+    // Theme selector dropdown listener
+    const themeSelector = document.getElementById('theme-selector');
+    if (themeSelector) {
+      themeSelector.addEventListener('change', (e) => {
+        setAppTheme(e.target.value);
+      });
+    }
   });
 })();
 
@@ -3380,6 +3472,7 @@ const MusicPlayer = (() => {
       const cur = document.getElementById('music-time-cur');
       const sideTime = document.getElementById('side-music-time');
       const dur = document.getElementById('music-time-dur');
+      const topTime = document.getElementById('top-music-time');
       
       const pct = el.duration ? ((el.currentTime / el.duration) * 100) + '%' : '0%';
       if (fill) fill.style.width = pct;
@@ -3389,6 +3482,7 @@ const MusicPlayer = (() => {
       if (cur) cur.textContent = curFormatted;
       if (sideTime) sideTime.textContent = curFormatted;
       if (dur) dur.textContent = fmtTime(el.duration);
+      if (topTime) topTime.textContent = curFormatted;
     });
 
     el.addEventListener('ended', () => {
@@ -4002,7 +4096,284 @@ async function loadTerminalStats() {
 document.addEventListener('DOMContentLoaded', () => {
   const refreshBtn = document.getElementById('stats-refresh-btn');
   if (refreshBtn) refreshBtn.addEventListener('click', loadTerminalStats);
+  
+  // Initialize explorer tree
+  window.refreshExplorer();
+  
+  // Textarea scroll and input listeners for line numbers
+  const textarea = document.getElementById('editor-textarea');
+  const lineNumbers = document.getElementById('editor-line-numbers');
+  if (textarea && lineNumbers) {
+    textarea.addEventListener('scroll', () => {
+      lineNumbers.scrollTop = textarea.scrollTop;
+    });
+    textarea.addEventListener('input', () => {
+      window.updateEditorLineNumbers();
+    });
+    textarea.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const spaces = "    ";
+        textarea.value = textarea.value.substring(0, start) + spaces + textarea.value.substring(end);
+        textarea.selectionStart = textarea.selectionEnd = start + spaces.length;
+        window.updateEditorLineNumbers();
+      }
+    });
+  }
+  
+  // Save button in editor
+  const editorSaveBtn = document.getElementById('editor-save-btn');
+  if (editorSaveBtn) {
+    editorSaveBtn.addEventListener('click', () => {
+      window.saveActiveFile();
+    });
+  }
+  
+  // Topbar Menu bindings
+  const newFileBtn = document.getElementById('menu-new-file');
+  if (newFileBtn) {
+    newFileBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const path = prompt("Enter relative file path (e.g. backend/core/new_module.py):");
+      if (path && path.trim()) {
+        window.activeEditingFilePath = path.trim();
+        const editorTextarea = document.getElementById('editor-textarea');
+        const activeFilePath = document.getElementById('active-file-path');
+        const saveBtn = document.getElementById('editor-save-btn');
+        if (editorTextarea && activeFilePath && saveBtn) {
+          editorTextarea.value = '';
+          editorTextarea.disabled = false;
+          saveBtn.disabled = false;
+          activeFilePath.textContent = window.activeEditingFilePath;
+          window.updateEditorLineNumbers();
+          switchPanel('editor');
+        }
+      }
+    });
+  }
+  
+  const menuSaveBtn = document.getElementById('menu-save-file');
+  if (menuSaveBtn) {
+    menuSaveBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.saveActiveFile();
+    });
+  }
+  
+  const menuRefreshBtn = document.getElementById('menu-refresh-files');
+  if (menuRefreshBtn) {
+    menuRefreshBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.refreshExplorer();
+    });
+  }
+  
+  const menuClearBtn = document.getElementById('menu-clear-editor');
+  if (menuClearBtn) {
+    menuClearBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const textarea = document.getElementById('editor-textarea');
+      if (textarea) {
+        textarea.value = '';
+        window.updateEditorLineNumbers();
+      }
+    });
+  }
 });
+
+// Global keydown Ctrl+S listener
+window.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+    e.preventDefault();
+    if (window.activeEditingFilePath) {
+      window.saveActiveFile();
+    }
+  }
+});
+
+// IDE Explorer & Editor Implementation
+window.expandedExplorerDirs = window.expandedExplorerDirs || new Set();
+window.activeEditingFilePath = window.activeEditingFilePath || null;
+window.explorerTreeData = window.explorerTreeData || null;
+
+function renderFileNode(node) {
+  if (node.isDir) {
+    const isExpanded = window.expandedExplorerDirs.has(node.path);
+    const childrenHtml = isExpanded && node.children
+      ? `<div class="file-tree-children">${node.children.map(renderFileNode).join('')}</div>`
+      : '';
+    const arrow = isExpanded ? '▼' : '▶';
+    return `
+      <div class="file-tree-item" data-path="${node.path}">
+        <div class="file-tree-node directory" data-path="${node.path}">
+          <span class="folder-arrow">${arrow}</span>
+          <span class="folder-icon">📁</span>
+          <span class="node-name">${node.name}</span>
+        </div>
+        ${childrenHtml}
+      </div>
+    `;
+  } else {
+    const isActive = window.activeEditingFilePath === node.path;
+    const activeClass = isActive ? 'active' : '';
+    return `
+      <div class="file-tree-node file ${activeClass}" data-path="${node.path}">
+        <span class="file-icon">📄</span>
+        <span class="node-name">${node.name}</span>
+      </div>
+    `;
+  }
+}
+
+window.refreshExplorer = async () => {
+  const treeContainer = document.getElementById('file-explorer-tree');
+  if (!treeContainer) return;
+  
+  treeContainer.innerHTML = `<div class="muted">// scanning workspace...</div>`;
+  
+  try {
+    const res = await fetch(`${API_BASE}/ide/files`);
+    const data = await res.json();
+    if (data.success) {
+      window.explorerTreeData = data.files;
+      window.renderExplorerTree();
+    } else {
+      treeContainer.innerHTML = `<div class="error">Error listing files: ${data.error}</div>`;
+    }
+  } catch (error) {
+    console.error('Failed to load explorer tree', error);
+    treeContainer.innerHTML = `<div class="error">Connection failed</div>`;
+  }
+};
+
+window.renderExplorerTree = () => {
+  const treeContainer = document.getElementById('file-explorer-tree');
+  if (!treeContainer || !window.explorerTreeData) return;
+  
+  if (window.explorerTreeData.length === 0) {
+    treeContainer.innerHTML = `<div class="muted">// empty workspace</div>`;
+    return;
+  }
+  
+  treeContainer.innerHTML = window.explorerTreeData.map(renderFileNode).join('');
+  
+  // Wire up click event handlers on nodes
+  treeContainer.querySelectorAll('.file-tree-node.directory').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const path = el.dataset.path;
+      if (window.expandedExplorerDirs.has(path)) {
+        window.expandedExplorerDirs.delete(path);
+      } else {
+        window.expandedExplorerDirs.add(path);
+      }
+      window.renderExplorerTree();
+    });
+  });
+  
+  treeContainer.querySelectorAll('.file-tree-node.file').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const path = el.dataset.path;
+      window.openFileInEditor(path);
+    });
+  });
+};
+
+window.openFileInEditor = async (path) => {
+  const editorTextarea = document.getElementById('editor-textarea');
+  const lineNumbers = document.getElementById('editor-line-numbers');
+  const activeFilePath = document.getElementById('active-file-path');
+  const saveBtn = document.getElementById('editor-save-btn');
+  
+  if (!editorTextarea || !lineNumbers || !activeFilePath || !saveBtn) return;
+  
+  editorTextarea.disabled = true;
+  saveBtn.disabled = true;
+  activeFilePath.textContent = `// Loading ${path}...`;
+  
+  try {
+    const res = await fetch(`${API_BASE}/ide/file?path=${encodeURIComponent(path)}`);
+    const data = await res.json();
+    if (data.success) {
+      window.activeEditingFilePath = path;
+      editorTextarea.value = data.content;
+      editorTextarea.disabled = false;
+      saveBtn.disabled = false;
+      activeFilePath.textContent = path;
+      
+      document.querySelectorAll('.file-tree-node.file').forEach(el => {
+        el.classList.toggle('active', el.dataset.path === path);
+      });
+      
+      window.updateEditorLineNumbers();
+      switchPanel('editor');
+    } else {
+      activeFilePath.textContent = `// Error loading file: ${data.error}`;
+      editorTextarea.value = '';
+    }
+  } catch (error) {
+    console.error('Failed to read file', error);
+    activeFilePath.textContent = `// Connection error loading file`;
+    editorTextarea.value = '';
+  }
+};
+
+window.updateEditorLineNumbers = () => {
+  const textarea = document.getElementById('editor-textarea');
+  const lineNumbers = document.getElementById('editor-line-numbers');
+  if (!textarea || !lineNumbers) return;
+  
+  const lines = textarea.value.split('\n');
+  const lineCount = Math.max(lines.length, 1);
+  let numbersHtml = '';
+  for (let i = 1; i <= lineCount; i++) {
+    numbersHtml += `<div>${i}</div>`;
+  }
+  lineNumbers.innerHTML = numbersHtml;
+};
+
+window.saveActiveFile = async () => {
+  if (!window.activeEditingFilePath) return;
+  
+  const saveBtn = document.getElementById('editor-save-btn');
+  const textarea = document.getElementById('editor-textarea');
+  if (!saveBtn || !textarea) return;
+  
+  const originalText = saveBtn.textContent;
+  saveBtn.textContent = 'Saving...';
+  saveBtn.disabled = true;
+  
+  try {
+    const res = await fetch(`${API_BASE}/ide/file`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        path: window.activeEditingFilePath,
+        content: textarea.value
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      saveBtn.textContent = '✓ Saved';
+      setTimeout(() => {
+        saveBtn.textContent = originalText;
+        saveBtn.disabled = false;
+      }, 1500);
+    } else {
+      alert(`Failed to save: ${data.error}`);
+      saveBtn.textContent = 'Error';
+      saveBtn.disabled = false;
+    }
+  } catch (error) {
+    console.error('Failed to save file', error);
+    alert('Connection error saving file');
+    saveBtn.textContent = 'Error';
+    saveBtn.disabled = false;
+  }
+};
 
 window.triggerUpdateFromNotification = triggerUpdateFromNotification;
 window.loadNotifications = loadNotifications;
