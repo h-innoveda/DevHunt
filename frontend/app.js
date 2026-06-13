@@ -298,26 +298,62 @@ window.addEventListener('keydown', (e) => {
 /* ========== Mini Markdown renderer ========== */
 function md(src) {
   if (!src) return '';
-  let s = src
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  // code fences
-  s = s.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) =>
-    `<pre><code class="lang-${lang || ''}">${code.trim()}</code></pre>`);
-  // headings
-  s = s.replace(/^### (.*)$/gm, '<h3>$1</h3>')
-    .replace(/^## (.*)$/gm, '<h2>$1</h2>')
-    .replace(/^# (.*)$/gm, '<h1>$1</h1>');
-  // inline code
-  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
-  // bold + italic
-  s = s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\*(.+?)\*/g, '<i>$1</i>');
-  // bullets
-  s = s.replace(/(^|\n)([-*] .+(?:\n[-*] .+)*)/g, (_, pre, block) => {
-    const items = block.split('\n').map(l => `<li>${l.replace(/^[-*] /, '')}</li>`).join('');
-    return pre + `<ul>${items}</ul>`;
+  
+  // Normalize Windows/Mac line endings to standard Unix line endings \n
+  let s = src.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  
+  // Escape HTML characters
+  s = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  
+  // 1. Extract and protect code blocks
+  const codeBlocks = [];
+  s = s.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) => {
+    const id = `__CODE_BLOCK_${codeBlocks.length}__`;
+    codeBlocks.push(`<pre><code class="lang-${lang || ''}">${code.trim()}</code></pre>`);
+    return `\n\n${id}\n\n`;
   });
-  // paragraphs
-  s = s.split(/\n{2,}/).map(p => /^<(h\d|ul|pre|blockquote)/.test(p) ? p : `<p>${p.replace(/\n/g, '<br/>')}</p>`).join('');
+  
+  // 2. Headings (add spacing around them to make them block elements)
+  s = s.replace(/^### (.*)$/gm, '\n\n<h3>$1</h3>\n\n')
+       .replace(/^## (.*)$/gm, '\n\n<h2>$1</h2>\n\n')
+       .replace(/^# (.*)$/gm, '\n\n<h1>$1</h1>\n\n');
+  
+  // 3. Bullets (add spacing around them to make them block elements)
+  s = s.replace(/(^|\n)([-*] .+(?:\n[-*] .+)*)/g, (_, pre, block) => {
+    const items = block.split('\n').map(l => {
+      const clean = l.replace(/^[-*] /, '');
+      return `<li>${clean}</li>`;
+    }).join('');
+    return `${pre}\n\n<ul>${items}</ul>\n\n`;
+  });
+  
+  // 4. Inline code
+  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+  
+  // 5. Bold + Italic
+  s = s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+       .replace(/\*(.+?)\*/g, '<i>$1</i>');
+  
+  // 6. Paragraphs (split by double newlines)
+  s = s.split(/\n{2,}/)
+       .map(p => {
+         const trimmed = p.trim();
+         if (!trimmed) return '';
+         // If it's a block element or placeholder, return as is
+         if (/^<(h\d|ul|pre|blockquote)/.test(trimmed) || trimmed.startsWith('__CODE_BLOCK_')) {
+           return trimmed;
+         }
+         // Otherwise wrap in paragraph tag, converting single newlines to <br/>
+         return `<p>${trimmed.replace(/\n/g, '<br/>')}</p>`;
+       })
+       .filter(Boolean)
+       .join('\n');
+  
+  // 7. Restore protected code blocks
+  codeBlocks.forEach((html, i) => {
+    s = s.replace(new RegExp(`__CODE_BLOCK_${i}__`, 'g'), html);
+  });
+  
   return s;
 }
 
