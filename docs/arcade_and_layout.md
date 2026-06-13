@@ -62,15 +62,28 @@ DevHunt has transitioned to a professional, slate-gray IDE-like workspace with s
 ### 1. Multi-Theme Architecture
 * **Industrial Slate (Default)**: A premium, dark slate-gray design with clean blue accents, monospaced text, and subtle micro-animations. Bypasses background particle canvas updates when active to optimize CPU performance.
 * **Cyberpunk Neon**: The legacy neon-green/cyan theme with glows and active `#dragon-bg` canvas background loops.
+* **Minimalist Light**: A clean, premium white/light-gray theme option with subtle card shadows, tab-item hover underlines, and a dark-integrated terminal view for ANSI contrast.
 * **State Sync**: Theme selections automatically synchronize to the SQLite profile database and persist in browser `localStorage` to avoid flash-of-unstyled-content (FOUC).
 
 ### 2. Collapsible File Explorer & Navigation
 * **Slim Activity Bar**: Pinned to the far left with custom SVG navigation icons for all core developer panels.
 * **Collapsible Side panel**: Hosts a directory tree explorer fetching contents from `/api/ide/files`.
+* **VS Code-Style Sidebar Toggling**:
+  - Clicking an Activity Bar icon when its panel is *already active* will toggle (expand/collapse) the left File Explorer sidebar.
+  - Clicking an Activity Bar icon for a *different* panel will switch to that panel and ensure the sidebar remains expanded.
 * **Workspace Tree Nodes**: Supports folders expansion/collapsing and files identification. Filters system files and folders like `.git`, `node_modules`, `venv`, and `.gemini`.
 * **Explorer Panel Toggle**: Can be collapsed or expanded using the toggle icon button, View menu topbar, Settings toggle switch, or the **`Ctrl + B`** keyboard shortcut.
 
-### 3. Monospaced Code Editor Pane
+### 3. Monospaced Code Editor Pane & Topbar Title
 * **Dynamic Line Numbers**: Auto-calculating line indicator scroll-synchronized with code workspace textarea.
 * **Tab Key Hook**: Overrides standard tab key focus-out behavior to insert four spaces.
 * **Save Transactions**: Integrates client-side modifications saving back to the backend disk via `POST /api/ide/file` endpoints using the Save button or `Ctrl + S` shortcut.
+* **Centered Window Title**: A centered topbar title bar dynamically displays the current open relative file path (e.g. `frontend/app.js - DevHunt`) when editing, and reverts to `DevHunt` when closed/cleared.
+* **Keyboard Shortcut (⌘K / Ctrl+K)**: Instantly switches focus to the AI Assistant panel and focuses the chat input (`#chat-input`).
+
+---
+
+## 🎵 Background Music Playback
+* **Fallback Autoplay**: Pressing play when no track is selected will automatically fall back to load and play the first available track.
+* **Deck Click Navigation**: Clicking the track details or progress time of the horizontal music player deck switches the workspace view directly to the Music panel.
+
