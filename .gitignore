@@ -19,3 +19,7 @@ backend/data/.secret
 *.log
 /tmp/
 backend/data/*.log
+
+# User Uploads and temporary assets
+backend/uploads/
+
