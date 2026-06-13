@@ -132,9 +132,14 @@
     <aside class="explorer-sidebar" id="explorer-sidebar">
       <div class="explorer-header">
         <span id="explorer-title">EXPLORER: LOCAL-AI</span>
-        <button id="explorer-collapse-btn" class="explorer-action-btn" title="Collapse Explorer">
-          <svg viewBox="0 0 24 24" style="width:14px; height:14px;"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>
-        </button>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <button id="explorer-new-file-btn" class="explorer-action-btn" title="New File" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;">
+            <svg viewBox="0 0 24 24" style="width:14px; height:14px;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/></svg>
+          </button>
+          <button id="explorer-collapse-btn" class="explorer-action-btn" title="Collapse Explorer">
+            <svg viewBox="0 0 24 24" style="width:14px; height:14px;"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>
+          </button>
+        </div>
       </div>
       <div class="explorer-content" id="explorer-content">
         <!-- File tree list will render here -->
