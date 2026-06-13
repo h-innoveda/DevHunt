@@ -187,9 +187,23 @@
         <!-- MENTOR PANEL -->
         <section class="panel active" id="panel-mentor">
           <div class="mentor-grid">
+            <!-- Sidebar for Chat History Sessions -->
+            <aside class="card chat-history-sidebar collapsed" id="mentor-history-sidebar">
+              <div class="card-head" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 8px;">
+                <h3 style="font-size: 12px; font-family: var(--display); letter-spacing: 1.5px; margin: 0; text-transform: uppercase; color: var(--cyan);">Chats</h3>
+                <button class="btn-primary btn-xs" id="mentor-new-chat-btn" style="padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: bold; background: var(--accent); color: #fff;">+ New</button>
+              </div>
+              <div class="history-sessions-list" id="mentor-history-sessions-list">
+                <!-- Rendered sessions grouped by date -->
+              </div>
+            </aside>
+
             <div class="card chat">
               <div class="card-head">
-                <h2>AI Assistant</h2>
+                <h2 style="display: flex; align-items: center; gap: 8px; font-family: var(--display);">
+                  <button id="btn-toggle-history" class="btn-ghost btn-xs" style="padding: 4px 8px; font-size:11px;" title="Toggle Chat History">🕒 History</button>
+                  AI Assistant
+                </h2>
                 <div class="hud">
                   <span class="hud-pill"><i class="dot dot-green"></i> RAG ACTIVE</span>
                   <span class="hud-pill"><i class="dot dot-cyan"></i> GRAMMAR HELPER</span>
