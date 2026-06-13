@@ -65,7 +65,7 @@ The `ChatEngine` class compiles system instructions, feeds database/RAG contexts
 
 ### `get_history`
 * **Signature**: `get_history(session_id: str) -> list[dict]`
-* **Description**: Fetches the last 12 chat message logs for the active session, sorted chronologically.
+* **Description**: Fetches all chat message logs for the active session, sorted chronologically.
 * **Parameters**:
   - `session_id` (`str`): Chat session ID.
 * **Returns**:

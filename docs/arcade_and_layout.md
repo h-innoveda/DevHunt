@@ -112,6 +112,13 @@ The **AI Assistant (Mentor)** panel features a completely redesigned, premium la
 * **Modern Chat Bubbles**: Text bubbles (`.msg.user` and `.msg.ai`) feature asymmetric border-radii (`16px 16px 2px 16px` for user, `16px 16px 16px 2px` for AI) to feel more fluid and natural.
 * **Unified Input Pill**: The chat textarea and send button are consolidated into a single rounded pill-like box with inner margins, a dark background shade, and a focus glow.
 
+### 4. Day-wise Conversation History & Session Switcher
+* **Collapsible Conversations Sidebar**: Integrated a left-column sidebar inside the AI Assistant grid (`.mentor-grid`) listing all previous chat sessions. It is toggled via a new `🕒 History` button in the assistant header, with toggle state persisted in `localStorage` (`mentor-history-collapsed`).
+* **Chronological Grouping**: Previous conversation sessions are loaded dynamically from `/api/chat/sessions` and grouped under `Today`, `Yesterday`, `Last 7 Days`, and month-based headers (e.g., `June 2026`).
+* **Dynamic Session Switching & Deletion**: Clicking any session item retrieves its logs via `/api/chat/history?session_id=...` and sets it as the active session (`localStorage` synced), enabling users to resume discussions. A hover-revealed delete button (`✕`) triggers `/api/chat/history?session_id=...` (DELETE method) to clear individual sessions.
+* **Feed Date Separators & Timestamps**: Separator lines are inserted dynamically inside `#chat-feed` when conversation spans across multiple days. Every message bubble displays its local time stamp (`HH:MM AM/PM`).
+* **New Conversation Creation**: A "+ New Chat" button allows starting a fresh empty chat using a unique timestamped session ID. The sidebar updates as soon as the first message is sent.
+
 ---
 
 ## 🎵 Background Music Playback
