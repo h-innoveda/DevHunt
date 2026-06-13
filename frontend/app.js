@@ -145,6 +145,13 @@ function updateTopbarTitle(path) {
 }
 
 function switchPanel(panelId) {
+  // Collapse/Hide sidebar automatically if switching to any panel other than 'editor'
+  if (panelId === 'editor') {
+    toggleExplorerSidebar(false); // Expand
+  } else {
+    toggleExplorerSidebar(true); // Collapse
+  }
+
   document.querySelectorAll('.activity-item').forEach(item => {
     const active = item.dataset.tabPanel === panelId;
     item.classList.toggle('active', active);
@@ -193,11 +200,16 @@ document.querySelectorAll('.activity-item').forEach(item => {
   item.addEventListener('click', () => {
     const targetPanelId = item.dataset.tabPanel;
     const isCurrentActive = item.classList.contains('active');
-    if (isCurrentActive) {
-      toggleExplorerSidebar();
+    if (targetPanelId === 'editor') {
+      if (isCurrentActive) {
+        toggleExplorerSidebar();
+      } else {
+        switchPanel('editor');
+        toggleExplorerSidebar(false); // Expand
+      }
     } else {
       switchPanel(targetPanelId);
-      toggleExplorerSidebar(false);
+      toggleExplorerSidebar(true); // Collapse/Hide explorer sidebar since we are not in Editor
     }
   });
 });
@@ -3768,8 +3780,14 @@ function drawBarChart(canvasId, labels, values, colors, yLabel='') {
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
 
+  const isLight = document.body.classList.contains('theme-light');
+  const gridColor = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255,255,255,0.06)';
+  const labelColor = isLight ? 'rgba(15, 23, 42, 0.5)' : 'rgba(255,255,255,0.3)';
+  const xAxisLabelColor = isLight ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255,255,255,0.45)';
+  const emptyColor = isLight ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255,255,255,0.15)';
+
   if (!values.length || Math.max(...values) === 0) {
-    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fillStyle = emptyColor;
     ctx.font = '11px JetBrains Mono, monospace';
     ctx.textAlign = 'center';
     ctx.fillText('No data yet — send a chat message', W / 2, H / 2);
@@ -3784,13 +3802,13 @@ function drawBarChart(canvasId, labels, values, colors, yLabel='') {
   const barW = Math.max(12, (chartW - (labels.length - 1) * barGap) / labels.length);
 
   // Grid lines
-  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.strokeStyle = gridColor;
   ctx.lineWidth = 1;
   for (let i = 0; i <= 4; i++) {
     const y = padding.top + (chartH / 4) * i;
     ctx.beginPath(); ctx.moveTo(padding.left, y); ctx.lineTo(padding.left + chartW, y); ctx.stroke();
     // Grid label
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.fillStyle = labelColor;
     ctx.font = `9px JetBrains Mono, monospace`;
     ctx.textAlign = 'right';
     ctx.fillText(fmtNum(Math.round(maxVal * (1 - i / 4))), padding.left - 4, y + 3);
@@ -3811,7 +3829,7 @@ function drawBarChart(canvasId, labels, values, colors, yLabel='') {
 
     // Glow
     ctx.shadowColor = color;
-    ctx.shadowBlur = 8;
+    ctx.shadowBlur = isLight ? 1 : 8;
     ctx.beginPath();
     ctx.roundRect(barX, barY, barW, barH, 3);
     ctx.fill();
@@ -3824,7 +3842,7 @@ function drawBarChart(canvasId, labels, values, colors, yLabel='') {
     ctx.fillText(fmtNum(values[i]), barX + barW / 2, barY - 3);
 
     // X-axis label
-    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.fillStyle = xAxisLabelColor;
     ctx.font = `9px JetBrains Mono, monospace`;
     const shortLabel = label.length > 14 ? label.slice(0, 12) + '…' : label;
     ctx.save();
@@ -3853,8 +3871,18 @@ function drawDailyChart(canvasId, days, messages) {
   const chartW = W - padding.left - padding.right;
   const chartH = H - padding.top - padding.bottom;
 
+  const isLight = document.body.classList.contains('theme-light');
+  const gridColor = isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255,255,255,0.05)';
+  const labelColor = isLight ? 'rgba(15, 23, 42, 0.5)' : 'rgba(255,255,255,0.25)';
+  const dayLabelColor = isLight ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255,255,255,0.35)';
+  const emptyColor = isLight ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255,255,255,0.15)';
+  
+  const chartColor = isLight ? '#4f46e5' : '#00ffa3';
+  const chartColorLight = isLight ? 'rgba(79, 70, 229, 0.15)' : '#00ffa333';
+  const chartLineColor = isLight ? '#4f46e5cc' : '#00ffa3bb';
+
   if (!messages.length || Math.max(...messages) === 0) {
-    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fillStyle = emptyColor;
     ctx.font = '11px JetBrains Mono, monospace';
     ctx.textAlign = 'center';
     ctx.fillText('No activity in the last 14 days', W / 2, H / 2);
@@ -3866,11 +3894,11 @@ function drawDailyChart(canvasId, days, messages) {
   const barGap = (chartW - barW * days.length) / (days.length - 1 || 1);
 
   // Grid lines
-  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.strokeStyle = gridColor;
   for (let i = 0; i <= 3; i++) {
     const y = padding.top + (chartH / 3) * i;
     ctx.beginPath(); ctx.moveTo(padding.left, y); ctx.lineTo(padding.left + chartW, y); ctx.stroke();
-    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.fillStyle = labelColor;
     ctx.font = `9px JetBrains Mono, monospace`;
     ctx.textAlign = 'right';
     ctx.fillText(fmtNum(Math.round(maxVal * (1 - i / 3))), padding.left - 4, y + 3);
@@ -3884,9 +3912,9 @@ function drawDailyChart(canvasId, days, messages) {
     const y = padding.top + chartH - bH;
 
     const grad = ctx.createLinearGradient(0, y, 0, y + bH);
-    grad.addColorStop(0, '#00ffa3');
-    grad.addColorStop(1, '#00ffa333');
-    ctx.shadowColor = '#00ffa3'; ctx.shadowBlur = 6;
+    grad.addColorStop(0, chartColor);
+    grad.addColorStop(1, chartColorLight);
+    ctx.shadowColor = chartColor; ctx.shadowBlur = isLight ? 1 : 6;
     ctx.fillStyle = grad;
     ctx.beginPath();
     ctx.roundRect(x, y, barW, bH, 2);
@@ -3897,7 +3925,7 @@ function drawDailyChart(canvasId, days, messages) {
 
     // Day label (show only every other day for readability)
     if (i % 2 === 0) {
-      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.fillStyle = dayLabelColor;
       ctx.font = `8.5px JetBrains Mono, monospace`;
       ctx.textAlign = 'center';
       const d = day ? day.slice(5) : '';
@@ -3913,9 +3941,9 @@ function drawDailyChart(canvasId, days, messages) {
       const cpx = (points[i - 1].x + points[i].x) / 2;
       ctx.bezierCurveTo(cpx, points[i - 1].y, cpx, points[i].y, points[i].x, points[i].y);
     }
-    ctx.strokeStyle = '#00ffa3bb';
+    ctx.strokeStyle = chartLineColor;
     ctx.lineWidth = 1.5;
-    ctx.shadowColor = '#00ffa3'; ctx.shadowBlur = 8;
+    ctx.shadowColor = chartColor; ctx.shadowBlur = isLight ? 1 : 8;
     ctx.stroke();
     ctx.shadowBlur = 0;
 
@@ -3923,8 +3951,8 @@ function drawDailyChart(canvasId, days, messages) {
     points.forEach(p => {
       ctx.beginPath();
       ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
-      ctx.fillStyle = '#00ffa3';
-      ctx.shadowColor = '#00ffa3'; ctx.shadowBlur = 10;
+      ctx.fillStyle = chartColor;
+      ctx.shadowColor = chartColor; ctx.shadowBlur = isLight ? 1 : 10;
       ctx.fill();
       ctx.shadowBlur = 0;
     });
@@ -3944,9 +3972,15 @@ function drawDonutChart(canvasId, values, labels, colors) {
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
 
+  const isLight = document.body.classList.contains('theme-light');
+  const emptyColor = isLight ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255,255,255,0.15)';
+  const donutHoleBg = isLight ? '#ffffff' : '#0b0f14';
+  const donutCenterText = isLight ? '#0f172a' : '#ffffff';
+  const donutTotalLabel = isLight ? 'rgba(15, 23, 42, 0.5)' : 'rgba(255,255,255,0.4)';
+
   const total = values.reduce((a, b) => a + b, 0);
   if (!total) {
-    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fillStyle = emptyColor;
     ctx.font = '10px JetBrains Mono, monospace';
     ctx.textAlign = 'center';
     ctx.fillText('No data', W / 2, H / 2 + 4);
@@ -3966,7 +4000,7 @@ function drawDonutChart(canvasId, values, labels, colors) {
     ctx.closePath();
     ctx.fillStyle = color;
     ctx.shadowColor = color;
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = isLight ? 1 : 10;
     ctx.fill();
     ctx.shadowBlur = 0;
     startAngle += sweep;
@@ -3975,17 +4009,18 @@ function drawDonutChart(canvasId, values, labels, colors) {
   // Inner donut hole
   ctx.beginPath();
   ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
-  ctx.fillStyle = '#0b0f14';
+  ctx.fillStyle = donutHoleBg;
   ctx.fill();
 
   // Center text
-  ctx.fillStyle = '#ffffff';
-  ctx.font = `bold 13px Orbitron, monospace`;
+  ctx.fillStyle = donutCenterText;
+  const labelFont = isLight ? 'bold 13px Inter, monospace' : 'bold 13px Orbitron, monospace';
+  ctx.font = labelFont;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(fmtNum(total), cx, cy);
   ctx.font = `9px JetBrains Mono, monospace`;
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.fillStyle = donutTotalLabel;
   ctx.fillText('total', cx, cy + 14);
   ctx.textBaseline = 'alphabetic';
 }
@@ -4013,20 +4048,26 @@ async function loadTerminalStats() {
     // ── Model Distribution Bar Chart ────────────────────────────────────────
     const modelLabels = d.model_distribution.map(m => m.model || 'Unknown');
     const modelReqs = d.model_distribution.map(m => m.requests);
-    drawBarChart('chart-models', modelLabels, modelReqs, STATS_PALETTE);
+    
+    const isLight = document.body.classList.contains('theme-light');
+    const STATS_PALETTE_LIGHT = [
+      '#4f46e5', '#0ea5e9', '#d946ef', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899'
+    ];
+    const palette = isLight ? STATS_PALETTE_LIGHT : STATS_PALETTE;
+    drawBarChart('chart-models', modelLabels, modelReqs, palette);
 
     // Model Legend
     const modelLegend = document.getElementById('model-legend');
     if (modelLegend) {
       modelLegend.innerHTML = d.model_distribution.map((m, i) =>
-        `<span style="color:${STATS_PALETTE[i % STATS_PALETTE.length]}">■ ${m.model || 'Unknown'}: ${m.requests} req</span>`
+        `<span style="color:${palette[i % palette.length]}">■ ${m.model || 'Unknown'}: ${m.requests} req</span>`
       ).join('');
     }
 
     // ── API Key Workload Bar Chart ───────────────────────────────────────────
     const keyLabels = d.key_workload.map(k => k.label || k.masked || 'Key');
     const keyReqs = d.key_workload.map(k => k.requests);
-    const KEY_COLORS = ['#00d4ff', '#60a5fa', '#a78bfa', '#f472b6'];
+    const KEY_COLORS = isLight ? ['#4f46e5', '#0ea5e9', '#d946ef', '#f59e0b'] : ['#00d4ff', '#60a5fa', '#a78bfa', '#f472b6'];
     drawBarChart('chart-keys', keyLabels, keyReqs, KEY_COLORS);
 
     const keyLegend = document.getElementById('key-legend');
@@ -4054,12 +4095,13 @@ async function loadTerminalStats() {
     // ── Role Split Donut ─────────────────────────────────────────────────────
     const userCount = d.role_split['user'] || 0;
     const aiCount = d.role_split['assistant'] || 0;
-    drawDonutChart('chart-role', [userCount, aiCount], ['User', 'AI'], ['#00ffa3', '#00d4ff']);
+    const donutColors = isLight ? ['#10b981', '#4f46e5'] : ['#00ffa3', '#00d4ff'];
+    drawDonutChart('chart-role', [userCount, aiCount], ['User', 'AI'], donutColors);
     const roleLegend = document.getElementById('role-legend');
     if (roleLegend) {
       roleLegend.innerHTML = `
-        <span style="color:#00ffa3">■ User: ${userCount}</span>
-        <span style="color:#00d4ff">■ AI: ${aiCount}</span>
+        <span style="color:${donutColors[0]}">■ User: ${userCount}</span>
+        <span style="color:${donutColors[1]}">■ AI: ${aiCount}</span>
       `;
     }
 
@@ -4067,17 +4109,18 @@ async function loadTerminalStats() {
     const tokenBarsEl = document.getElementById('token-model-bars');
     if (tokenBarsEl) {
       const maxTok = Math.max(...d.model_distribution.map(m => m.tokens), 1);
+      const progressBg = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
       tokenBarsEl.innerHTML = d.model_distribution.length > 0
         ? d.model_distribution.map((m, i) => {
             const pct = maxTok > 0 ? Math.max(2, (m.tokens / maxTok) * 100) : 0;
-            const color = STATS_PALETTE[i % STATS_PALETTE.length];
+            const color = palette[i % palette.length];
             return `
               <div>
                 <div style="display:flex; justify-content:space-between; font-size:10px; font-family:var(--mono); margin-bottom:4px;">
                   <span style="color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">${m.model || 'Unknown'}</span>
                   <span style="color:${color}; font-weight:bold;">${fmtNum(m.tokens)} tok</span>
                 </div>
-                <div style="height:8px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden;">
+                <div style="height:8px; background:${progressBg}; border-radius:4px; overflow:hidden;">
                   <div style="height:100%; width:${pct}%; background:linear-gradient(90deg, ${color}, ${color}88); border-radius:4px; box-shadow:0 0 6px ${color}55; transition:width 0.6s ease;"></div>
                 </div>
               </div>`;
@@ -4088,9 +4131,10 @@ async function loadTerminalStats() {
     // ── Top Sessions Table ────────────────────────────────────────────────────
     const sessBody = document.getElementById('sessions-table-body');
     if (sessBody) {
+      const rowBorderColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.04)';
       sessBody.innerHTML = d.top_sessions.length > 0
         ? d.top_sessions.map((s, i) => `
-            <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+            <tr style="border-bottom:1px solid ${rowBorderColor};">
               <td style="padding:6px 6px; color:var(--cyan); font-family:var(--mono); font-size:10px; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                 ${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '  '} ${s.session}
               </td>
@@ -4123,6 +4167,15 @@ document.addEventListener('DOMContentLoaded', () => {
     topbarMusicDeck.addEventListener('click', (e) => {
       if (e.target.closest('.music-btn')) return;
       switchPanel('music');
+    });
+  }
+
+  // Explorer New File button click
+  const expNewFileBtn = document.getElementById('explorer-new-file-btn');
+  if (expNewFileBtn) {
+    expNewFileBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.showInlineNewFileInput();
     });
   }
   
@@ -4165,22 +4218,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (newFileBtn) {
     newFileBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      const path = prompt("Enter relative file path (e.g. backend/core/new_module.py):");
-      if (path && path.trim()) {
-        window.activeEditingFilePath = path.trim();
-        const editorTextarea = document.getElementById('editor-textarea');
-        const activeFilePath = document.getElementById('active-file-path');
-        const saveBtn = document.getElementById('editor-save-btn');
-        if (editorTextarea && activeFilePath && saveBtn) {
-          editorTextarea.value = '';
-          editorTextarea.disabled = false;
-          saveBtn.disabled = false;
-          activeFilePath.textContent = window.activeEditingFilePath;
-          updateTopbarTitle(window.activeEditingFilePath);
-          window.updateEditorLineNumbers();
-          switchPanel('editor');
-        }
-      }
+      window.showInlineNewFileInput();
     });
   }
   
@@ -4246,6 +4284,14 @@ window.addEventListener('keydown', (e) => {
     if (chatInput) {
       chatInput.focus();
     }
+  }
+});
+
+// Keyboard shortcut (Ctrl+N / Cmd+N) to show inline new file input
+window.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
+    e.preventDefault();
+    window.showInlineNewFileInput();
   }
 });
 
@@ -4380,6 +4426,105 @@ window.openFileInEditor = async (path) => {
     updateTopbarTitle(null);
   }
 };
+
+window.showInlineNewFileInput = () => {
+  const treeContainer = document.getElementById('file-explorer-tree');
+  if (!treeContainer) return;
+
+  // Check if an input is already open to avoid multiples
+  if (document.getElementById('inline-new-file-input')) {
+    document.getElementById('inline-new-file-input').focus();
+    return;
+  }
+
+  // Ensure Code Editor is active and sidebar is expanded
+  switchPanel('editor');
+  toggleExplorerSidebar(false);
+
+  // Create input wrapper styled like a file-tree-node
+  const wrapper = document.createElement('div');
+  wrapper.className = 'file-tree-node file temp-input-node';
+  wrapper.style.paddingLeft = '10px';
+  wrapper.style.display = 'flex';
+  wrapper.style.alignItems = 'center';
+  wrapper.style.gap = '6px';
+  wrapper.style.margin = '4px 0';
+
+  wrapper.innerHTML = `
+    <span class="file-icon">📄</span>
+    <input id="inline-new-file-input" type="text" placeholder="filename.txt" style="
+      background: var(--bg);
+      border: 1px solid var(--border-hot);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 2px 4px;
+      border-radius: 3px;
+      width: calc(100% - 30px);
+      outline: none;
+    " />
+  `;
+
+  // Insert at the top of the tree container
+  treeContainer.insertBefore(wrapper, treeContainer.firstChild);
+  const input = document.getElementById('inline-new-file-input');
+  if (input) {
+    input.focus();
+
+    // Key events
+    input.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        const val = input.value.trim();
+        if (val) {
+          wrapper.remove();
+          await createNewFile(val);
+        } else {
+          wrapper.remove();
+        }
+      } else if (e.key === 'Escape') {
+        wrapper.remove();
+      }
+    });
+
+    // Cancel on blur
+    input.addEventListener('blur', () => {
+      setTimeout(() => {
+        if (wrapper.parentNode) {
+          wrapper.remove();
+        }
+      }, 200);
+    });
+  }
+};
+
+async function createNewFile(path) {
+  window.activeEditingFilePath = path;
+  const editorTextarea = document.getElementById('editor-textarea');
+  const activeFilePath = document.getElementById('active-file-path');
+  const saveBtn = document.getElementById('editor-save-btn');
+  if (editorTextarea && activeFilePath && saveBtn) {
+    editorTextarea.value = '';
+    editorTextarea.disabled = false;
+    saveBtn.disabled = false;
+    activeFilePath.textContent = window.activeEditingFilePath;
+    updateTopbarTitle(window.activeEditingFilePath);
+    window.updateEditorLineNumbers();
+    switchPanel('editor');
+    try {
+      await fetch(`${API_BASE}/ide/file`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          path: window.activeEditingFilePath,
+          content: ''
+        })
+      });
+      window.refreshExplorer();
+    } catch (err) {
+      console.error('Failed to create empty file on disk', err);
+    }
+  }
+}
 
 window.updateEditorLineNumbers = () => {
   const textarea = document.getElementById('editor-textarea');
