@@ -164,6 +164,30 @@ def clear_chat_history():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@app.route('/api/chat/sessions', methods=['GET'])
+def get_chat_sessions():
+    try:
+        from core.db import get_db_connection
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT 
+                session_id, 
+                COUNT(*) as msg_count, 
+                MIN(timestamp) as first_msg_time,
+                MAX(timestamp) as last_msg_time,
+                (SELECT content FROM messages m2 WHERE m2.session_id = messages.session_id ORDER BY timestamp ASC LIMIT 1) as title
+            FROM messages
+            GROUP BY session_id
+            ORDER BY last_msg_time DESC
+        """)
+        rows = [dict(r) for r in cursor.fetchall()]
+        conn.close()
+        return jsonify({"success": True, "sessions": rows})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 # ── KEYS ──────────────────────────────────────────────────────────────────────
 @app.route('/api/keys', methods=['GET'])
 def list_keys():
