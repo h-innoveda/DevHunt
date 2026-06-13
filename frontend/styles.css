@@ -277,7 +277,178 @@ label input,label textarea,label select{margin-top:5px}
 .form-row{display:flex;gap:8px;margin-bottom:8px}
 
 /* Mentor */
-.mentor-grid{display:grid;grid-template-columns:1fr 320px;gap:16px;height:calc(100vh - 140px)}
+.mentor-grid{display:grid;grid-template-columns:auto 1fr 320px;gap:16px;height:calc(100vh - 140px)}
+
+/* Collapsible Conversations Sidebar */
+.chat-history-sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 240px;
+  background: var(--panel) !important;
+  border: 1px solid var(--border) !important;
+  padding: 12px !important;
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1), padding 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, border-color 0.2s ease, margin 0.2s ease;
+  overflow: hidden;
+  height: 100%;
+}
+.chat-history-sidebar.collapsed {
+  width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  opacity: 0;
+  pointer-events: none;
+}
+.history-sessions-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 4px;
+}
+.history-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.history-group-header {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 8px;
+  margin-bottom: 4px;
+  padding-left: 6px;
+  user-select: none;
+}
+.session-item {
+  position: relative;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+.session-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--accent);
+}
+.session-item.active {
+  background: rgba(59, 130, 246, 0.08);
+  border-color: var(--border-hot);
+}
+body.theme-light .session-item {
+  background: #ffffff;
+  border-color: #cbd5e1;
+}
+body.theme-light .session-item:hover {
+  background: rgba(79, 70, 229, 0.04);
+  border-color: var(--accent);
+}
+body.theme-light .session-item.active {
+  background: rgba(79, 70, 229, 0.06);
+  border-color: var(--border-hot);
+}
+.session-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 18px;
+}
+.session-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+.session-delete-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 10px;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s, color 0.15s;
+}
+.session-item:hover .session-delete-btn {
+  opacity: 1;
+}
+.session-delete-btn:hover {
+  background: rgba(255, 77, 109, 0.15);
+  color: var(--red);
+}
+
+/* Chat Date Separators & Timestamps */
+.chat-date-separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 16px 0;
+  color: var(--muted);
+  font-size: 10px;
+  font-family: var(--mono);
+  user-select: none;
+}
+.chat-date-separator::before,
+.chat-date-separator::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border);
+}
+.chat-date-separator::before {
+  margin-right: 10px;
+}
+.chat-date-separator::after {
+  margin-left: 10px;
+}
+.chat-date-separator span {
+  background: var(--bg);
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  letter-spacing: 0.5px;
+}
+body.theme-light .chat-date-separator span {
+  background: #ffffff;
+  border-color: #cbd5e1;
+}
+
+.msg-time {
+  display: block;
+  font-size: 9.5px;
+  color: var(--muted);
+  margin-top: 6px;
+  text-align: right;
+  font-family: var(--mono);
+  user-select: none;
+  opacity: 0.75;
+}
+.msg.user .msg-time {
+  color: rgba(255, 255, 255, 0.7);
+}
+body.theme-light .msg.user .msg-time {
+  color: rgba(255, 255, 255, 0.85);
+}
 .chat{display:flex;flex-direction:column}
 .chat-feed{flex:1;overflow-y:auto;padding-right:6px;display:flex;flex-direction:column;gap:16px}
 .msg{padding:12px 16px;line-height:1.6;font-size:12.5px;max-width:82%;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:all 0.2s ease;border:1px solid var(--border)}
