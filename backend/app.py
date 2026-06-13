@@ -1321,6 +1321,91 @@ def music_delete(filename):
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+# ── IDE ENDPOINTS ─────────────────────────────────────────────────────────────
+WORKSPACE_DIR = os.path.dirname(os.path.abspath(__file__))
+if os.path.basename(WORKSPACE_DIR) == 'backend':
+    WORKSPACE_DIR = os.path.dirname(WORKSPACE_DIR)
+
+def get_project_tree(root_dir):
+    ignored_dirs = {'.git', 'venv', '.vscode', '__pycache__', 'node_modules', '.gemini'}
+    ignored_files = {'.DS_Store', 'desktop.ini'}
+    
+    def walk(directory):
+        tree = []
+        try:
+            for item in sorted(os.listdir(directory)):
+                if item in ignored_dirs or item in ignored_files:
+                    continue
+                full_path = os.path.join(directory, item)
+                rel_path = os.path.relpath(full_path, WORKSPACE_DIR)
+                is_dir = os.path.isdir(full_path)
+                
+                node = {
+                    "name": item,
+                    "path": rel_path.replace('\\', '/'),
+                    "isDir": is_dir
+                }
+                if is_dir:
+                    node["children"] = walk(full_path)
+                tree.append(node)
+        except Exception:
+            pass
+        return tree
+    return walk(root_dir)
+
+@app.route('/api/ide/files', methods=['GET'])
+def ide_list_files():
+    try:
+        tree = get_project_tree(WORKSPACE_DIR)
+        return jsonify({"success": True, "files": tree})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/ide/file', methods=['GET'])
+def ide_read_file():
+    rel_path = request.args.get('path', '').strip()
+    if not rel_path:
+        return jsonify({"success": False, "error": "Path required"}), 400
+    
+    # Secure path to prevent directory traversal
+    abs_path = os.path.abspath(os.path.join(WORKSPACE_DIR, rel_path))
+    if not abs_path.startswith(os.path.abspath(WORKSPACE_DIR)):
+        return jsonify({"success": False, "error": "Access denied"}), 403
+        
+    if not os.path.exists(abs_path) or os.path.isdir(abs_path):
+        return jsonify({"success": False, "error": "File not found"}), 404
+        
+    try:
+        with open(abs_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read()
+        return jsonify({"success": True, "content": content, "path": rel_path})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/ide/file', methods=['POST'])
+def ide_save_file():
+    data = request.get_json() or {}
+    rel_path = data.get('path', '').strip()
+    content = data.get('content', '')
+    
+    if not rel_path:
+        return jsonify({"success": False, "error": "Path required"}), 400
+        
+    # Secure path to prevent directory traversal
+    abs_path = os.path.abspath(os.path.join(WORKSPACE_DIR, rel_path))
+    if not abs_path.startswith(os.path.abspath(WORKSPACE_DIR)):
+        return jsonify({"success": False, "error": "Access denied"}), 403
+        
+    try:
+        os.makedirs(os.path.dirname(abs_path), exist_ok=True)
+        with open(abs_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        logger.success("system", f"IDE saved file: {rel_path}")
+        return jsonify({"success": True, "message": "File saved successfully"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 # ── ENTRY POINT ───────────────────────────────────────────────────────────────
 if __name__ == '__main__':
     logger.info("system", "DevHunt server starting")
