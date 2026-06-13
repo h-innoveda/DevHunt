@@ -355,6 +355,10 @@ function addMsg(role, text, meta) {
     </div>`;
   }
 
+  if (meta && meta.timestamp) {
+    body += `<span class="msg-time">${meta.timestamp}</span>`;
+  }
+
   div.innerHTML = body;
   feed.appendChild(div);
   feed.scrollTop = feed.scrollHeight;
@@ -380,15 +384,223 @@ if (feed) {
   addMsg('assistant', seedAI);
 }
 
+// Active chat session state tracking
+window.currentChatSessionId = localStorage.getItem('devhunt-current-session') || 'default_session';
+
+// Parsing SQLite CURRENT_TIMESTAMP strings to local Date objects
+function parseUtcTimestamp(utcStr) {
+  if (!utcStr) return new Date();
+  const isoStr = utcStr.replace(' ', 'T') + 'Z';
+  const d = new Date(isoStr);
+  return isNaN(d.getTime()) ? new Date(utcStr) : d;
+}
+
+// Custom date separator string builder
+function getLocalDateString(date) {
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  if (date.toDateString() === today.toDateString()) {
+    return 'Today';
+  } else if (date.toDateString() === yesterday.toDateString()) {
+    return 'Yesterday';
+  } else {
+    return date.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+  }
+}
+
+// Generate a unique timestamped session name
+function generateNewSessionId() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const hh = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  return `Chat - ${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+}
+
+// Toggle history sidebar inside mentor panel
+window.toggleMentorHistorySidebar = (forceState) => {
+  const sidebar = document.getElementById('mentor-history-sidebar');
+  if (!sidebar) return;
+  const isCollapsed = forceState !== undefined ? forceState : !sidebar.classList.contains('collapsed');
+  if (isCollapsed) {
+    sidebar.classList.add('collapsed');
+  } else {
+    sidebar.classList.remove('collapsed');
+  }
+  localStorage.setItem('mentor-history-collapsed', isCollapsed);
+};
+
+// Select a session from history
+window.selectSession = (sessionId) => {
+  window.currentChatSessionId = sessionId;
+  localStorage.setItem('devhunt-current-session', sessionId);
+  window.loadSessionHistoryToFeed(sessionId);
+  window.loadSessionList();
+};
+
+// Delete a session from history
+window.deleteSessionFromSidebar = async (sessionId) => {
+  if (!confirm(`Delete conversation "${sessionId}"?`)) return;
+  try {
+    const res = await fetch(`${API_BASE}/chat/history?session_id=${encodeURIComponent(sessionId)}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+      if (sessionId === window.currentChatSessionId) {
+        window.currentChatSessionId = 'default_session';
+        localStorage.setItem('devhunt-current-session', 'default_session');
+        window.loadSessionHistoryToFeed('default_session');
+      }
+      window.loadSessionList();
+    }
+  } catch (err) {
+    console.error('Failed to delete session', err);
+  }
+};
+
+// Load session messages to chat feed
+window.loadSessionHistoryToFeed = async (sessionId) => {
+  const chatFeed = document.getElementById('chat-feed');
+  if (!chatFeed) return;
+  chatFeed.innerHTML = '<div class="muted">// loading conversation history...</div>';
+  try {
+    const res = await fetch(`${API_BASE}/chat/history?session_id=${encodeURIComponent(sessionId)}`);
+    const data = await res.json();
+    if (!data.success) {
+      chatFeed.innerHTML = '<div class="muted">// failed to load history</div>';
+      return;
+    }
+    const messages = data.history || [];
+    chatFeed.innerHTML = '';
+    if (messages.length === 0) {
+      addMsg('assistant', seedAI);
+      return;
+    }
+    let lastDateStr = null;
+    messages.forEach(msg => {
+      const msgDate = parseUtcTimestamp(msg.timestamp);
+      const dateStr = getLocalDateString(msgDate);
+      if (dateStr !== lastDateStr) {
+        const separator = document.createElement('div');
+        separator.className = 'chat-date-separator';
+        separator.innerHTML = `<span>${dateStr}</span>`;
+        chatFeed.appendChild(separator);
+        lastDateStr = dateStr;
+      }
+      const timeStr = msgDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      addMsg(msg.role, msg.content, {
+        timestamp: timeStr,
+        model_used: msg.model_used,
+        key_used: msg.key_used
+      });
+    });
+    chatFeed.scrollTop = chatFeed.scrollHeight;
+  } catch (err) {
+    console.error('Failed to load session history', err);
+    chatFeed.innerHTML = '<div class="muted">// error communicating with backend</div>';
+  }
+};
+
+// Load list of all sessions in sidebar
+window.loadSessionList = async () => {
+  const listContainer = document.getElementById('mentor-history-sessions-list');
+  if (!listContainer) return;
+  try {
+    const res = await fetch(`${API_BASE}/chat/sessions`);
+    const data = await res.json();
+    if (!data.success) return;
+    const sessions = data.sessions || [];
+    const groups = {
+      today: [],
+      yesterday: [],
+      last7Days: [],
+      older: {}
+    };
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 7);
+    sessions.forEach(sess => {
+      const timeStr = sess.last_msg_time || sess.first_msg_time;
+      const date = parseUtcTimestamp(timeStr);
+      if (date.toDateString() === today.toDateString()) {
+        groups.today.push({ sess, date });
+      } else if (date.toDateString() === yesterday.toDateString()) {
+        groups.yesterday.push({ sess, date });
+      } else if (date >= sevenDaysAgo) {
+        groups.last7Days.push({ sess, date });
+      } else {
+        const monthYear = date.toLocaleDateString([], { month: 'long', year: 'numeric' });
+        if (!groups.older[monthYear]) {
+          groups.older[monthYear] = [];
+        }
+        groups.older[monthYear].push({ sess, date });
+      }
+    });
+    listContainer.innerHTML = '';
+    const renderGroup = (title, items) => {
+      if (items.length === 0) return;
+      const groupDiv = document.createElement('div');
+      groupDiv.className = 'history-group';
+      const header = document.createElement('div');
+      header.className = 'history-group-header';
+      header.textContent = title;
+      groupDiv.appendChild(header);
+      items.forEach(({ sess, date }) => {
+        const isActive = sess.session_id === window.currentChatSessionId;
+        const activeClass = isActive ? 'active' : '';
+        let displayTitle = sess.title || sess.session_id;
+        if (displayTitle.length > 28) {
+          displayTitle = displayTitle.slice(0, 26) + '…';
+        }
+        const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const item = document.createElement('div');
+        item.className = `session-item ${activeClass}`;
+        item.dataset.sessionId = sess.session_id;
+        item.innerHTML = `
+          <div class="session-title" title="${sess.title || sess.session_id}">${mdEscape(displayTitle)}</div>
+          <div class="session-meta">
+            <span>${timeStr}</span>
+            <span>·</span>
+            <span>${sess.msg_count} msgs</span>
+          </div>
+          <button class="session-delete-btn" title="Delete conversation" onclick="event.stopPropagation(); window.deleteSessionFromSidebar('${sess.session_id}')">✕</button>
+        `;
+        item.addEventListener('click', () => {
+          window.selectSession(sess.session_id);
+        });
+        groupDiv.appendChild(item);
+      });
+      listContainer.appendChild(groupDiv);
+    };
+    renderGroup('Today', groups.today);
+    renderGroup('Yesterday', groups.yesterday);
+    renderGroup('Last 7 Days', groups.last7Days);
+    const sortedMonths = Object.keys(groups.older).sort((a, b) => new Date(b) - new Date(a));
+    sortedMonths.forEach(month => {
+      renderGroup(month, groups.older[month]);
+    });
+    if (sessions.length === 0) {
+      listContainer.innerHTML = '<div class="muted" style="text-align:center; padding: 20px 0; font-size:11px;">No previous chats</div>';
+    }
+  } catch (err) {
+    console.error('Failed to load sessions list', err);
+  }
+};
+
 async function sendChatMessage() {
   if (!inputEl) return;
   const message = inputEl.value.trim();
   if (!message) return;
 
-  addMsg('user', message);
+  const userTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  addMsg('user', message, { timestamp: userTime });
   inputEl.value = '';
 
-  // Create the AI message bubble immediately — we'll fill it as tokens stream in
   const aiDiv = document.createElement('div');
   aiDiv.className = 'msg ai';
   aiDiv.innerHTML = `<span class="muted streaming-cursor">// transmitting query to cognitive core...</span>`;
@@ -402,7 +614,7 @@ async function sendChatMessage() {
     const response = await fetch(`${API_BASE}/chat/stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, session_id: 'default_session' })
+      body: JSON.stringify({ message, session_id: window.currentChatSessionId })
     });
 
     if (!response.ok) {
@@ -413,8 +625,6 @@ async function sendChatMessage() {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
-
-    // Clear the "transmitting..." placeholder on first token
     let firstToken = true;
 
     while (true) {
@@ -423,7 +633,7 @@ async function sendChatMessage() {
 
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
-      buffer = lines.pop(); // keep incomplete line in buffer
+      buffer = lines.pop();
 
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue;
@@ -436,13 +646,14 @@ async function sendChatMessage() {
               firstToken = false;
             }
             fullText += data.text;
-            // Render markdown progressively
             aiDiv.innerHTML = md(fullText) + '<span class="streaming-cursor">▌</span>';
             feed.scrollTop = feed.scrollHeight;
 
           } else if (data.type === 'done') {
             metaInfo = data;
-            // Final render — remove cursor, add meta HUD
+            const aiTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            metaInfo.timestamp = aiTime;
+
             let grammarTip = null;
             let cleanResponse = fullText;
             const grammarMatch = cleanResponse.match(/^>\s*\*Grammar Tip:\s*(.*?)\*\s*\n?/);
@@ -501,6 +712,11 @@ async function sendChatMessage() {
               <span><i class="dot dot-cyan"></i> KEY: ${keyStr}</span>
               ${citationsHtml}
             </div>`;
+
+            if (aiTime) {
+              body += `<span class="msg-time">${aiTime}</span>`;
+            }
+
             aiDiv.innerHTML = body;
             feed.scrollTop = feed.scrollHeight;
 
@@ -509,12 +725,13 @@ async function sendChatMessage() {
             if (data.todo_detected) {
               loadTodos();
             }
+            window.loadSessionList();
 
           } else if (data.type === 'error') {
             aiDiv.innerHTML = `⚠️ **Error transmitting query**: ${data.error}`;
           }
         } catch (e) {
-          // skip malformed SSE line
+          // ignore
         }
       }
     }
@@ -533,6 +750,17 @@ if (inputEl) {
     }
   });
 }
+
+// Bind history toggler and new chat button
+document.addEventListener('click', (e) => {
+  if (e.target && (e.target.id === 'btn-toggle-history' || e.target.closest('#btn-toggle-history'))) {
+    window.toggleMentorHistorySidebar();
+  }
+  if (e.target && e.target.id === 'mentor-new-chat-btn') {
+    const newSessionId = generateNewSessionId();
+    window.selectSession(newSessionId);
+  }
+});
 
 // Quick query buttons
 window.sendQuickQuery = (queryText) => {
@@ -2396,6 +2624,14 @@ window.addEventListener('DOMContentLoaded', () => {
   loadKeys();
   // Check updates in background on load
   checkUpdates();
+
+  // Apply initial mentor history sidebar state
+  const mentorHistoryCollapsed = localStorage.getItem('mentor-history-collapsed') === 'true';
+  window.toggleMentorHistorySidebar(mentorHistoryCollapsed);
+  
+  // Load conversation history and list
+  window.loadSessionHistoryToFeed(window.currentChatSessionId);
+  window.loadSessionList();
 });
 
 
