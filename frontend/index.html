@@ -3,976 +3,1029 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>DevHunt — AI Assistant</title>
+<title>DevHunt — AI Assistant &amp; IDE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="theme-slate">
   <canvas id="dragon-bg"></canvas>
 
-  <aside class="sidebar" id="sidebar">
+  <!-- 1. TOP MAIN HEADER -->
+  <header class="topbar-main">
     <div class="brand">
-      <svg class="dragon-logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+      <svg class="logo-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="dg" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0%" stop-color="#00ffa3"/>
-            <stop offset="100%" stop-color="#00d4ff"/>
+          <linearGradient id="dg-slate" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0%" stop-color="#3b82f6"/>
+            <stop offset="100%" stop-color="#1d4ed8"/>
           </linearGradient>
         </defs>
-        <path fill="url(#dg)" d="M8 36c4-8 12-10 18-6 2-6 8-10 14-8 4 2 6 6 4 10-2 4-8 4-10 0 2 6-2 12-8 12-4 0-8-2-10-6-2 6 2 12 8 14-8 2-18-4-16-16zm38-16c2 0 4 2 4 4s-2 4-4 4-4-2-4-4 2-4 4-4z"/>
-        <circle cx="46" cy="22" r="1.5" fill="#0b0f14"/>
+        <path fill="url(#dg-slate)" d="M8 36c4-8 12-10 18-6 2-6 8-10 14-8 4 2 6 6 4 10-2 4-8 4-10 0 2 6-2 12-8 12-4 0-8-2-10-6-2 6 2 12 8 14-8 2-18-4-16-16zm38-16c2 0 4 2 4 4s-2 4-4 4-4-2-4-4 2-4 4-4z"/>
+        <circle cx="46" cy="22" r="1.5" fill="#1e1e24"/>
       </svg>
-      <div>
-        <div class="brand-name">DevHunt</div>
-        <div class="brand-sub">// devhunt.ai</div>
+      <span class="brand-name">DevHunt</span>
+    </div>
+
+    <!-- IDE Horizontal Menu Bar -->
+    <div class="menu-bar">
+      <div class="menu-item">
+        <span>File</span>
+        <div class="dropdown-menu">
+          <a class="dropdown-link" href="#" id="menu-new-file">New File</a>
+          <a class="dropdown-link" href="#" id="menu-save-file">Save File (Ctrl+S)</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-link" href="#" id="menu-refresh-files">Refresh Explorer</a>
+        </div>
+      </div>
+      <div class="menu-item">
+        <span>Edit</span>
+        <div class="dropdown-menu">
+          <a class="dropdown-link" href="#" id="menu-clear-editor">Clear Editor</a>
+        </div>
+      </div>
+      <div class="menu-item">
+        <span>View</span>
+        <div class="dropdown-menu">
+          <a class="dropdown-link" href="#" id="menu-toggle-sidebar">Toggle Sidebar (Ctrl+B)</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-link" href="#" onclick="setAppTheme('slate')">Industrial Slate Theme</a>
+          <a class="dropdown-link" href="#" onclick="setAppTheme('neon')">Cyberpunk Neon Theme</a>
+        </div>
+      </div>
+      <div class="menu-item">
+        <span>Terminal</span>
+        <div class="dropdown-menu">
+          <a class="dropdown-link" href="#" onclick="triggerPanelSwitch('terminal')">Open Terminal</a>
+        </div>
+      </div>
+      <div class="menu-item">
+        <span>Help</span>
+        <div class="dropdown-menu">
+          <a href="/docs" target="_blank" class="dropdown-link">Documentation</a>
+          <a href="/logs" target="_blank" class="dropdown-link">System Logs</a>
+        </div>
       </div>
     </div>
-    <nav class="nav">
-      <a class="nav-item active" data-panel="mentor"><span class="ico">◈</span> <span class="nav-label">AI Assistant</span></a>
-      <a class="nav-item" data-panel="path"><span class="ico">⇶</span> <span class="nav-label">Hunt Path</span></a>
-      <a class="nav-item" data-panel="quests"><span class="ico">▤</span> <span class="nav-label">Quest Board</span></a>
-      <a class="nav-item" data-panel="vault"><span class="ico">◉</span> <span class="nav-label">Intel Vault</span></a>
-      <a class="nav-item" data-panel="doc-analysis"><span class="ico">🕵️‍♂️</span> <span class="nav-label">Doc Forensics</span></a>
-      <a class="nav-item" data-panel="history"><span class="ico">⧖</span> <span class="nav-label">Chat History</span></a>
-      <a class="nav-item" data-panel="stats"><span class="ico">▰</span> <span class="nav-label">Terminal Stats</span></a>
-      <a class="nav-item" data-panel="music"><span class="ico">♪</span> <span class="nav-label">Music Player</span></a>
-      <a class="nav-item" data-panel="arcade"><span class="ico">🎮</span> <span class="nav-label">Game Arcade</span></a>
-      <a class="nav-item" data-panel="terminal"><span class="ico">⚡</span> <span class="nav-label">Hunt Terminal</span></a>
-      <a class="nav-item" data-panel="notifications" id="nav-notifications">
-        <span class="ico">◰</span> <span class="nav-label">System Messages</span> <span class="badge" id="notification-unread-count" style="display:none; margin-left:auto; background:var(--red); color:#000; border-color:var(--red); font-weight:bold; font-size:10px; padding:2px 6px; border-radius:10px; line-height:1.2;">0</span>
-      </a>
-      <a class="nav-item" data-panel="settings"><span class="ico">⚙</span> <span class="nav-label">Settings &amp; Nodes</span></a>
- 
-      <!-- Global Sidebar Music Deck -->
-      <div id="sidebar-music-deck" class="sidebar-music-deck" style="margin-top:12px; padding:10px 12px; background:rgba(0,0,0,0.22); border:1px solid var(--border); border-radius:6px; display:flex; flex-direction:column; gap:6px; backdrop-filter:blur(4px);">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <div id="side-music-art" class="side-music-art" style="width:20px; height:20px; border-radius:4px; background:rgba(0,255,163,0.1); border:1px solid rgba(0,255,163,0.25); display:flex; align-items:center; justify-content:center; font-size:10px; flex-shrink:0;">♪</div>
-          <div style="min-width:0; flex:1;">
-            <div id="side-music-title" style="font-size:9.5px; font-family:var(--mono); color:var(--cyan); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="No track selected">No track selected</div>
-          </div>
-        </div>
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:2px;">
-          <div style="display:flex; gap:3px;">
-            <button id="side-music-prev" class="btn-ghost" style="padding:2px 5px; font-size:8.5px; border-radius:3px; border-color:rgba(0,212,255,0.15);" title="Previous">⏮</button>
-            <button id="side-music-play" class="btn-primary" style="padding:2px 8px; font-size:9px; border-radius:3px; min-width:30px;" title="Play/Pause">▶</button>
-            <button id="side-music-next" class="btn-ghost" style="padding:2px 5px; font-size:8.5px; border-radius:3px; border-color:rgba(0,212,255,0.15);" title="Next">⏭</button>
-          </div>
-          <span id="side-music-time" style="font-family:var(--mono); font-size:9px; color:var(--muted);">0:00</span>
-        </div>
-        <div style="height:3px; background:rgba(255,255,255,0.06); border-radius:1.5px; cursor:pointer; position:relative;" id="side-music-progress-track">
-          <div id="side-music-progress-fill" style="height:100%; width:0%; background:linear-gradient(90deg,var(--green),var(--cyan)); border-radius:1.5px; transition:width 0.1s linear;"></div>
-        </div>
-      </div>
- 
-      <a class="nav-item" href="/docs" target="_blank" style="margin-top:auto;border-top:1px solid var(--border);padding-top:10px"><span class="ico">📄</span> <span class="nav-label">Documentation ↗</span></a>
-      <a class="nav-item" href="/logs" target="_blank" style="padding-top:5px"><span class="ico">◎</span> <span class="nav-label">System Logs ↗</span></a>
-    </nav>
 
-    <div class="sidebar-footer">
-      <div class="status-dot"></div>
-      <div>
-        <div class="status-line">NODE ONLINE</div>
-        <div class="status-sub">api :: localhost:5000</div>
+    <!-- Header Right elements: Music and System Badges -->
+    <div class="topbar-right">
+      <!-- Horizontal Music Player Component (Minimalist outline box) -->
+      <div id="topbar-music-deck" class="music-deck-horizontal">
+        <span id="top-music-title">No track selected</span>
+        <div class="music-controls-mini">
+          <button id="top-music-prev" class="music-btn" title="Previous">⏮</button>
+          <button id="top-music-play" class="music-btn" style="color:var(--accent);" title="Play/Pause">▶</button>
+          <button id="top-music-next" class="music-btn" title="Next">⏭</button>
+        </div>
+        <span id="top-music-time">0:00</span>
       </div>
+
+      <span class="badge" id="header-update-badge" style="display:none; cursor:pointer;">✦ UPDATE AVAILABLE</span>
+      <span class="badge" id="header-active-model">GEMINI · 3.1 FLASH LITE</span>
+      <span class="badge" id="header-active-key">KEY · None</span>
+      <kbd class="kbd">⌘K</kbd>
     </div>
-  </aside>
+  </header>
 
-  <main class="main">
-    <header class="topbar">
-      <button id="toggle-sidebar" class="icon-btn" title="Toggle sidebar">≡</button>
-      <div class="crumbs">
-        <span class="crumb-root">~/devhunt</span>
-        <span class="crumb-sep">/</span>
-        <span id="crumb-current">mentor</span>
+  <div class="app-workspace">
+    <!-- 2. SLIM ACTIVITY BAR (Far Left) -->
+    <aside class="activity-bar">
+      <div class="activity-item active" data-tab-panel="editor" title="Code Editor">
+        <svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" fill="currentColor"/></svg>
       </div>
-      <div class="topbar-right">
-        <!-- Global Topbar Music Deck -->
-        <div id="topbar-music-deck" class="topbar-music-deck" style="display:flex; align-items:center; gap:8px; background:rgba(0,0,0,0.22); border:1px solid var(--border); border-radius:6px; padding:3px 8px; margin-right:8px; font-family:var(--mono); font-size:10.5px; backdrop-filter:blur(4px);">
-          <span id="top-music-art" class="top-music-art" style="font-size:11px; display:inline-block; animation:pulse 2.2s infinite;">♪</span>
-          <span id="top-music-title" style="color:var(--cyan); max-width:110px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:inline-block;" title="No track selected">No track selected</span>
-          <div style="display:flex; gap:2px; margin-left:4px;">
-            <button id="top-music-prev" class="btn-ghost" style="padding:1px 5px; font-size:8.5px; border-radius:3px; border-color:transparent; background:transparent;" title="Previous">⏮</button>
-            <button id="top-music-play" class="btn-ghost" style="padding:1px 5px; font-size:8.5px; border-radius:3px; border-color:transparent; background:transparent; color:var(--green);" title="Play/Pause">▶</button>
-            <button id="top-music-next" class="btn-ghost" style="padding:1px 5px; font-size:8.5px; border-radius:3px; border-color:transparent; background:transparent;" title="Next">⏭</button>
-          </div>
-        </div>
-
-        <span class="badge" id="header-update-badge" style="display:none; cursor:pointer; background:rgba(255,181,71,0.15); color:var(--amber); border-color:rgba(255,181,71,0.45); font-weight:bold; animation:pulse 1.6s infinite; margin-right:8px;">✦ UPDATE AVAILABLE</span>
-        <span class="badge badge-cyan" id="header-active-model">GEMINI · 3.1 FLASH LITE</span>
-        <span class="badge" id="header-active-key">KEY · None</span>
-        <a href="/logs" target="_blank" class="badge" style="text-decoration:none;cursor:pointer;background:rgba(0,255,163,.1);color:var(--green);border-color:rgba(0,255,163,.3)">◎ LOGS</a>
-        <span class="kbd">⌘K</span>
+      <div class="activity-item" data-tab-panel="mentor" title="AI Assistant">
+        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z" fill="currentColor"/></svg>
       </div>
-    </header>
-
-    <!-- 1. MENTOR -->
-    <section class="panel active" id="panel-mentor">
-      <div class="mentor-grid">
-        <div class="card chat">
-          <div class="card-head">
-            <h2>AI Assistant</h2>
-            <div class="hud">
-              <span class="hud-pill"><i class="dot dot-green"></i> RAG ACTIVE</span>
-              <span class="hud-pill"><i class="dot dot-cyan"></i> GRAMMAR HELPER</span>
-            </div>
-          </div>
-          <div class="chat-feed" id="chat-feed"></div>
-          <div class="chat-input">
-            <textarea id="chat-input" placeholder="Ask the mentor anything... (markdown supported)"></textarea>
-            <button class="btn-primary" id="chat-send">TRANSMIT →</button>
-          </div>
-        </div>
-
-        <aside class="card chat-side">
-          <div class="card-head"><h3>Today's Targets</h3></div>
-          <ul class="target-list">
-            <li><span class="tag tag-high">HIGH</span> Docker volumes deep-dive</li>
-            <li><span class="tag tag-high">HIGH</span> K8s pod lifecycle</li>
-            <li><span class="tag tag-med">MED</span> Bash scripting refresher</li>
-            <li><span class="tag tag-med">MED</span> Git rebase patterns</li>
-          </ul>
-          <div class="card-head"><h3>Quick Quests</h3></div>
-          <ul class="quest-mini">
-            <li><label><input type="checkbox"/> Review CI/CD notes</label></li>
-            <li><label><input type="checkbox" checked/> Read Terraform doc</label></li>
-            <li><label><input type="checkbox"/> Lab: nginx reverse proxy</label></li>
-          </ul>
-        </aside>
+      <div class="activity-item" data-tab-panel="path" title="Hunt Path">
+        <svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z" fill="currentColor"/></svg>
       </div>
-    </section>
-
-    <!-- 2. HUNT PATH -->
-    <section class="panel" id="panel-path">
-      <div class="card">
-        <div class="card-head">
-          <h2>Hunt Path · Roadmap</h2>
-          <div class="row gap">
-            <div class="progress"><div class="bar" style="width:38%" id="roadmap-progress-bar"></div></div>
-            <span class="muted" id="roadmap-progress-text">38% complete</span>
-            <button class="btn-ghost" id="expand-all-path">⛶ Expand All</button>
-            <button class="btn-ghost" id="collapse-all-path">⛶ Collapse All</button>
-            <button class="btn-ghost" id="regenerate-path">⟳ Regenerate Hunt Path</button>
-          </div>
-        </div>
-        <div class="phases" id="phases"></div>
+      <div class="activity-item" data-tab-panel="quests" title="Quest Board">
+        <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" fill="currentColor"/></svg>
       </div>
-    </section>
-
-    <!-- 3. QUEST BOARD -->
-    <section class="panel" id="panel-quests">
-      <div class="card">
-        <div class="card-head">
-          <h2>Quest Board</h2>
-          <button class="btn-primary" id="open-quest-modal">+ New Quest</button>
-        </div>
-        <div class="kanban" id="kanban"></div>
+      <div class="activity-item" data-tab-panel="vault" title="Intel Vault">
+        <svg viewBox="0 0 24 24"><path d="M19 12.06c.05-.2.08-.4.08-.6s-.03-.4-.08-.6l2.05-1.61c.19-.15.24-.41.12-.62l-1.95-3.38c-.12-.21-.37-.29-.59-.22l-2.42.98c-.51-.39-1.07-.71-1.68-.96l-.37-2.58c-.03-.24-.25-.42-.5-.42h-3.9c-.25 0-.46.18-.5.42l-.37 2.58c-.61.25-1.17.57-1.68.96l-2.42-.98c-.22-.08-.47 0-.59.22L2.73 8.63c-.13.21-.08.47.12.62L4.9 10.86c-.05.2-.08.4-.08.6s.03.4.08.6L2.85 13.67c-.19.15-.24.41-.12.62l1.95 3.38c.12.21.37.29.59.22l2.42-.98c.51.39 1.07.71 1.68.96l.37 2.58c.03.24.25.42.5.42h3.9c.25 0 .46-.18.5-.42l.37-2.58c.61-.25 1.17-.57 1.68-.96l2.42.98c.22.08.47 0 .59-.22l1.95-3.38c.12-.21.07-.47-.12-.62L19 12.06zM12 15.5c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z" fill="currentColor"/></svg>
       </div>
-    </section>
-
-    <!-- 4. INTEL VAULT -->
-    <section class="panel" id="panel-vault">
-      <!-- Upload/Scrape Grid -->
-      <div class="vault-grid" id="vault-grid">
-        <div class="card">
-          <div class="card-head"><h3>Drop Files</h3></div>
-          <div class="dropzone" id="dropzone">
-            <div class="dz-icon">⇩</div>
-            <div>Drop PDF · TXT · MD here<br/><span class="muted">or click to browse</span></div>
-            <input type="file" id="filein" hidden multiple/>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-head"><h3>Scrape URL</h3></div>
-          <div class="form-row"><input id="url-in" placeholder="https://docs.example.com"/><button class="btn-primary" id="url-btn">Index</button></div>
-          <div class="card-head" style="margin-top:18px"><h3>Custom Note</h3></div>
-          <input id="note-title" placeholder="Note title"/>
-          <textarea id="note-body" placeholder="Write a note to index..." rows="4"></textarea>
-          <button class="btn-primary" id="note-btn" style="margin-top:10px">Save Note</button>
-        </div>
-        <div class="card vault-table-wrap">
-          <div class="card-head"><h3>Indexed Sources</h3></div>
-          <table class="data-table" id="vault-table"></table>
-        </div>
+      <div class="activity-item" data-tab-panel="doc-analysis" title="Doc Forensics">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor"/></svg>
       </div>
-
-      <!-- Split Document Viewer & Chat Analyst (Hidden by default) -->
-      <div class="vault-viewer-grid" id="vault-viewer-grid" style="display: none;">
-        <div class="card doc-reader-card" style="display: flex; flex-direction: column; height: calc(100vh - 160px);">
-          <div class="card-head" style="border-bottom: 1px solid var(--border); padding-bottom: 10px;">
-            <h2 id="doc-viewer-title" style="margin: 0; font-family: var(--display); color: var(--green);">Document Viewer</h2>
-            <button class="btn-ghost" onclick="closeDocViewer()">✕ Close Analyst</button>
-          </div>
-          <div class="doc-viewer-body" id="doc-viewer-content" style="flex: 1; overflow-y: auto; padding: 14px 0; font-family: var(--mono); font-size: 12px; line-height: 1.6; white-space: pre-wrap; color: var(--text);">
-            <!-- Concatenated document chunks -->
-          </div>
-        </div>
-
-        <div class="card doc-chat-card" style="display: flex; flex-direction: column; height: calc(100vh - 160px);">
-          <div class="card-head" style="border-bottom: 1px solid var(--border); padding-bottom: 10px; justify-content: space-between;">
-            <h3 style="margin: 0; font-family: var(--display); color: var(--cyan);">Document Analyst Chat</h3>
-            <button class="btn-ghost" id="doc-chat-clear" style="font-size: 10px; color: var(--red); border-color: rgba(255,77,109,.3);">✕ Clear Chat</button>
-          </div>
-          <div class="doc-chat-feed" id="doc-chat-feed" style="flex: 1; overflow-y: auto; padding: 14px 0; display: flex; flex-direction: column; gap: 12px;">
-            <!-- Specific doc chat feed -->
-          </div>
-          <div class="chat-input" style="border-top: 1px solid var(--border); padding-top: 10px; display: flex; gap: 8px;">
-            <textarea id="doc-chat-input" placeholder="Ask anything about this document..." rows="2" style="flex: 1; resize: none; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 4px; padding: 8px; font-family: inherit; font-size: 12px; color: var(--text);"></textarea>
-            <button class="btn-primary" id="doc-chat-send" style="padding: 0 16px; font-weight: bold; font-size: 11px;">TRANSMIT →</button>
-          </div>
-        </div>
+      <div class="activity-item" data-tab-panel="stats" title="Terminal Stats">
+        <svg viewBox="0 0 24 24"><path d="M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zm5.6 8H19v6h-2.8v-6z" fill="currentColor"/></svg>
       </div>
-    </section>
-
-    <!-- 5. TERMINAL STATS -->
-    <section class="panel" id="panel-stats" style="overflow-y:auto; max-height:calc(100vh - 80px);">
-
-      <!-- ── ORIGINAL PROFILE & ANALYTICS ───────────────────────────────── -->
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-num" id="stat-hours">0.0</div><div class="stat-label">Study Hours</div></div>
-        <div class="stat-card"><div class="stat-num" id="stat-quests">0</div><div class="stat-label">Completed Quests</div></div>
-        <div class="stat-card"><div class="stat-num" id="stat-streak">0🔥</div><div class="stat-label">Daily Streak</div></div>
-        <div class="stat-card"><div class="stat-num" id="stat-consistency">0%</div><div class="stat-label">Consistency</div></div>
+      <div class="activity-item" data-tab-panel="arcade" title="Game Arcade">
+        <svg viewBox="0 0 24 24"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4-3c-.83 0-1.5-.67-1.5-1.5S18.67 9 19.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" fill="currentColor"/></svg>
       </div>
-
-      <div class="stats-row">
-        <div class="card">
-          <div class="card-head"><h3>Profile Editor</h3></div>
-          <label>Display name<input id="profile-name" value=""/></label>
-          <label>Career goal<input id="profile-goal" value=""/></label>
-          <label>Daily target (min)<input id="profile-target" type="number" value="240"/></label>
-          <label>Start date<input id="profile-start-date" type="date" value="2025-09-01"/></label>
-          <button class="btn-primary" id="profile-save" style="margin-top:8px">Save Profile</button>
-        </div>
-        <div class="card">
-          <div class="card-head"><h3>7-Day Activity</h3></div>
-          <svg id="chart" viewBox="0 0 420 200" preserveAspectRatio="none"></svg>
-          <div class="legend">
-            <span><i class="sw sw-green"></i> Questions Asked</span>
-            <span><i class="sw sw-cyan"></i> Tasks Completed</span>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-head"><h3>Skills Matrix</h3></div>
-          <div id="skills"></div>
-        </div>
+      <div class="activity-item" data-tab-panel="terminal" title="Hunt Terminal">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 12H4v-2h8v2zm9-4l-9 4V8l9 4z" fill="currentColor"/></svg>
       </div>
-
-      <!-- ── TERMINAL STATS DIVIDER ──────────────────────────────────────── -->
-      <div style="display:flex; align-items:center; gap:14px; margin:28px 0 20px;">
-        <div style="flex:1; height:1px; background:linear-gradient(90deg, transparent, var(--border));"></div>
-        <div style="font-family:var(--display); font-size:11px; letter-spacing:2px; color:var(--cyan); white-space:nowrap;">▰ API &amp; TOKEN METRICS</div>
-        <div style="flex:1; height:1px; background:linear-gradient(90deg, var(--border), transparent);"></div>
+      <div class="activity-item" data-tab-panel="settings" title="Settings">
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" fill="currentColor"/></svg>
       </div>
+    </aside>
 
-      <!-- Header Row -->
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:10px;">
-        <div class="muted" style="font-size:11px; font-family:var(--mono);">// Live aggregated token usage, model distribution, and API key workload</div>
-        <button class="btn-ghost" id="stats-refresh-btn" style="font-size:11px; display:flex; align-items:center; gap:6px;">
-          <span id="stats-refresh-icon">⟳</span> Refresh Data
+    <!-- 3. COLLAPSIBLE EXPLORER SIDE PANEL -->
+    <aside class="explorer-sidebar" id="explorer-sidebar">
+      <div class="explorer-header">
+        <span id="explorer-title">EXPLORER: LOCAL-AI</span>
+        <button id="explorer-collapse-btn" class="explorer-action-btn" title="Collapse Explorer">
+          <svg viewBox="0 0 24 24" style="width:14px; height:14px;"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" fill="currentColor"/></svg>
         </button>
       </div>
+      <div class="explorer-content" id="explorer-content">
+        <!-- File tree list will render here -->
+        <div id="file-explorer-tree" class="file-tree"></div>
+      </div>
+    </aside>
 
-      <!-- KPI Row -->
-      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:18px;" id="stats-kpi-row">
-        <div class="card" style="padding:16px 18px; border-color:rgba(0,255,163,0.25); background:rgba(0,255,163,0.04); text-align:center;">
-          <div style="font-size:9px; font-family:var(--mono); color:var(--muted); letter-spacing:1.5px; margin-bottom:6px;">TOTAL MESSAGES</div>
-          <div id="kpi-total-msgs" style="font-family:var(--display); font-size:28px; color:var(--green); font-weight:700;">—</div>
-          <div style="font-size:10px; color:var(--muted); margin-top:4px;">exchanges logged</div>
+    <!-- 4. WORKSPACE PANELS CONTAINER -->
+    <div class="main-content-pane">
+      
+      <!-- Top header panel tabs (shows active tab) -->
+      <div class="panel-tabs-bar" id="panel-tabs-bar">
+        <div class="tab-item active" data-panel="editor">Code Editor</div>
+        <div class="tab-item" data-panel="mentor">AI Assistant</div>
+        <div class="tab-item" data-panel="path">Hunt Path</div>
+        <div class="tab-item" data-panel="quests">Quest Board</div>
+        <div class="tab-item" data-panel="vault">Intel Vault</div>
+        <div class="tab-item" data-panel="doc-analysis">Doc Forensics</div>
+        <div class="tab-item" data-panel="stats">Terminal Stats</div>
+        <div class="tab-item" data-panel="arcade">Game Arcade</div>
+        <div class="tab-item" data-panel="terminal">Hunt Terminal</div>
+        <div class="tab-item" data-panel="notifications" id="nav-notifications">
+          System Messages <span class="badge" id="notification-unread-count" style="display:none; margin-left:6px; background:var(--red); color:#fff; border-color:var(--red); font-weight:bold; font-size:9px; padding:1px 4px; border-radius:10px;">0</span>
         </div>
-        <div class="card" style="padding:16px 18px; border-color:rgba(0,212,255,0.25); background:rgba(0,212,255,0.04); text-align:center;">
-          <div style="font-size:9px; font-family:var(--mono); color:var(--muted); letter-spacing:1.5px; margin-bottom:6px;">EST. TOKENS USED</div>
-          <div id="kpi-total-tokens" style="font-family:var(--display); font-size:28px; color:var(--cyan); font-weight:700;">—</div>
-          <div style="font-size:10px; color:var(--muted); margin-top:4px;">≈ chars ÷ 4</div>
-        </div>
-        <div class="card" style="padding:16px 18px; border-color:rgba(255,181,71,0.25); background:rgba(255,181,71,0.04); text-align:center;">
-          <div style="font-size:9px; font-family:var(--mono); color:var(--muted); letter-spacing:1.5px; margin-bottom:6px;">ACTIVE MODELS</div>
-          <div id="kpi-models" style="font-family:var(--display); font-size:28px; color:var(--amber); font-weight:700;">—</div>
-          <div style="font-size:10px; color:var(--muted); margin-top:4px;">model variants</div>
-        </div>
-        <div class="card" style="padding:16px 18px; border-color:rgba(255,77,109,0.25); background:rgba(255,77,109,0.04); text-align:center;">
-          <div style="font-size:9px; font-family:var(--mono); color:var(--muted); letter-spacing:1.5px; margin-bottom:6px;">API KEYS ACTIVE</div>
-          <div id="kpi-keys" style="font-family:var(--display); font-size:28px; color:var(--red); font-weight:700;">—</div>
-          <div style="font-size:10px; color:var(--muted); margin-top:4px;">registered keys</div>
-        </div>
+        <div class="tab-item" data-panel="settings">Settings</div>
       </div>
 
-      <!-- Charts Row 1: Model Distribution + Key Workload -->
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
-        <div class="card" style="padding:16px;">
-          <div class="card-head" style="margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border);">
-            <h3 style="font-size:12px; letter-spacing:1px;">MODEL USAGE DISTRIBUTION</h3>
-            <span class="badge badge-cyan" style="font-size:9px;">requests</span>
-          </div>
-          <canvas id="chart-models" height="160" style="width:100%; display:block;"></canvas>
-          <div id="model-legend" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; font-size:10px; font-family:var(--mono);"></div>
-        </div>
-        <div class="card" style="padding:16px;">
-          <div class="card-head" style="margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border);">
-            <h3 style="font-size:12px; letter-spacing:1px;">API KEY WORKLOAD</h3>
-            <span class="badge badge-cyan" style="font-size:9px;">requests</span>
-          </div>
-          <canvas id="chart-keys" height="160" style="width:100%; display:block;"></canvas>
-          <div id="key-legend" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; font-size:10px; font-family:var(--mono);"></div>
-        </div>
-      </div>
-
-      <!-- Charts Row 2: Daily Activity + Role Split Donut -->
-      <div style="display:grid; grid-template-columns:2fr 1fr; gap:14px; margin-bottom:14px;">
-        <div class="card" style="padding:16px;">
-          <div class="card-head" style="margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border);">
-            <h3 style="font-size:12px; letter-spacing:1px;">14-DAY MESSAGE ACTIVITY</h3>
-            <span class="badge" style="font-size:9px; background:rgba(0,255,163,0.1); color:var(--green); border-color:rgba(0,255,163,0.3);">daily</span>
-          </div>
-          <canvas id="chart-daily" height="140" style="width:100%; display:block;"></canvas>
-        </div>
-        <div class="card" style="padding:16px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-          <div class="card-head" style="margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border); width:100%;">
-            <h3 style="font-size:12px; letter-spacing:1px;">USER vs AI SPLIT</h3>
-          </div>
-          <canvas id="chart-role" width="140" height="140" style="display:block;"></canvas>
-          <div id="role-legend" style="margin-top:12px; font-size:10.5px; font-family:var(--mono); text-align:center; display:flex; gap:14px; flex-wrap:wrap; justify-content:center;"></div>
-        </div>
-      </div>
-
-      <!-- Tokens per Model + Top Sessions -->
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
-        <div class="card" style="padding:16px;">
-          <div class="card-head" style="margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border);">
-            <h3 style="font-size:12px; letter-spacing:1px;">EST. TOKENS PER MODEL</h3>
-            <span class="badge" style="font-size:9px; background:rgba(255,181,71,0.1); color:var(--amber); border-color:rgba(255,181,71,0.3);">tokens</span>
-          </div>
-          <div id="token-model-bars" style="display:flex; flex-direction:column; gap:10px;"></div>
-        </div>
-        <div class="card" style="padding:16px;">
-          <div class="card-head" style="margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border);">
-            <h3 style="font-size:12px; letter-spacing:1px;">TOP SESSIONS</h3>
-            <span class="badge" style="font-size:9px; background:rgba(0,212,255,0.1); color:var(--cyan); border-color:rgba(0,212,255,0.3);">by volume</span>
-          </div>
-          <table style="width:100%; border-collapse:collapse; font-family:var(--mono); font-size:10.5px;">
-            <thead>
-              <tr style="border-bottom:1px solid var(--border);">
-                <th style="text-align:left; padding:4px 6px; color:var(--muted); font-weight:600; font-size:9px; letter-spacing:1px;">SESSION ID</th>
-                <th style="text-align:right; padding:4px 6px; color:var(--muted); font-weight:600; font-size:9px; letter-spacing:1px;">MSGS</th>
-                <th style="text-align:right; padding:4px 6px; color:var(--muted); font-weight:600; font-size:9px; letter-spacing:1px;">~TOKENS</th>
-              </tr>
-            </thead>
-            <tbody id="sessions-table-body">
-              <tr><td colspan="3" style="text-align:center; color:var(--muted); padding:20px;">Loading...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div style="text-align:right; font-size:10px; font-family:var(--mono); color:var(--muted); margin-top:4px; margin-bottom:20px;">
-        <span id="stats-last-updated">// Not yet loaded</span>
-      </div>
-    </section>
-
-    <!-- 6. SETTINGS -->
-    <section class="panel" id="panel-settings">
-      <div class="card">
-        <div class="card-head"><h2>Key Pool Manager</h2></div>
-        <div class="form-row">
-          <input id="new-key" placeholder="AIza••• Gemini API key"/>
-          <input id="new-label" placeholder="Label (e.g. primary)"/>
-          <button class="btn-primary" id="add-key">+ Register Key</button>
-        </div>
-        <table class="data-table" id="keys-table"></table>
-      </div>
-
-      <!-- System Updates -->
-      <div class="card" style="margin-top:18px">
-        <div class="card-head"><h3>System Updates</h3></div>
-        <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <div>
-              <div id="update-status-text" style="font-weight:bold; font-size:12px; color:var(--text)">Checking updates...</div>
-              <div id="update-version-text" class="muted" style="margin-top:2px;">Current version: N/A</div>
-            </div>
-            <div style="display:flex; gap:8px;">
-              <button class="btn-ghost" id="manual-check-update-btn">Check Updates</button>
-              <button class="btn-primary" id="apply-update-btn" style="display:none; font-weight:700;">Apply Update</button>
-            </div>
-          </div>
-          <div id="update-details-box" style="display:none; background:rgba(0,0,0,0.25); border:1px solid var(--border); border-radius:6px; padding:12px; max-height:160px; overflow-y:auto; margin-top:6px;">
-            <div style="font-size:11px; font-weight:bold; color:var(--cyan); margin-bottom:6px; letter-spacing:1px;">UPDATE DETAILS (WHAT'S NEW):</div>
-            <ul id="update-commits-list" style="margin:0; padding-left:16px; font-family:var(--mono); font-size:11.5px; color:var(--text); line-height:1.55;"></ul>
-          </div>
-          <div id="update-progress-info" style="display:none; font-size:11px; color:var(--muted); font-family:var(--mono);">
-            <span class="streaming-cursor">▌</span> Updating codebase. Do not close the window...
-          </div>
-        </div>
-      </div>
-
-      <!-- Backup & Restore -->
-      <div class="card" style="margin-top:18px">
-        <div class="card-head"><h3>Backup &amp; Restore</h3></div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
-          <a href="/api/backup/export" class="btn-primary" style="text-decoration:none;padding:8px 14px;font-size:11px">⬇ Full Backup</a>
-          <a href="/api/history/export" class="btn-ghost" style="text-decoration:none;padding:8px 14px;font-size:11px">⬇ Chat History JSON</a>
-          <label class="btn-ghost" style="cursor:pointer;padding:8px 14px;font-size:11px">
-            ⬆ Import Backup
-            <input type="file" id="import-backup-file" accept=".json" hidden onchange="importBackupFromSettings(this)"/>
-          </label>
-          <a href="/logs" target="_blank" class="btn-ghost" style="text-decoration:none;padding:8px 14px;font-size:11px">◎ Logs ↗</a>
-        </div>
-        <div id="backup-status" style="margin-top:10px;font-size:11px;color:var(--muted)"></div>
-      </div>
-
-      <div class="card" style="margin-top:18px">
-        <div class="card-head"><h3>Toggles</h3></div>
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <div class="toggle-row">
-            <div>
-              <div class="toggle-title">English Communication Helper</div>
-              <div class="muted">Prepends a "Grammar &amp; Phrasing Tip" callout to every AI response.</div>
-            </div>
-            <label class="switch"><input type="checkbox" id="grammar-toggle" checked/><span></span></label>
-          </div>
-          <div class="toggle-row">
-            <div>
-              <div class="toggle-title">Minimize Sidebar</div>
-              <div class="muted">Collapse the left navigation bar into a compact icon-only column.</div>
-            </div>
-            <label class="switch"><input type="checkbox" id="sidebar-collapse-toggle"/><span></span></label>
-          </div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:18px">
-        <div class="card-head"><h3>Feature Access Toggles</h3></div>
-        <p class="muted" style="margin-bottom:12px; font-family:var(--mono); font-size:10.5px;">// Enable/disable specific application modules dynamically (changes hide/show elements in UI)</p>
+      <!-- WORKSPACE PANELS -->
+      <main class="panels-container">
         
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <div class="toggle-row">
-            <div>
-              <div class="toggle-title">Music Player &amp; Widgets</div>
-              <div class="muted">Toggle display of the Music tab and global topbar/sidebar playback controllers.</div>
+        <!-- NEW CODE EDITOR PANEL -->
+        <section class="panel active" id="panel-editor">
+          <div class="editor-workspace">
+            <div class="editor-header-bar">
+              <span id="active-file-path" class="active-file-path">// Select a file from the explorer sidebar to begin editing</span>
+              <button id="editor-save-btn" class="btn-primary" style="padding: 6px 12px; font-size: 11px; margin-left: auto;" disabled>Save File (Ctrl+S)</button>
             </div>
-            <label class="switch"><input type="checkbox" id="toggle-feat-music" checked/><span></span></label>
-          </div>
-
-          <div class="toggle-row">
-            <div>
-              <div class="toggle-title">Hunt Path Roadmap</div>
-              <div class="muted">Toggle display of curriculum map tracks, streak indicators, and progress maps.</div>
-            </div>
-            <label class="switch"><input type="checkbox" id="toggle-feat-path" checked/><span></span></label>
-          </div>
-
-          <div class="toggle-row">
-            <div>
-              <div class="toggle-title">Quest Board</div>
-              <div class="muted">Toggle display of developer quest cards, priority queues, and Kanban columns.</div>
-            </div>
-            <label class="switch"><input type="checkbox" id="toggle-feat-quests" checked/><span></span></label>
-          </div>
-
-          <div class="toggle-row">
-            <div>
-              <div class="toggle-title">Intel Vault (RAG)</div>
-              <div class="muted">Toggle display of text/PDF upload dropzones and similarity matching chat references.</div>
-            </div>
-            <label class="switch"><input type="checkbox" id="toggle-feat-vault" checked/><span></span></label>
-          </div>
-
-          <div class="toggle-row">
-            <div>
-              <div class="toggle-title">Doc Forensics</div>
-              <div class="muted">Toggle display of Error Level Analysis (ELA) scanners, metadata verifiers, and PII alerts.</div>
-            </div>
-            <label class="switch"><input type="checkbox" id="toggle-feat-doc-analysis" checked/><span></span></label>
-          </div>
-
-          <div class="toggle-row">
-            <div>
-              <div class="toggle-title">Game Arcade</div>
-              <div class="muted">Toggle display of the Game Arcade tab containing offline developer games.</div>
-            </div>
-            <label class="switch"><input type="checkbox" id="toggle-feat-arcade" checked/><span></span></label>
-          </div>
-        </div>
-      </div>
-
-      <!-- AI Core Memory -->
-      <div class="card" style="margin-top:18px">
-        <div class="card-head"><h3>AI Core Memory</h3></div>
-        <div class="muted" style="margin-bottom:12px">View and manage the facts, preferences, and project context that DevHunt AI automatically learns and updates about you daily. Each line represents a distinct fact.</div>
-        
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <textarea id="ai-memory-text" rows="8" placeholder="No memories consolidated yet. Click 'Refine Now' or start chatting!" style="font-family:var(--mono); font-size:12px; line-height:1.5;"></textarea>
-          
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="btn-primary" id="save-memory-btn" style="padding:6px 14px; font-size:11px;">Save Changes</button>
-            <button class="btn-ghost" id="refine-memory-btn" style="padding:6px 14px; font-size:11px;">Refine Now</button>
-            <button class="btn-ghost" id="clear-memory-btn" style="color:var(--red); border-color:rgba(255,77,109,.4); padding:6px 14px; font-size:11px;">Clear Memory</button>
-          </div>
-          <div id="memory-status" style="font-size:11px; color:var(--muted); font-family:var(--mono);"></div>
-        </div>
-      </div>
-
-      <!-- Danger Zone -->
-      <div class="card" style="margin-top:18px;border-color:rgba(255,77,106,.3)">
-        <div class="card-head"><h3 style="color:var(--red)">⚠ Danger Zone</h3></div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
-          <button class="btn-ghost" onclick="clearChatHistory()" style="border-color:rgba(255,77,106,.4);color:var(--red)">✕ Clear Chat History</button>
-          <button class="btn-ghost" onclick="clearAllData()" style="border-color:rgba(255,77,106,.6);color:var(--red);font-weight:700">☢ Reset Everything</button>
-        </div>
-        <div class="muted" style="margin-top:8px;font-size:11px">Reset Everything clears all keys, chat history, todos, knowledge base and profile. Cannot be undone. Export backup first.</div>
-        <div id="danger-status" style="margin-top:8px;font-size:11px"></div>
-      </div>
-    </section>
-
-    <!-- 7. CHAT HISTORY VIEWER -->
-    <section class="panel" id="panel-history">
-      <div class="card">
-        <div class="card-head">
-          <h2>Chat History</h2>
-          <div style="display:flex;gap:8px;align-items:center">
-            <select id="history-session-select" style="background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:5px 8px;border-radius:4px">
-              <option value="default_session">default_session</option>
-            </select>
-            <button class="btn-ghost" onclick="loadHistoryPanel()" style="font-size:11px">⟳ Refresh</button>
-            <a href="/api/history/export" class="btn-ghost" style="text-decoration:none;font-size:11px">⬇ Export JSON</a>
-            <button class="btn-ghost" onclick="clearSessionHistory()" style="font-size:11px;color:var(--red);border-color:rgba(255,77,106,.4)">✕ Clear Session</button>
-          </div>
-        </div>
-        <div id="history-stats" style="display:flex;gap:16px;font-size:11px;color:var(--muted);padding:8px 0;border-bottom:1px solid var(--border);margin-bottom:12px"></div>
-        <div id="history-feed" style="display:flex;flex-direction:column;gap:10px;max-height:70vh;overflow-y:auto"></div>
-      </div>
-    </section>
-
-    <!-- 8. HUNT TERMINAL -->
-    <section class="panel" id="panel-terminal">
-      <div class="card terminal-card" style="padding: 0; overflow: hidden; border-color: var(--border-hot);">
-        <div class="card-head" style="padding: 16px 18px 0px 18px; margin-bottom: 8px;">
-          <h2>Hunt Node Terminal</h2>
-          <div class="hud">
-            <span class="hud-pill"><i class="dot dot-green"></i> ENGINE ONLINE</span>
-            <span class="hud-pill"><i class="dot dot-cyan"></i> CROSS-PLATFORM</span>
-          </div>
-        </div>
-        <div class="terminal-container">
-          <div class="terminal-header">
-            <div class="terminal-buttons">
-              <span class="t-btn close-btn"></span>
-              <span class="t-btn min-btn"></span>
-              <span class="t-btn max-btn"></span>
-            </div>
-            <div class="terminal-title">guest@devhunt:~</div>
-          </div>
-          <div class="terminal-body" id="terminal-body">
-            <div class="terminal-output" id="terminal-output">
-              <div class="terminal-line"><span class="ansi-cyan">DevHunt Terminal Core v1.0</span></div>
-              <div class="terminal-line">Detected Environment: <span class="ansi-yellow" id="terminal-detected-os">Detecting platform...</span></div>
-              <div class="terminal-line">Type <span class="ansi-green">hunt help</span> to see all available commands.</div>
-              <div class="terminal-line"><span class="ansi-muted">------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span></div>
-            </div>
-            <div class="terminal-input-line">
-              <span class="terminal-prompt" id="terminal-prompt">guest@devhunt:~$</span>
-              <input type="text" class="terminal-input" id="terminal-input" autocomplete="off" spellcheck="false" placeholder="Enter hunt command..." />
+            <div class="editor-container-inner">
+              <div class="editor-line-numbers" id="editor-line-numbers">1</div>
+              <textarea id="editor-textarea" class="editor-textarea" placeholder="// Select a file from the Explorer Sidebar or click File -> New File to write code..." disabled></textarea>
             </div>
           </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- 9. SYSTEM MESSAGES / NOTIFICATIONS -->
-    <section class="panel" id="panel-notifications">
-      <div class="card" style="margin-bottom:16px;">
-        <div class="card-head">
-          <h2>System Messages &amp; Announcements</h2>
-          <div style="display:flex; gap:8px;">
-            <button class="btn-ghost" id="btn-notifications-refresh" style="font-size:11px;">⟳ Refresh</button>
-            <button class="btn-primary" id="btn-notifications-read-all" style="font-size:11px; padding:6px 14px;">Mark All As Read</button>
-          </div>
-        </div>
-        <p class="muted" style="margin:0;">Monitor remote product news, system status updates, and local error notifications.</p>
-      </div>
+        <!-- MENTOR PANEL -->
+        <section class="panel" id="panel-mentor">
+          <div class="mentor-grid">
+            <div class="card chat">
+              <div class="card-head">
+                <h2>AI Assistant</h2>
+                <div class="hud">
+                  <span class="hud-pill"><i class="dot dot-green"></i> RAG ACTIVE</span>
+                  <span class="hud-pill"><i class="dot dot-cyan"></i> GRAMMAR HELPER</span>
+                </div>
+              </div>
+              <div class="chat-feed" id="chat-feed"></div>
+              <div class="chat-input">
+                <textarea id="chat-input" placeholder="Ask the mentor anything... (markdown supported)"></textarea>
+                <button class="btn-primary" id="chat-send">TRANSMIT →</button>
+              </div>
+            </div>
 
-      <div id="notifications-feed-container" class="notifications-feed" style="display:flex; flex-direction:column; gap:12px; max-height:calc(100vh - 240px); overflow-y:auto; padding-right:4px;">
-        <div class="muted" style="text-align:center; padding:40px;">Initializing connection to notification feed...</div>
-      </div>
-    </section>
+            <aside class="card chat-side">
+              <div class="card-head"><h3>Today's Targets</h3></div>
+              <ul class="target-list">
+                <li><span class="tag tag-high">HIGH</span> Docker volumes deep-dive</li>
+                <li><span class="tag tag-high">HIGH</span> K8s pod lifecycle</li>
+                <li><span class="tag tag-med">MED</span> Bash scripting refresher</li>
+                <li><span class="tag tag-med">MED</span> Git rebase patterns</li>
+              </ul>
+              <div class="card-head"><h3>Quick Quests</h3></div>
+              <ul class="quest-mini">
+                <li><label><input type="checkbox"/> Review CI/CD notes</label></li>
+                <li><label><input type="checkbox" checked/> Read Terraform doc</label></li>
+                <li><label><input type="checkbox"/> Lab: nginx reverse proxy</label></li>
+              </ul>
+            </aside>
+          </div>
+        </section>
 
-    <!-- 10. DOCUMENT FORENSICS / ANALYSIS -->
-    <section class="panel" id="panel-doc-analysis">
-      <div class="forensics-grid" style="display: grid; grid-template-columns: 320px 1fr; gap: 16px; height: calc(100vh - 140px);">
-        
-        <!-- Left Panel: Dropzone & File List -->
-        <div class="card" style="display: flex; flex-direction: column; gap: 14px; height: 100%; overflow: hidden;">
-          <div class="card-head" style="margin-bottom: 4px;"><h3>Drop Document</h3></div>
-          <div class="dropzone" id="forensics-dropzone" style="padding: 24px 10px; flex-shrink: 0; min-height: 120px;">
-            <div class="dz-icon" style="font-size: 26px; margin-bottom: 4px;">⇩</div>
-            <div style="font-size: 11px;">Drop PDF or Image here<br/><span class="muted">or click to browse</span></div>
-            <input type="file" id="forensics-filein" hidden />
+        <!-- HUNT PATH -->
+        <section class="panel" id="panel-path">
+          <div class="card">
+            <div class="card-head">
+              <h2>Hunt Path · Roadmap</h2>
+              <div class="row gap">
+                <div class="progress"><div class="bar" style="width:38%" id="roadmap-progress-bar"></div></div>
+                <span class="muted" id="roadmap-progress-text">38% complete</span>
+                <button class="btn-ghost" id="expand-all-path">⛶ Expand All</button>
+                <button class="btn-ghost" id="collapse-all-path">⛶ Collapse All</button>
+                <button class="btn-ghost" id="regenerate-path">⟳ Regenerate Hunt Path</button>
+              </div>
+            </div>
+            <div class="phases" id="phases"></div>
           </div>
-          
-          <div class="card-head" style="margin-top: 10px; margin-bottom: 4px; flex-shrink: 0;"><h3>Forensics Archive</h3></div>
-          <div id="forensics-history-list" style="display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; padding-right: 4px;">
-            <div class="muted" style="text-align: center; padding: 20px 0;">No records found</div>
+        </section>
+
+        <!-- QUEST BOARD -->
+        <section class="panel" id="panel-quests">
+          <div class="card">
+            <div class="card-head">
+              <h2>Quest Board</h2>
+              <button class="btn-primary" id="open-quest-modal">+ New Quest</button>
+            </div>
+            <div class="kanban" id="kanban"></div>
           </div>
-        </div>
-        
-        <!-- Right Panel: Report Dashboard & Q&A Chat Side-by-Side -->
-        <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 16px; height: 100%; overflow: hidden;">
-          
-          <!-- Dashboard details -->
-          <div class="card" style="display: flex; flex-direction: column; height: 100%; overflow: hidden; padding: 16px;">
-            <div class="card-head" style="border-bottom: 1px solid var(--border); padding-bottom: 8px; flex-shrink: 0; margin-bottom: 10px;">
-              <h2>Forensic Scan Report</h2>
-              <span class="badge badge-cyan" id="forensics-file-badge">No File Selected</span>
+        </section>
+
+        <!-- INTEL VAULT -->
+        <section class="panel" id="panel-vault">
+          <!-- Upload/Scrape Grid -->
+          <div class="vault-grid" id="vault-grid">
+            <div class="card">
+              <div class="card-head"><h3>Drop Files</h3></div>
+              <div class="dropzone" id="dropzone">
+                <div class="dz-icon">⇩</div>
+                <div>Drop PDF · TXT · MD here<br/><span class="muted">or click to browse</span></div>
+                <input type="file" id="filein" hidden multiple/>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>Scrape URL</h3></div>
+              <div class="form-row"><input id="url-in" placeholder="https://docs.example.com"/><button class="btn-primary" id="url-btn">Index</button></div>
+              <div class="card-head" style="margin-top:18px"><h3>Custom Note</h3></div>
+              <input id="note-title" placeholder="Note title"/>
+              <textarea id="note-body" placeholder="Write a note to index..." rows="4"></textarea>
+              <button class="btn-primary" id="note-btn" style="margin-top:10px">Save Note</button>
+            </div>
+            <div class="card vault-table-wrap">
+              <div class="card-head"><h3>Indexed Sources</h3></div>
+              <table class="data-table" id="vault-table"></table>
+            </div>
+          </div>
+
+          <!-- Split Document Viewer & Chat Analyst (Hidden by default) -->
+          <div class="vault-viewer-grid" id="vault-viewer-grid" style="display: none;">
+            <div class="card doc-reader-card" style="display: flex; flex-direction: column; height: calc(100vh - 160px);">
+              <div class="card-head" style="border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+                <h2 id="doc-viewer-title" style="margin: 0; font-family: var(--display); color: var(--green);">Document Viewer</h2>
+                <button class="btn-ghost" onclick="closeDocViewer()">✕ Close Analyst</button>
+              </div>
+              <div class="doc-viewer-body" id="doc-viewer-content" style="flex: 1; overflow-y: auto; padding: 14px 0; font-family: var(--mono); font-size: 12px; line-height: 1.6; white-space: pre-wrap; color: var(--text);">
+                <!-- Concatenated document chunks -->
+              </div>
+            </div>
+
+            <div class="card doc-chat-card" style="display: flex; flex-direction: column; height: calc(100vh - 160px);">
+              <div class="card-head" style="border-bottom: 1px solid var(--border); padding-bottom: 10px; justify-content: space-between;">
+                <h3 style="margin: 0; font-family: var(--display); color: var(--cyan);">Document Analyst Chat</h3>
+                <button class="btn-ghost" id="doc-chat-clear" style="font-size: 10px; color: var(--red); border-color: rgba(255,77,109,.3);">✕ Clear Chat</button>
+              </div>
+              <div class="doc-chat-feed" id="doc-chat-feed" style="flex: 1; overflow-y: auto; padding: 14px 0; display: flex; flex-direction: column; gap: 12px;">
+                <!-- Specific doc chat feed -->
+              </div>
+              <div class="chat-input" style="border-top: 1px solid var(--border); padding-top: 10px; display: flex; gap: 8px;">
+                <textarea id="doc-chat-input" placeholder="Ask anything about this document..." rows="2" style="flex: 1; resize: none; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 4px; padding: 8px; font-family: inherit; font-size: 12px; color: var(--text);"></textarea>
+                <button class="btn-primary" id="doc-chat-send" style="padding: 0 16px; font-weight: bold; font-size: 11px;">TRANSMIT →</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TERMINAL STATS -->
+        <section class="panel" id="panel-stats" style="overflow-y:auto; max-height:calc(100vh - 140px);">
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-num" id="stat-hours">0.0</div><div class="stat-label">Study Hours</div></div>
+            <div class="stat-card"><div class="stat-num" id="stat-quests">0</div><div class="stat-label">Completed Quests</div></div>
+            <div class="stat-card"><div class="stat-num" id="stat-streak">0🔥</div><div class="stat-label">Daily Streak</div></div>
+            <div class="stat-card"><div class="stat-num" id="stat-consistency">0%</div><div class="stat-label">Consistency</div></div>
+          </div>
+
+          <div class="stats-row">
+            <div class="card">
+              <div class="card-head"><h3>Profile Editor</h3></div>
+              <label>Display name<input id="profile-name" value=""/></label>
+              <label>Career goal<input id="profile-goal" value=""/></label>
+              <label>Daily target (min)<input id="profile-target" type="number" value="240"/></label>
+              <label>Start date<input id="profile-start-date" type="date" value="2025-09-01"/></label>
+              <button class="btn-primary" id="profile-save" style="margin-top:8px">Save Profile</button>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>7-Day Activity</h3></div>
+              <svg id="chart" viewBox="0 0 420 200" preserveAspectRatio="none"></svg>
+              <div class="legend">
+                <span><i class="sw sw-green"></i> Questions Asked</span>
+                <span><i class="sw sw-cyan"></i> Tasks Completed</span>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>Skills Matrix</h3></div>
+              <div id="skills"></div>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:14px; margin:28px 0 20px;">
+            <div style="flex:1; height:1px; background:var(--border);"></div>
+            <div style="font-family:var(--display); font-size:11px; letter-spacing:2px; color:var(--cyan); white-space:nowrap;">▰ API &amp; TOKEN METRICS</div>
+            <div style="flex:1; height:1px; background:var(--border);"></div>
+          </div>
+
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:10px;">
+            <div class="muted" style="font-size:11px; font-family:var(--mono);">// Live aggregated token usage, model distribution, and API key workload</div>
+            <button class="btn-ghost" id="stats-refresh-btn" style="font-size:11px; display:flex; align-items:center; gap:6px;">
+              <span id="stats-refresh-icon">⟳</span> Refresh Data
+            </button>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:18px;" id="stats-kpi-row">
+            <div class="card" style="padding:16px 18px; text-align:center;">
+              <div style="font-size:9px; font-family:var(--mono); color:var(--muted); letter-spacing:1.5px; margin-bottom:6px;">TOTAL MESSAGES</div>
+              <div id="kpi-total-msgs" style="font-family:var(--display); font-size:28px; color:var(--accent); font-weight:700;">—</div>
+              <div style="font-size:10px; color:var(--muted); margin-top:4px;">exchanges logged</div>
+            </div>
+            <div class="card" style="padding:16px 18px; text-align:center;">
+              <div style="font-size:9px; font-family:var(--mono); color:var(--muted); letter-spacing:1.5px; margin-bottom:6px;">EST. TOKENS USED</div>
+              <div id="kpi-total-tokens" style="font-family:var(--display); font-size:28px; color:var(--accent); font-weight:700;">—</div>
+              <div style="font-size:10px; color:var(--muted); margin-top:4px;">≈ chars ÷ 4</div>
+            </div>
+            <div class="card" style="padding:16px 18px; text-align:center;">
+              <div style="font-size:9px; font-family:var(--mono); color:var(--muted); letter-spacing:1.5px; margin-bottom:6px;">ACTIVE MODELS</div>
+              <div id="kpi-models" style="font-family:var(--display); font-size:28px; color:var(--accent); font-weight:700;">—</div>
+              <div style="font-size:10px; color:var(--muted); margin-top:4px;">model variants</div>
+            </div>
+            <div class="card" style="padding:16px 18px; text-align:center;">
+              <div style="font-size:9px; font-family:var(--mono); color:var(--muted); letter-spacing:1.5px; margin-bottom:6px;">API KEYS ACTIVE</div>
+              <div id="kpi-keys" style="font-family:var(--display); font-size:28px; color:var(--accent); font-weight:700;">—</div>
+              <div style="font-size:10px; color:var(--muted); margin-top:4px;">registered keys</div>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+            <div class="card" style="padding:16px;">
+              <div class="card-head" style="margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border);">
+                <h3 style="font-size:12px; letter-spacing:1px;">MODEL USAGE DISTRIBUTION</h3>
+                <span class="badge" style="font-size:9px;">requests</span>
+              </div>
+              <canvas id="chart-models" height="160" style="width:100%; display:block;"></canvas>
+              <div id="model-legend" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; font-size:10px; font-family:var(--mono);"></div>
+            </div>
+            <div class="card" style="padding:16px;">
+              <div class="card-head" style="margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border);">
+                <h3 style="font-size:12px; letter-spacing:1px;">API KEY WORKLOAD</h3>
+                <span class="badge" style="font-size:9px;">requests</span>
+              </div>
+              <canvas id="chart-keys" height="160" style="width:100%; display:block;"></canvas>
+              <div id="key-legend" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; font-size:10px; font-family:var(--mono);"></div>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:2fr 1fr; gap:14px; margin-bottom:14px;">
+            <div class="card" style="padding:16px;">
+              <div class="card-head" style="margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border);">
+                <h3 style="font-size:12px; letter-spacing:1px;">14-DAY MESSAGE ACTIVITY</h3>
+                <span class="badge" style="font-size:9px;">daily</span>
+              </div>
+              <canvas id="chart-daily" height="140" style="width:100%; display:block;"></canvas>
+            </div>
+            <div class="card" style="padding:16px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <div class="card-head" style="margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border); width:100%;">
+                <h3 style="font-size:12px; letter-spacing:1px;">USER vs AI SPLIT</h3>
+              </div>
+              <canvas id="chart-role" width="140" height="140" style="display:block;"></canvas>
+              <div id="role-legend" style="margin-top:12px; font-size:10.5px; font-family:var(--mono); text-align:center; display:flex; gap:14px; flex-wrap:wrap; justify-content:center;"></div>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+            <div class="card" style="padding:16px;">
+              <div class="card-head" style="margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border);">
+                <h3 style="font-size:12px; letter-spacing:1px;">EST. TOKENS PER MODEL</h3>
+                <span class="badge" style="font-size:9px;">tokens</span>
+              </div>
+              <div id="token-model-bars" style="display:flex; flex-direction:column; gap:10px;"></div>
+            </div>
+            <div class="card" style="padding:16px;">
+              <div class="card-head" style="margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border);">
+                <h3 style="font-size:12px; letter-spacing:1px;">TOP SESSIONS</h3>
+                <span class="badge" style="font-size:9px;">by volume</span>
+              </div>
+              <table style="width:100%; border-collapse:collapse; font-family:var(--mono); font-size:10.5px;">
+                <thead>
+                  <tr style="border-bottom:1px solid var(--border);">
+                    <th style="text-align:left; padding:4px 6px; color:var(--muted); font-weight:600; font-size:9px; letter-spacing:1px;">SESSION ID</th>
+                    <th style="text-align:right; padding:4px 6px; color:var(--muted); font-weight:600; font-size:9px; letter-spacing:1px;">MSGS</th>
+                    <th style="text-align:right; padding:4px 6px; color:var(--muted); font-weight:600; font-size:9px; letter-spacing:1px;">~TOKENS</th>
+                  </tr>
+                </thead>
+                <tbody id="sessions-table-body">
+                  <tr><td colspan="3" style="text-align:center; color:var(--muted); padding:20px;">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div style="text-align:right; font-size:10px; font-family:var(--mono); color:var(--muted); margin-top:4px; margin-bottom:20px;">
+            <span id="stats-last-updated">// Not yet loaded</span>
+          </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section class="panel" id="panel-settings">
+          <div class="card">
+            <div class="card-head"><h2>Key Pool Manager</h2></div>
+            <div class="form-row">
+              <input id="new-key" placeholder="AIza••• Gemini API key"/>
+              <input id="new-label" placeholder="Label (e.g. primary)"/>
+              <button class="btn-primary" id="add-key">+ Register Key</button>
+            </div>
+            <table class="data-table" id="keys-table"></table>
+          </div>
+
+          <!-- System Updates -->
+          <div class="card" style="margin-top:18px">
+            <div class="card-head"><h3>System Updates</h3></div>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <div>
+                  <div id="update-status-text" style="font-weight:bold; font-size:12px; color:var(--text)">Checking updates...</div>
+                  <div id="update-version-text" class="muted" style="margin-top:2px;">Current version: N/A</div>
+                </div>
+                <div style="display:flex; gap:8px;">
+                  <button class="btn-ghost" id="manual-check-update-btn">Check Updates</button>
+                  <button class="btn-primary" id="apply-update-btn" style="display:none; font-weight:700;">Apply Update</button>
+                </div>
+              </div>
+              <div id="update-details-box" style="display:none; background:rgba(0,0,0,0.25); border:1px solid var(--border); border-radius:6px; padding:12px; max-height:160px; overflow-y:auto; margin-top:6px;">
+                <div style="font-size:11px; font-weight:bold; color:var(--cyan); margin-bottom:6px; letter-spacing:1px;">UPDATE DETAILS (WHAT'S NEW):</div>
+                <ul id="update-commits-list" style="margin:0; padding-left:16px; font-family:var(--mono); font-size:11.5px; color:var(--text); line-height:1.55;"></ul>
+              </div>
+              <div id="update-progress-info" style="display:none; font-size:11px; color:var(--muted); font-family:var(--mono);">
+                <span class="streaming-cursor">▌</span> Updating codebase. Do not close the window...
+              </div>
+            </div>
+          </div>
+
+          <!-- Backup & Restore -->
+          <div class="card" style="margin-top:18px">
+            <div class="card-head"><h3>Backup &amp; Restore</h3></div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+              <a href="/api/backup/export" class="btn-primary" style="text-decoration:none;padding:8px 14px;font-size:11px">⬇ Full Backup</a>
+              <a href="/api/history/export" class="btn-ghost" style="text-decoration:none;padding:8px 14px;font-size:11px">⬇ Chat History JSON</a>
+              <label class="btn-ghost" style="cursor:pointer;padding:8px 14px;font-size:11px">
+                ⬆ Import Backup
+                <input type="file" id="import-backup-file" accept=".json" hidden onchange="importBackupFromSettings(this)"/>
+              </label>
+              <a href="/logs" target="_blank" class="btn-ghost" style="text-decoration:none;padding:8px 14px;font-size:11px">◎ Logs ↗</a>
+            </div>
+            <div id="backup-status" style="margin-top:10px;font-size:11px;color:var(--muted)"></div>
+          </div>
+
+          <div class="card" style="margin-top:18px">
+            <div class="card-head"><h3>Toggles</h3></div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <div class="toggle-row">
+                <div>
+                  <div class="toggle-title">Select UI Theme</div>
+                  <div class="muted">Switch between Industrial Slate (default) and Cyberpunk Neon themes.</div>
+                </div>
+                <div style="width: 160px; flex-shrink:0;">
+                  <select id="theme-selector" style="font-size:12px; padding:6px; background: rgba(0,0,0,0.35); border: 1px solid var(--border); border-radius: 4px; color: var(--text);">
+                    <option value="slate">Industrial Slate</option>
+                    <option value="neon">Cyberpunk Neon</option>
+                  </select>
+                </div>
+              </div>
+              <div class="toggle-row">
+                <div>
+                  <div class="toggle-title">English Communication Helper</div>
+                  <div class="muted">Prepends a "Grammar &amp; Phrasing Tip" callout to every AI response.</div>
+                </div>
+                <label class="switch"><input type="checkbox" id="grammar-toggle" checked/><span></span></label>
+              </div>
+              <div class="toggle-row">
+                <div>
+                  <div class="toggle-title">Minimize Sidebar Panel</div>
+                  <div class="muted">Collapse the left file explorer panel into a hidden state (Ctrl+B).</div>
+                </div>
+                <label class="switch"><input type="checkbox" id="sidebar-collapse-toggle"/><span></span></label>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:18px">
+            <div class="card-head"><h3>Feature Access Toggles</h3></div>
+            <p class="muted" style="margin-bottom:12px; font-family:var(--mono); font-size:10.5px;">// Enable/disable specific application modules dynamically (changes hide/show elements in UI)</p>
+            
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <div class="toggle-row">
+                <div>
+                  <div class="toggle-title">Music Player &amp; Widgets</div>
+                  <div class="muted">Toggle display of the Music tab and global topbar/sidebar playback controllers.</div>
+                </div>
+                <label class="switch"><input type="checkbox" id="toggle-feat-music" checked/><span></span></label>
+              </div>
+
+              <div class="toggle-row">
+                <div>
+                  <div class="toggle-title">Hunt Path Roadmap</div>
+                  <div class="muted">Toggle display of curriculum map tracks, study milestones, and progress meters.</div>
+                </div>
+                <label class="switch"><input type="checkbox" id="toggle-feat-path" checked/><span></span></label>
+              </div>
+
+              <div class="toggle-row">
+                <div>
+                  <div class="toggle-title">Quest Board</div>
+                  <div class="muted">Toggle display of developer quest cards, priority queues, and Kanban columns.</div>
+                </div>
+                <label class="switch"><input type="checkbox" id="toggle-feat-quests" checked/><span></span></label>
+              </div>
+
+              <div class="toggle-row">
+                <div>
+                  <div class="toggle-title">Intel Vault (RAG)</div>
+                  <div class="muted">Toggle display of text/PDF upload dropzones and similarity matching chat references.</div>
+                </div>
+                <label class="switch"><input type="checkbox" id="toggle-feat-vault" checked/><span></span></label>
+              </div>
+
+              <div class="toggle-row">
+                <div>
+                  <div class="toggle-title">Doc Forensics</div>
+                  <div class="muted">Toggle display of Error Level Analysis (ELA) scanners, metadata verifiers, and PII alerts.</div>
+                </div>
+                <label class="switch"><input type="checkbox" id="toggle-feat-doc-analysis" checked/><span></span></label>
+              </div>
+
+              <div class="toggle-row">
+                <div>
+                  <div class="toggle-title">Game Arcade</div>
+                  <div class="muted">Toggle display of the Game Arcade tab containing offline developer games.</div>
+                </div>
+                <label class="switch"><input type="checkbox" id="toggle-feat-arcade" checked/><span></span></label>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Core Memory -->
+          <div class="card" style="margin-top:18px">
+            <div class="card-head"><h3>AI Core Memory</h3></div>
+            <div class="muted" style="margin-bottom:12px">View and manage the facts, preferences, and project context that DevHunt AI automatically learns and updates about you daily. Each line represents a distinct fact.</div>
+            
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <textarea id="ai-memory-text" rows="8" placeholder="No memories consolidated yet. Click 'Refine Now' or start chatting!" style="font-family:var(--mono); font-size:12px; line-height:1.5;"></textarea>
+              
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn-primary" id="save-memory-btn" style="padding:6px 14px; font-size:11px;">Save Changes</button>
+                <button class="btn-ghost" id="refine-memory-btn" style="padding:6px 14px; font-size:11px;">Refine Now</button>
+                <button class="btn-ghost" id="clear-memory-btn" style="color:var(--red); border-color:rgba(255,77,109,.4); padding:6px 14px; font-size:11px;">Clear Memory</button>
+              </div>
+              <div id="memory-status" style="font-size:11px; color:var(--muted); font-family:var(--mono);"></div>
+            </div>
+          </div>
+
+          <!-- Danger Zone -->
+          <div class="card" style="margin-top:18px;border-color:rgba(255,77,106,.3)">
+            <div class="card-head"><h3 style="color:var(--red)">⚠ Danger Zone</h3></div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+              <button class="btn-ghost" onclick="clearChatHistory()" style="border-color:rgba(255,77,106,.4);color:var(--red)">✕ Clear Chat History</button>
+              <button class="btn-ghost" onclick="clearAllData()" style="border-color:rgba(255,77,106,.6);color:var(--red);font-weight:700">☢ Reset Everything</button>
+            </div>
+            <div class="muted" style="margin-top:8px;font-size:11px">Reset Everything clears all keys, chat history, todos, knowledge base and profile. Cannot be undone. Export backup first.</div>
+            <div id="danger-status" style="margin-top:8px;font-size:11px"></div>
+          </div>
+        </section>
+
+        <!-- CHAT HISTORY VIEWER -->
+        <section class="panel" id="panel-history">
+          <div class="card">
+            <div class="card-head">
+              <h2>Chat History</h2>
+              <div style="display:flex;gap:8px;align-items:center">
+                <select id="history-session-select" style="background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:5px 8px;border-radius:4px">
+                  <option value="default_session">default_session</option>
+                </select>
+                <button class="btn-ghost" onclick="loadHistoryPanel()" style="font-size:11px">⟳ Refresh</button>
+                <a href="/api/history/export" class="btn-ghost" style="text-decoration:none;font-size:11px">⬇ Export JSON</a>
+                <button class="btn-ghost" onclick="clearSessionHistory()" style="font-size:11px;color:var(--red);border-color:rgba(255,77,106,.4)">✕ Clear Session</button>
+              </div>
+            </div>
+            <div id="history-stats" style="display:flex;gap:16px;font-size:11px;color:var(--muted);padding:8px 0;border-bottom:1px solid var(--border);margin-bottom:12px"></div>
+            <div id="history-feed" style="display:flex;flex-direction:column;gap:10px;max-height:70vh;overflow-y:auto"></div>
+          </div>
+        </section>
+
+        <!-- HUNT TERMINAL -->
+        <section class="panel" id="panel-terminal">
+          <div class="card terminal-card" style="padding: 0; overflow: hidden; border-color: var(--border-hot);">
+            <div class="card-head" style="padding: 16px 18px 0px 18px; margin-bottom: 8px;">
+              <h2>Hunt Node Terminal</h2>
+              <div class="hud">
+                <span class="hud-pill"><i class="dot dot-green"></i> ENGINE ONLINE</span>
+                <span class="hud-pill"><i class="dot dot-cyan"></i> CROSS-PLATFORM</span>
+              </div>
+            </div>
+            <div class="terminal-container">
+              <div class="terminal-header">
+                <div class="terminal-buttons">
+                  <span class="t-btn close-btn"></span>
+                  <span class="t-btn min-btn"></span>
+                  <span class="t-btn max-btn"></span>
+                </div>
+                <div class="terminal-title">guest@devhunt:~</div>
+              </div>
+              <div class="terminal-body" id="terminal-body">
+                <div class="terminal-output" id="terminal-output">
+                  <div class="terminal-line"><span class="ansi-cyan">DevHunt Terminal Core v1.0</span></div>
+                  <div class="terminal-line">Detected Environment: <span class="ansi-yellow" id="terminal-detected-os">Detecting platform...</span></div>
+                  <div class="terminal-line">Type <span class="ansi-green">hunt help</span> to see all available commands.</div>
+                  <div class="terminal-line"><span class="ansi-muted">----------------------------------------------------------------------------------------------------</span></div>
+                </div>
+                <div class="terminal-input-line">
+                  <span class="terminal-prompt" id="terminal-prompt">guest@devhunt:~$</span>
+                  <input type="text" class="terminal-input" id="terminal-input" autocomplete="off" spellcheck="false" placeholder="Enter hunt command..." />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SYSTEM MESSAGES / NOTIFICATIONS -->
+        <section class="panel" id="panel-notifications">
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-head">
+              <h2>System Messages &amp; Announcements</h2>
+              <div style="display:flex; gap:8px;">
+                <button class="btn-ghost" id="btn-notifications-refresh" style="font-size:11px;">⟳ Refresh</button>
+                <button class="btn-primary" id="btn-notifications-read-all" style="font-size:11px; padding:6px 14px;">Mark All As Read</button>
+              </div>
+            </div>
+            <p class="muted" style="margin:0;">Monitor remote product news, system status updates, and local error notifications.</p>
+          </div>
+
+          <div id="notifications-feed-container" class="notifications-feed" style="display:flex; flex-direction:column; gap:12px; max-height:calc(100vh - 240px); overflow-y:auto; padding-right:4px;">
+            <div class="muted" style="text-align:center; padding:40px;">Initializing connection to notification feed...</div>
+          </div>
+        </section>
+
+        <!-- DOCUMENT FORENSICS / ANALYSIS -->
+        <section class="panel" id="panel-doc-analysis">
+          <div class="forensics-grid" style="display: grid; grid-template-columns: 320px 1fr; gap: 16px; height: calc(100vh - 140px);">
+            <!-- Left Panel: Dropzone & File List -->
+            <div class="card" style="display: flex; flex-direction: column; gap: 14px; height: 100%; overflow: hidden;">
+              <div class="card-head" style="margin-bottom: 4px;"><h3>Drop Document</h3></div>
+              <div class="dropzone" id="forensics-dropzone" style="padding: 24px 10px; flex-shrink: 0; min-height: 120px;">
+                <div class="dz-icon" style="font-size: 26px; margin-bottom: 4px;">⇩</div>
+                <div style="font-size: 11px;">Drop PDF or Image here<br/><span class="muted">or click to browse</span></div>
+                <input type="file" id="forensics-filein" hidden />
+              </div>
+              
+              <div class="card-head" style="margin-top: 10px; margin-bottom: 4px; flex-shrink: 0;"><h3>Forensics Archive</h3></div>
+              <div id="forensics-history-list" style="display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; padding-right: 4px;">
+                <div class="muted" style="text-align: center; padding: 20px 0;">No records found</div>
+              </div>
             </div>
             
-            <!-- Scrollable dashboard body -->
-            <div style="flex: 1; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 14px;">
-              
-              <!-- State A: Empty state -->
-              <div id="forensics-state-empty" style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; text-align: center; padding: 60px 20px;">
-                <div style="font-size: 40px; margin-bottom: 12px; animation: pulse 2s infinite;">🕵️‍♂️</div>
-                <h3 style="font-family: var(--display); color: var(--cyan); margin-bottom: 6px;">AI Forensic Inspector</h3>
-                <p class="muted" style="max-width: 280px; font-size: 11px; line-height: 1.45;">
-                  Upload a file on the left panel to execute an agent-based authenticity sweep, ELA heatmaps, signature checks, and entity parsing.
-                </p>
-              </div>
-              
-              <!-- State B: Processing Loader -->
-              <div id="forensics-state-loading" style="display: none; flex-direction: column; align-items: center; justify-content: center; flex: 1; text-align: center; padding: 40px 20px;">
-                <div class="streaming-cursor" style="font-size: 28px; margin-bottom: 12px;">▌</div>
-                <h4 style="font-family: var(--mono); color: var(--cyan); margin-bottom: 4px;" id="forensics-loading-title">Orchestrating Forensic Agents...</h4>
-                <p class="muted" style="max-width: 240px; font-size: 10.5px; font-family: var(--mono);" id="forensics-loading-subtitle">Contacting cognitive node...</p>
-              </div>
-              
-              <!-- State C: Dashboard Content -->
-              <div id="forensics-state-report" style="display: none; flex-direction: column; gap: 14px;">
-                <!-- Scores badge -->
-                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,255,163,0.03); border: 1px solid rgba(0,255,163,0.12); border-radius: 6px; padding: 8px 12px; flex-shrink: 0;">
-                  <div>
-                    <div style="font-size: 9px; font-weight: bold; color: var(--muted); letter-spacing: 1px; font-family: var(--mono);">FORENSIC VERDICT</div>
-                    <div id="f-verdict-text" style="font-family: var(--display); font-size: 14px; color: var(--green); margin-top: 1px;">AUTHENTIC</div>
-                  </div>
-                  <div style="text-align: right;">
-                    <div style="font-size: 9px; font-weight: bold; color: var(--muted); letter-spacing: 1px; font-family: var(--mono);">SECURITY SCORE</div>
-                    <div id="f-score-text" style="font-family: var(--display); font-size: 16px; color: #ffffff; margin-top: 1px;">95.0 <span style="font-size: 10px; color: var(--muted);">/ 100</span></div>
-                  </div>
+            <!-- Right Panel: Report Dashboard & Q&A Chat Side-by-Side -->
+            <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 16px; height: 100%; overflow: hidden;">
+              <!-- Dashboard details -->
+              <div class="card" style="display: flex; flex-direction: column; height: 100%; overflow: hidden; padding: 16px;">
+                <div class="card-head" style="border-bottom: 1px solid var(--border); padding-bottom: 8px; flex-shrink: 0; margin-bottom: 10px;">
+                  <h2>Forensic Scan Report</h2>
+                  <span class="badge" id="forensics-file-badge">No File Selected</span>
                 </div>
                 
-                <!-- Matplotlib charts -->
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                  <div class="card" style="padding: 8px; background: rgba(0,0,0,0.15); border-color: rgba(255,255,255,0.03); text-align: center;">
-                    <div style="font-size: 9px; font-weight: bold; color: var(--cyan); text-align: left; margin-bottom: 4px; font-family: var(--mono);">FORENSIC CHART OVERVIEW</div>
-                    <img id="f-chart-img" src="" alt="Forensic Analysis Chart" style="max-width: 100%; border-radius: 4px; border: 1px solid var(--border);" />
+                <!-- Scrollable dashboard body -->
+                <div style="flex: 1; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 14px;">
+                  <!-- State A: Empty state -->
+                  <div id="forensics-state-empty" style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; text-align: center; padding: 60px 20px;">
+                    <div style="font-size: 40px; margin-bottom: 12px; animation: pulse 2s infinite;">🕵️‍♂️</div>
+                    <h3 style="font-family: var(--display); color: var(--cyan); margin-bottom: 6px;">AI Forensic Inspector</h3>
+                    <p class="muted" style="max-width: 280px; font-size: 11px; line-height: 1.45;">
+                      Upload a file on the left panel to execute an agent-based authenticity sweep, ELA heatmaps, signature checks, and entity parsing.
+                    </p>
                   </div>
                   
-                  <div class="card" id="f-ela-card" style="padding: 8px; background: rgba(0,0,0,0.15); border-color: rgba(255,255,255,0.03); text-align: center; display: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                      <div style="font-size: 9px; font-weight: bold; color: var(--amber); font-family: var(--mono);">ERROR LEVEL ANALYSIS (ELA)</div>
+                  <!-- State B: Processing Loader -->
+                  <div id="forensics-state-loading" style="display: none; flex-direction: column; align-items: center; justify-content: center; flex: 1; text-align: center; padding: 40px 20px;">
+                    <div class="streaming-cursor" style="font-size: 28px; margin-bottom: 12px;">▌</div>
+                    <h4 style="font-family: var(--mono); color: var(--cyan); margin-bottom: 4px;" id="forensics-loading-title">Orchestrating Forensic Agents...</h4>
+                    <p class="muted" style="max-width: 240px; font-size: 10.5px; font-family: var(--mono);" id="forensics-loading-subtitle">Contacting cognitive node...</p>
+                  </div>
+                  
+                  <!-- State C: Dashboard Content -->
+                  <div id="forensics-state-report" style="display: none; flex-direction: column; gap: 14px;">
+                    <!-- Scores badge -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; flex-shrink: 0;">
+                      <div>
+                        <div style="font-size: 9px; font-weight: bold; color: var(--muted); letter-spacing: 1px; font-family: var(--mono);">FORENSIC VERDICT</div>
+                        <div id="f-verdict-text" style="font-family: var(--display); font-size: 14px; color: var(--accent); margin-top: 1px;">AUTHENTIC</div>
+                      </div>
+                      <div style="text-align: right;">
+                        <div style="font-size: 9px; font-weight: bold; color: var(--muted); letter-spacing: 1px; font-family: var(--mono);">SECURITY SCORE</div>
+                        <div id="f-score-text" style="font-family: var(--display); font-size: 16px; color: #ffffff; margin-top: 1px;">95.0 <span style="font-size: 10px; color: var(--muted);">/ 100</span></div>
+                      </div>
                     </div>
-                    <img id="f-ela-img" src="" alt="Error Level Heatmap" style="max-width: 100%; border-radius: 4px; border: 1px solid var(--border); filter: brightness(1);" />
-                    <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 9.5px; font-family: var(--mono); color: var(--text);">
-                      <span>Heatmap Contrast:</span>
-                      <input type="range" id="f-ela-contrast-range" min="0.5" max="3" step="0.1" value="1.0" oninput="adjustForensicsElaContrast(this.value)" style="flex: 1; accent-color: var(--amber);" />
-                      <span id="f-ela-contrast-val">1.0x</span>
+                    
+                    <!-- Matplotlib charts -->
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                      <div class="card" style="padding: 8px; background: rgba(0,0,0,0.15); border-color: var(--border); text-align: center;">
+                        <div style="font-size: 9px; font-weight: bold; color: var(--accent); text-align: left; margin-bottom: 4px; font-family: var(--mono);">FORENSIC CHART OVERVIEW</div>
+                        <img id="f-chart-img" src="" alt="Forensic Analysis Chart" style="max-width: 100%; border-radius: 4px; border: 1px solid var(--border);" />
+                      </div>
+                      
+                      <div class="card" id="f-ela-card" style="padding: 8px; background: rgba(0,0,0,0.15); border-color: var(--border); text-align: center; display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                          <div style="font-size: 9px; font-weight: bold; color: var(--accent); font-family: var(--mono);">ERROR LEVEL ANALYSIS (ELA)</div>
+                        </div>
+                        <img id="f-ela-img" src="" alt="Error Level Heatmap" style="max-width: 100%; border-radius: 4px; border: 1px solid var(--border); filter: brightness(1);" />
+                        <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 9.5px; font-family: var(--mono); color: var(--text);">
+                          <span>Heatmap Contrast:</span>
+                          <input type="range" id="f-ela-contrast-range" min="0.5" max="3" step="0.1" value="1.0" oninput="adjustForensicsElaContrast(this.value)" style="flex: 1; accent-color: var(--accent);" />
+                          <span id="f-ela-contrast-val">1.0x</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Summary -->
+                    <div class="card" style="padding: 10px; border-color: var(--border);">
+                      <div style="font-size: 9px; font-weight: bold; color: var(--accent); margin-bottom: 4px; letter-spacing: 1px; font-family: var(--mono);">AI DOCUMENT SUMMARY</div>
+                      <div id="f-summary" style="font-size: 11px; line-height: 1.45; color: var(--text);"></div>
+                    </div>
+                    
+                    <!-- Expert view -->
+                    <div class="card" style="padding: 10px; border-left: 3px solid var(--accent); border-color: var(--border);">
+                      <div style="font-size: 9px; font-weight: bold; color: var(--accent); margin-bottom: 4px; letter-spacing: 1px; font-family: var(--mono);">FORENSICS EXPERT VIEW</div>
+                      <div id="f-expert-view" style="font-size: 11px; line-height: 1.45; color: var(--text); font-style: italic;"></div>
+                    </div>
+                    
+                    <!-- Checklist -->
+                    <div class="card" style="padding: 10px; border-color: var(--border);">
+                      <div style="font-size: 9px; font-weight: bold; color: var(--text); margin-bottom: 6px; letter-spacing: 1px; font-family: var(--mono);">FORENSIC CHECKLIST</div>
+                      <div id="f-checklist" style="display: flex; flex-direction: column; gap: 6px;"></div>
+                    </div>
+                    
+                    <!-- Entities -->
+                    <div class="card" style="padding: 10px; border-color: var(--border);">
+                      <div style="font-size: 9px; font-weight: bold; color: var(--text); margin-bottom: 6px; letter-spacing: 1px; font-family: var(--mono);">EXTRACTED ENTITIES</div>
+                      <div id="f-entities" style="display: flex; flex-direction: column; gap: 6px; font-size: 10.5px; font-family: var(--mono);"></div>
+                    </div>
+                    
+                    <!-- Insights -->
+                    <div class="card" style="padding: 10px; border-color: var(--border);">
+                      <div style="font-size: 9px; font-weight: bold; color: var(--accent); margin-bottom: 6px; letter-spacing: 1px; font-family: var(--mono);">AI INSIGHTS &amp; ALERTS</div>
+                      <ul id="f-insights" style="margin: 0; padding-left: 14px; font-size: 11px; color: var(--text); line-height: 1.45; display: flex; flex-direction: column; gap: 3px;"></ul>
+                    </div>
+                    
+                    <!-- Metadata table -->
+                    <div class="card" id="f-meta-card" style="padding: 10px; border-color: var(--border); display: none;">
+                      <div style="font-size: 9px; font-weight: bold; color: var(--muted); margin-bottom: 6px; letter-spacing: 1px; font-family: var(--mono);">FILE METADATA PROPERTIES</div>
+                      <table style="width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 10px; line-height: 1.45;" id="f-metadata-table"></table>
                     </div>
                   </div>
                 </div>
-                
-                <!-- Summary -->
-                <div class="card" style="padding: 10px; background: rgba(0,0,0,0.12); border-color: rgba(255,255,255,0.02);">
-                  <div style="font-size: 9px; font-weight: bold; color: var(--green); margin-bottom: 4px; letter-spacing: 1px; font-family: var(--mono);">AI DOCUMENT SUMMARY</div>
-                  <div id="f-summary" style="font-size: 11px; line-height: 1.45; color: var(--text);"></div>
+              </div>
+              
+              <!-- Chat Pane -->
+              <div class="card" style="display: flex; flex-direction: column; height: 100%; overflow: hidden; padding: 16px;">
+                <div class="card-head" style="border-bottom: 1px solid var(--border); padding-bottom: 8px; flex-shrink: 0; margin-bottom: 10px; justify-content: space-between;">
+                  <h3 style="margin: 0; font-family: var(--display); color: var(--accent);">Document Chat Analyst</h3>
+                  <button class="btn-ghost" id="f-chat-clear" style="font-size: 9.5px; color: var(--red); border-color: rgba(255,77,109,.3); padding: 3px 6px;">✕ Clear</button>
                 </div>
                 
-                <!-- Expert view -->
-                <div class="card" style="padding: 10px; background: rgba(0,0,0,0.12); border-left: 3px solid var(--cyan); border-color: rgba(255,255,255,0.02);">
-                  <div style="font-size: 9px; font-weight: bold; color: var(--cyan); margin-bottom: 4px; letter-spacing: 1px; font-family: var(--mono);">FORENSICS EXPERT VIEW</div>
-                  <div id="f-expert-view" style="font-size: 11px; line-height: 1.45; color: var(--text); font-style: italic;"></div>
+                <!-- Chat Feed -->
+                <div id="f-chat-feed" style="flex: 1; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;">
+                  <div class="msg ai">// Select or upload a file to start chat analysis</div>
                 </div>
                 
-                <!-- Checklist -->
-                <div class="card" style="padding: 10px; background: rgba(0,0,0,0.12); border-color: rgba(255,255,255,0.02);">
-                  <div style="font-size: 9px; font-weight: bold; color: var(--text); margin-bottom: 6px; letter-spacing: 1px; font-family: var(--mono);">FORENSIC CHECKLIST</div>
-                  <div id="f-checklist" style="display: flex; flex-direction: column; gap: 6px;"></div>
+                <!-- Input -->
+                <div class="chat-input" style="border-top: 1px solid var(--border); padding-top: 8px; display: flex; gap: 6px; flex-shrink: 0; margin-top: auto;">
+                  <textarea id="f-chat-input" placeholder="Ask anything about this document..." rows="2" style="flex: 1; resize: none; background: rgba(0,0,0,0.25); font-size: 11.5px; min-height: 38px;"></textarea>
+                  <button class="btn-primary" id="f-chat-send" style="padding: 0 14px; font-size: 10.5px; height: 38px;">SEND →</button>
                 </div>
-                
-                <!-- Entities -->
-                <div class="card" style="padding: 10px; background: rgba(0,0,0,0.12); border-color: rgba(255,255,255,0.02);">
-                  <div style="font-size: 9px; font-weight: bold; color: var(--text); margin-bottom: 6px; letter-spacing: 1px; font-family: var(--mono);">EXTRACTED ENTITIES</div>
-                  <div id="f-entities" style="display: flex; flex-direction: column; gap: 6px; font-size: 10.5px; font-family: var(--mono);"></div>
-                </div>
-                
-                <!-- Insights -->
-                <div class="card" style="padding: 10px; background: rgba(0,0,0,0.12); border-color: rgba(255,255,255,0.02);">
-                  <div style="font-size: 9px; font-weight: bold; color: var(--cyan); margin-bottom: 6px; letter-spacing: 1px; font-family: var(--mono);">AI INSIGHTS &amp; ALERTS</div>
-                  <ul id="f-insights" style="margin: 0; padding-left: 14px; font-size: 11px; color: var(--text); line-height: 1.45; display: flex; flex-direction: column; gap: 3px;"></ul>
-                </div>
-                
-                <!-- Metadata table -->
-                <div class="card" id="f-meta-card" style="padding: 10px; background: rgba(0,0,0,0.12); border-color: rgba(255,255,255,0.02); display: none;">
-                  <div style="font-size: 9px; font-weight: bold; color: var(--muted); margin-bottom: 6px; letter-spacing: 1px; font-family: var(--mono);">FILE METADATA PROPERTIES</div>
-                  <table style="width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 10px; line-height: 1.45;" id="f-metadata-table"></table>
-                </div>
-                
               </div>
             </div>
           </div>
-          
-          <!-- Chat Pane -->
-          <div class="card" style="display: flex; flex-direction: column; height: 100%; overflow: hidden; padding: 16px;">
-            <div class="card-head" style="border-bottom: 1px solid var(--border); padding-bottom: 8px; flex-shrink: 0; margin-bottom: 10px; justify-content: space-between;">
-              <h3 style="margin: 0; font-family: var(--display); color: var(--cyan);">Document Chat Analyst</h3>
-              <button class="btn-ghost" id="f-chat-clear" style="font-size: 9.5px; color: var(--red); border-color: rgba(255,77,109,.3); padding: 3px 6px;">✕ Clear</button>
+        </section>
+
+        <!-- MUSIC PLAYER -->
+        <section class="panel" id="panel-music" style="flex-direction:column; height:calc(100vh - 140px); overflow:hidden; gap:0;">
+          <!-- Top: Input Controls -->
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; flex-shrink:0;">
+            <!-- Upload Audio File -->
+            <div class="card" style="padding:16px;">
+              <div class="card-head" style="margin-bottom:12px;">
+                <h3 style="font-size:12px; letter-spacing:1px;">♪ UPLOAD AUDIO FILE</h3>
+                <span class="badge" style="font-size:9px;">local</span>
+              </div>
+              <div class="dropzone" id="music-dropzone" style="padding:20px 14px; cursor:pointer; border-radius:6px;" onclick="document.getElementById('music-filein').click()">
+                <div style="font-size:26px; margin-bottom:6px;">🎵</div>
+                <div style="font-size:11px; font-family:var(--mono);">Drop audio file here<br/><span class="muted">MP3, WAV, OGG, FLAC, AAC, M4A</span></div>
+                <input type="file" id="music-filein" hidden accept=".mp3,.wav,.ogg,.flac,.aac,.m4a,.opus" multiple/>
+              </div>
+              <div id="music-upload-status" style="margin-top:8px; font-size:10.5px; font-family:var(--mono); color:var(--muted); min-height:16px;"></div>
             </div>
-            
-            <!-- Chat Feed -->
-            <div id="f-chat-feed" style="flex: 1; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;">
-              <div class="msg ai">// Select or upload a file to start chat analysis</div>
-            </div>
-            
-            <!-- Input -->
-            <div class="chat-input" style="border-top: 1px solid var(--border); padding-top: 8px; display: flex; gap: 6px; flex-shrink: 0; margin-top: auto;">
-              <textarea id="f-chat-input" placeholder="Ask anything about this document..." rows="2" style="flex: 1; resize: none; background: rgba(0,0,0,0.25); font-size: 11.5px; min-height: 38px;"></textarea>
-              <button class="btn-primary" id="f-chat-send" style="padding: 0 14px; font-size: 10.5px; height: 38px;">SEND →</button>
-            </div>
-          </div>
-          
-        </div>
-    </section>
 
-    <!-- 11. MUSIC PLAYER -->
-    <section class="panel" id="panel-music" style="flex-direction:column; height:calc(100vh - 80px); overflow:hidden; gap:0;">
-
-      <!-- Top: Input Controls -->
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; flex-shrink:0;">
-
-        <!-- Upload Audio File -->
-        <div class="card" style="padding:16px;">
-          <div class="card-head" style="margin-bottom:12px;">
-            <h3 style="font-size:12px; letter-spacing:1px;">♪ UPLOAD AUDIO FILE</h3>
-            <span class="badge" style="font-size:9px; background:rgba(0,255,163,0.1); color:var(--green); border-color:rgba(0,255,163,0.3);">local</span>
-          </div>
-          <div class="dropzone" id="music-dropzone" style="padding:20px 14px; cursor:pointer; border-radius:6px;" onclick="document.getElementById('music-filein').click()">
-            <div style="font-size:26px; margin-bottom:6px;">🎵</div>
-            <div style="font-size:11px; font-family:var(--mono);">Drop audio file here<br/><span class="muted">MP3, WAV, OGG, FLAC, AAC, M4A</span></div>
-            <input type="file" id="music-filein" hidden accept=".mp3,.wav,.ogg,.flac,.aac,.m4a,.opus" multiple/>
-          </div>
-          <div id="music-upload-status" style="margin-top:8px; font-size:10.5px; font-family:var(--mono); color:var(--muted); min-height:16px;"></div>
-        </div>
-
-        <!-- YouTube Converter -->
-        <div class="card" style="padding:16px;">
-          <div class="card-head" style="margin-bottom:12px;">
-            <h3 style="font-size:12px; letter-spacing:1px;">▶ YOUTUBE → AUDIO</h3>
-            <span class="badge" style="font-size:9px; background:rgba(255,77,109,0.12); color:var(--red); border-color:rgba(255,77,109,0.3);">convert</span>
-          </div>
-          <div style="display:flex; gap:8px; margin-bottom:10px;">
-            <input id="music-yt-url" placeholder="https://youtube.com/watch?v=..." style="flex:1; font-family:var(--mono); font-size:11px;"/>
-            <button class="btn-primary" id="music-yt-btn" style="white-space:nowrap; font-size:11px; padding:0 14px;">⬇ Convert</button>
-          </div>
-          <div id="music-yt-status" style="font-size:10.5px; font-family:var(--mono); color:var(--muted); min-height:16px; line-height:1.5;"></div>
-          <div style="font-size:9.5px; color:var(--muted); margin-top:8px; font-family:var(--mono); border-top:1px solid var(--border); padding-top:8px;">
-            ⚠ Requires <span style="color:var(--amber);">ffmpeg</span> installed and in PATH.
-            <a href="https://ffmpeg.org/download.html" target="_blank" style="color:var(--cyan);">Download ffmpeg ↗</a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Playback Mode Controls -->
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-shrink:0; flex-wrap:wrap;">
-        <span style="font-size:10px; font-family:var(--mono); color:var(--muted); letter-spacing:1px;">PLAYBACK MODE:</span>
-        <button class="btn-ghost music-mode-btn active" id="mode-sequential" data-mode="sequential" style="font-size:10px; padding:4px 10px;">⟶ Sequential</button>
-        <button class="btn-ghost music-mode-btn" id="mode-shuffle" data-mode="shuffle" style="font-size:10px; padding:4px 10px;">⇌ Shuffle</button>
-        <button class="btn-ghost music-mode-btn" id="mode-repeat" data-mode="repeat" style="font-size:10px; padding:4px 10px;">↺ Repeat One</button>
-        <button class="btn-ghost music-mode-btn" id="mode-repeat-all" data-mode="repeat-all" style="font-size:10px; padding:4px 10px;">↻ Repeat All</button>
-        <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
-          <span style="font-size:9.5px; color:var(--muted); font-family:var(--mono);">VOL</span>
-          <input type="range" id="music-volume" min="0" max="1" step="0.02" value="0.8" style="width:80px; accent-color:var(--cyan);" />
-          <span id="music-vol-label" style="font-size:9.5px; color:var(--cyan); font-family:var(--mono); width:28px;">80%</span>
-        </div>
-        <button class="btn-ghost" id="music-refresh-btn" style="font-size:10px; padding:4px 10px;">⟳ Refresh</button>
-      </div>
-
-      <!-- Track Library -->
-      <div class="card" style="flex:1; overflow:hidden; display:flex; flex-direction:column; padding:0;">
-        <div class="card-head" style="padding:12px 16px; border-bottom:1px solid var(--border); flex-shrink:0;">
-          <h3 style="font-size:12px; letter-spacing:1px;">TRACK LIBRARY</h3>
-          <span id="music-track-count" class="badge" style="font-size:9px;">0 tracks</span>
-        </div>
-        <div id="music-track-list" style="flex:1; overflow-y:auto; padding:8px;">
-          <div class="muted" style="text-align:center; padding:40px 0; font-family:var(--mono); font-size:11px;">// No tracks yet — upload a file or paste a YouTube link above</div>
-        </div>
-      </div>
-
-      <!-- Sticky Bottom Player Bar -->
-      <div id="music-player-bar" style="flex-shrink:0; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px 16px; margin-top:10px; display:flex; flex-direction:column; gap:8px; box-shadow:0 -4px 20px rgba(0,0,0,0.4);">
-        <!-- Now playing info + controls -->
-        <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
-          <!-- Track info -->
-          <div style="display:flex; align-items:center; gap:10px; min-width:0; flex:1;">
-            <div style="width:36px; height:36px; background:linear-gradient(135deg,rgba(0,255,163,0.15),rgba(0,212,255,0.15)); border:1px solid rgba(0,255,163,0.25); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; animation:pulse 2s infinite;" id="music-album-art">♪</div>
-            <div style="min-width:0;">
-              <div id="music-now-title" style="font-family:var(--display); font-size:12px; color:var(--cyan); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;">No track selected</div>
-              <div id="music-now-meta" style="font-size:9.5px; color:var(--muted); font-family:var(--mono); margin-top:1px;">// select a track to play</div>
-            </div>
-          </div>
-          <!-- Controls -->
-          <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
-            <button id="music-prev" class="btn-ghost" style="padding:5px 10px; font-size:14px;" title="Previous">⏮</button>
-            <button id="music-play-pause" class="btn-primary" style="padding:6px 18px; font-size:16px; min-width:52px;">▶</button>
-            <button id="music-next" class="btn-ghost" style="padding:5px 10px; font-size:14px;" title="Next">⏭</button>
-          </div>
-          <!-- Time display -->
-          <div style="font-family:var(--mono); font-size:10.5px; color:var(--muted); flex-shrink:0;">
-            <span id="music-time-cur">0:00</span> / <span id="music-time-dur">0:00</span>
-          </div>
-        </div>
-        <!-- Progress bar -->
-        <div style="position:relative; height:4px; background:rgba(255,255,255,0.08); border-radius:2px; cursor:pointer;" id="music-progress-track">
-          <div id="music-progress-fill" style="height:100%; width:0%; background:linear-gradient(90deg,var(--green),var(--cyan)); border-radius:2px; transition:width 0.3s linear; box-shadow:0 0 6px rgba(0,255,163,0.5);"></div>
-        </div>
-        <!-- Hidden HTML5 audio element -->
-        <audio id="music-audio-el" preload="metadata" style="display:none;"></audio>
-      </div>
-
-    </section>
-
-    <!-- 12. GAME ARCADE -->
-    <section class="panel" id="panel-arcade" style="flex-direction:column; height:calc(100vh - 80px); overflow:hidden; gap:0;">
-      
-      <!-- Top Bar: Game Selector Tabs & Back button -->
-      <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px; flex-shrink:0; background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:6px; padding:6px 10px;">
-        <button class="btn-ghost" id="arcade-back-btn" style="display:none; font-size:10.5px; padding:5px 12px; font-family:var(--mono); color:var(--cyan); border-color:rgba(0,212,255,0.3); margin-right:8px;">← Return to Arcade Menu</button>
-        <span id="arcade-title-label" style="font-size:11px; font-family:var(--display); color:var(--cyan); letter-spacing:1px; margin-right:12px;">🎮 ARCADE STATIONS</span>
-        
-        <!-- Game tabs (hidden by default on selection menu, shown when game active) -->
-        <div id="arcade-tabs-container" style="display:none; gap:8px; align-items:center;">
-          <button class="btn-ghost arcade-tab-btn active" data-game="snake" style="font-size:10.5px; padding:5px 12px;">Git Commit Snake</button>
-          <button class="btn-ghost arcade-tab-btn" data-game="runner" style="font-size:10.5px; padding:5px 12px;">Data Lane Runner</button>
-          <button class="btn-ghost arcade-tab-btn" data-game="decrypt" style="font-size:10.5px; padding:5px 12px;">Terminal Decrypt</button>
-          <button class="btn-ghost arcade-tab-btn" data-game="sweeper" style="font-size:10.5px; padding:5px 12px;">Hex Malware Sweeper</button>
-        </div>
-      </div>
-
-      <!-- Arcade Selection Menu (visible by default) -->
-      <div id="arcade-selection-menu" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; align-items:start; flex:1; overflow-y:auto; padding:2px;">
-        
-        <!-- Game 1 Card -->
-        <div class="card" style="padding:20px; display:flex; flex-direction:column; justify-content:space-between; border-color:var(--border); transition:all 0.2s;">
-          <div>
-            <div style="font-size:28px; margin-bottom:10px;">🐍</div>
-            <h3 style="font-family:var(--display); color:var(--green); font-size:14px; margin-bottom:8px; letter-spacing:1px;">Git Commit Snake</h3>
-            <p class="muted" style="font-size:11.5px; line-height:1.5; margin-bottom:16px; font-family:var(--mono);">Steer a branch pointer on a grid. Ingest commit tags (feat:, fix:) to grow your branch while avoiding wall crashes and red Merge Conflict [!] blocks.</p>
-          </div>
-          <button class="btn-primary launch-game-btn" data-game="snake" style="width:100%; font-family:var(--mono); font-size:11px; font-weight:bold; padding:8px 0;">LAUNCH GAME →</button>
-        </div>
-
-        <!-- Game 2 Card -->
-        <div class="card" style="padding:20px; display:flex; flex-direction:column; justify-content:space-between; border-color:var(--border); transition:all 0.2s;">
-          <div>
-            <div style="font-size:28px; margin-bottom:10px;">🏎️</div>
-            <h3 style="font-family:var(--display); color:var(--cyan); font-size:14px; margin-bottom:8px; letter-spacing:1px;">Data Lane Runner</h3>
-            <p class="muted" style="font-size:11.5px; line-height:1.5; margin-bottom:16px; font-family:var(--mono);">Pilot a data packet triangle across three vertical bandwidth lanes. Dodge descending red malware locks while collecting green RAM buffers.</p>
-          </div>
-          <button class="btn-primary launch-game-btn" data-game="runner" style="width:100%; font-family:var(--mono); font-size:11px; font-weight:bold; padding:8px 0;">LAUNCH GAME →</button>
-        </div>
-
-        <!-- Game 3 Card -->
-        <div class="card" style="padding:20px; display:flex; flex-direction:column; justify-content:space-between; border-color:var(--border); transition:all 0.2s;">
-          <div>
-            <div style="font-size:28px; margin-bottom:10px;">🔐</div>
-            <h3 style="font-family:var(--display); color:var(--amber); font-size:14px; margin-bottom:8px; letter-spacing:1px;">Terminal Decrypt</h3>
-            <p class="muted" style="font-size:11.5px; line-height:1.5; margin-bottom:16px; font-family:var(--mono);">A deduction security word-cracking puzzle. Uncover the passcode from a hex grid. Guess words and evaluate match position likenesses.</p>
-          </div>
-          <button class="btn-primary launch-game-btn" data-game="decrypt" style="width:100%; font-family:var(--mono); font-size:11px; font-weight:bold; padding:8px 0;">LAUNCH GAME →</button>
-        </div>
-
-        <!-- Game 4 Card -->
-        <div class="card" style="padding:20px; display:flex; flex-direction:column; justify-content:space-between; border-color:var(--border); transition:all 0.2s;">
-          <div>
-            <div style="font-size:28px; margin-bottom:10px;">💣</div>
-            <h3 style="font-family:var(--display); color:var(--red); font-size:14px; margin-bottom:8px; letter-spacing:1px;">Hex Malware Sweeper</h3>
-            <p class="muted" style="font-size:11.5px; line-height:1.5; margin-bottom:16px; font-family:var(--mono);">Inspect memory addresses on a hex data grid. Calculate safe sectors and isolate malicious blocks. Do not click infected blocks!</p>
-          </div>
-          <button class="btn-primary launch-game-btn" data-game="sweeper" style="width:100%; font-family:var(--mono); font-size:11px; font-weight:bold; padding:8px 0;">LAUNCH GAME →</button>
-        </div>
-
-      </div>
-
-      <!-- Main Two-Column Layout (hidden by default, shown when a game starts) -->
-      <div id="arcade-game-workspace" style="display:none; grid-template-columns:1fr 300px; gap:16px; flex:1; min-height:0; overflow:hidden;">
-        
-        <!-- Left Column: Game Area (Standard, flat colors) -->
-        <div class="card" style="display:flex; align-items:center; justify-content:center; padding:16px; overflow:hidden; position:relative; background:#0e131b; border-color:var(--border);">
-          
-          <!-- Arcade Game Overlay (Game Over, Success, etc.) -->
-          <div id="arcade-message-overlay" style="display:none; position:absolute; inset:0; background:rgba(10,15,22,0.9); flex-direction:column; align-items:center; justify-content:center; z-index:10; backdrop-filter:blur(4px); text-align:center; padding:20px;">
-            <div id="arcade-overlay-status" style="font-family:var(--display); font-size:24px; font-weight:bold; letter-spacing:2px; margin-bottom:12px;">GAME OVER</div>
-            <div id="arcade-overlay-desc" style="font-family:var(--mono); font-size:12px; color:var(--text); max-width:280px; line-height:1.6; margin-bottom:24px;">Score: 0. Re-merge commit history!</div>
-            <div style="display:flex; gap:12px;">
-              <button id="arcade-overlay-restart-btn" class="btn-primary" style="padding:8px 18px; font-size:11px;">RESTART GAME</button>
-              <button id="arcade-overlay-menu-btn" class="btn-ghost" style="padding:8px 18px; font-size:11px;">ARCADE MENU</button>
-            </div>
-          </div>
-          
-          <!-- Game 1: Git Commit Snake -->
-          <div id="arcade-game-snake" class="arcade-game-container" style="display:none; flex-direction:column; align-items:center; gap:12px; width:100%; height:100%; justify-content:center;">
-            <canvas id="snake-canvas" width="400" height="400" style="background:#1a202c; border:2px solid #2d3748; border-radius:4px; max-width:100%; max-height:100%; image-rendering:pixelated;"></canvas>
-            <div style="display:flex; gap:16px; font-family:var(--mono); font-size:12px; color:var(--text);">
-              <span>Score: <b id="snake-score" style="color:var(--green)">0</b></span>
-              <span>High Score: <b id="snake-high" style="color:var(--cyan)">0</b></span>
-              <span>Branch: <b id="snake-branch" style="color:var(--amber)">main</b></span>
+            <!-- YouTube Converter -->
+            <div class="card" style="padding:16px;">
+              <div class="card-head" style="margin-bottom:12px;">
+                <h3 style="font-size:12px; letter-spacing:1px;">▶ YOUTUBE → AUDIO</h3>
+                <span class="badge" style="font-size:9px;">convert</span>
+              </div>
+              <div style="display:flex; gap:8px; margin-bottom:10px;">
+                <input id="music-yt-url" placeholder="https://youtube.com/watch?v=..." style="flex:1; font-family:var(--mono); font-size:11px;"/>
+                <button class="btn-primary" id="music-yt-btn" style="white-space:nowrap; font-size:11px; padding:0 14px;">⬇ Convert</button>
+              </div>
+              <div id="music-yt-status" style="font-size:10.5px; font-family:var(--mono); color:var(--muted); min-height:16px; line-height:1.5;"></div>
+              <div style="font-size:9.5px; color:var(--muted); margin-top:8px; font-family:var(--mono); border-top:1px solid var(--border); padding-top:8px;">
+                ⚠ Requires <span style="color:var(--accent);">ffmpeg</span> installed and in PATH.
+                <a href="https://ffmpeg.org/download.html" target="_blank" style="color:var(--accent);">Download ffmpeg ↗</a>
+              </div>
             </div>
           </div>
 
-          <!-- Game 2: Cyberpunk Grid Runner -->
-          <div id="arcade-game-runner" class="arcade-game-container" style="display:none; flex-direction:column; align-items:center; gap:12px; width:100%; height:100%; justify-content:center;">
-            <canvas id="runner-canvas" width="400" height="400" style="background:#1e293b; border:2px solid #475569; border-radius:4px; max-width:100%; max-height:100%; image-rendering:pixelated;"></canvas>
-            <div style="display:flex; gap:16px; font-family:var(--mono); font-size:12px; color:var(--text);">
-              <span>Integrity: <b id="runner-integrity" style="color:var(--green)">100%</b></span>
-              <span>Score: <b id="runner-score" style="color:var(--cyan)">0</b></span>
-              <span>High Score: <b id="runner-high" style="color:var(--amber)">0</b></span>
+          <!-- Playback Mode Controls -->
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-shrink:0; flex-wrap:wrap;">
+            <span style="font-size:10px; font-family:var(--mono); color:var(--muted); letter-spacing:1px;">PLAYBACK MODE:</span>
+            <button class="btn-ghost music-mode-btn active" id="mode-sequential" data-mode="sequential" style="font-size:10px; padding:4px 10px;">⟶ Sequential</button>
+            <button class="btn-ghost music-mode-btn" id="mode-shuffle" data-mode="shuffle" style="font-size:10px; padding:4px 10px;">⇌ Shuffle</button>
+            <button class="btn-ghost music-mode-btn" id="mode-repeat" data-mode="repeat" style="font-size:10px; padding:4px 10px;">↺ Repeat One</button>
+            <button class="btn-ghost music-mode-btn" id="mode-repeat-all" data-mode="repeat-all" style="font-size:10px; padding:4px 10px;">↻ Repeat All</button>
+            <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
+              <span style="font-size:9.5px; color:var(--muted); font-family:var(--mono);">VOL</span>
+              <input type="range" id="music-volume" min="0" max="1" step="0.02" value="0.8" style="width:80px; accent-color:var(--accent);" />
+              <span id="music-vol-label" style="font-size:9.5px; color:var(--accent); font-family:var(--mono); width:28px;">80%</span>
+            </div>
+            <button class="btn-ghost" id="music-refresh-btn" style="font-size:10px; padding:4px 10px;">⟳ Refresh</button>
+          </div>
+
+          <!-- Track Library -->
+          <div class="card" style="flex:1; overflow:hidden; display:flex; flex-direction:column; padding:0;">
+            <div class="card-head" style="padding:12px 16px; border-bottom:1px solid var(--border); flex-shrink:0;">
+              <h3 style="font-size:12px; letter-spacing:1px;">TRACK LIBRARY</h3>
+              <span id="music-track-count" class="badge" style="font-size:9px;">0 tracks</span>
+            </div>
+            <div id="music-track-list" style="flex:1; overflow-y:auto; padding:8px;">
+              <div class="muted" style="text-align:center; padding:40px 0; font-family:var(--mono); font-size:11px;">// No tracks yet — upload a file or paste a YouTube link above</div>
             </div>
           </div>
 
-          <!-- Game 3: Terminal Decrypt -->
-          <div id="arcade-game-decrypt" class="arcade-game-container" style="display:none; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; max-width:440px; font-family:var(--mono); font-size:12px; color:#22c55e;">
-            <div id="decrypt-console" style="background:#090d16; border:2px solid #1f2937; border-radius:6px; padding:20px; width:100%; flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:10px; line-height:1.5; color:#4ade80;">
-              <div>// SECURITY DECRYPTION TERMINAL</div>
-              <div>// ENTER ADMINISTRATIVE PASSWORD</div>
-              <div>// ATTEMPTS REMAINING: <span id="decrypt-attempts" style="color:#ef4444; font-weight:bold;">4</span></div>
-              <div id="decrypt-log" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; border-top:1px dashed #1f2937; margin-top:8px; padding-top:8px; font-size:11.5px; color:#34d399;"></div>
-              <div id="decrypt-words-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; font-family:var(--mono); font-weight:bold; cursor:pointer;"></div>
+          <!-- Sticky Bottom Player Bar -->
+          <div id="music-player-bar" style="flex-shrink:0; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px 16px; margin-top:10px; display:flex; flex-direction:column; gap:8px;">
+            <!-- Now playing info + controls -->
+            <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+              <!-- Track info -->
+              <div style="display:flex; align-items:center; gap:10px; min-width:0; flex:1;">
+                <div style="width:36px; height:36px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;" id="music-album-art">♪</div>
+                <div style="min-width:0;">
+                  <div id="music-now-title" style="font-family:var(--display); font-size:12px; color:var(--accent); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;">No track selected</div>
+                  <div id="music-now-meta" style="font-size:9.5px; color:var(--muted); font-family:var(--mono); margin-top:1px;">// select a track to play</div>
+                </div>
+              </div>
+              <!-- Controls -->
+              <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+                <button id="music-prev" class="btn-ghost" style="padding:5px 10px; font-size:14px;" title="Previous">⏮</button>
+                <button id="music-play-pause" class="btn-primary" style="padding:6px 18px; font-size:16px; min-width:52px;">▶</button>
+                <button id="music-next" class="btn-ghost" style="padding:5px 10px; font-size:14px;" title="Next">⏭</button>
+              </div>
+              <!-- Time display -->
+              <div style="font-family:var(--mono); font-size:10.5px; color:var(--muted); flex-shrink:0;">
+                <span id="music-time-cur">0:00</span> / <span id="music-time-dur">0:00</span>
+              </div>
+            </div>
+            <!-- Progress bar -->
+            <div style="position:relative; height:4px; background:rgba(255,255,255,0.08); border-radius:2px; cursor:pointer;" id="music-progress-track">
+              <div id="music-progress-fill" style="height:100%; width:0%; background:var(--accent); border-radius:2px; transition:width 0.3s linear;"></div>
+            </div>
+            <!-- Hidden HTML5 audio element -->
+            <audio id="music-audio-el" preload="metadata" style="display:none;"></audio>
+          </div>
+        </section>
+
+        <!-- GAME ARCADE -->
+        <section class="panel" id="panel-arcade" style="flex-direction:column; height:calc(100vh - 140px); overflow:hidden; gap:0;">
+          <div class="arcade-main-layout" style="display:grid; grid-template-columns: 1fr 300px; gap:16px; height:100%; overflow:hidden;">
+            <!-- Left Column: Game Selection/Arena -->
+            <div class="card" style="display:flex; flex-direction:column; padding:0; overflow:hidden; border-color:var(--border); position:relative;">
+              <!-- Message overlay (replaces legacy alerts) -->
+              <div id="arcade-message-overlay" class="arcade-overlay" style="display:none;">
+                <div class="arcade-overlay-content">
+                  <h2 id="arcade-overlay-title">GAME OVER</h2>
+                  <p id="arcade-overlay-message">Score: 0</p>
+                  <div class="arcade-overlay-actions">
+                    <button class="btn-primary" id="arcade-overlay-btn-restart">SPACE to Restart</button>
+                    <button class="btn-ghost" id="arcade-overlay-btn-menu">ESC to Menu</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Top Selection Menu -->
+              <div id="arcade-menu-view" style="display:flex; flex-direction:column; padding:20px; overflow-y:auto; height:100%;">
+                <h2 style="font-family:var(--display); font-size:15px; color:var(--text); letter-spacing:1px; margin-bottom:4px;">🎮 GAME ARCADE STATIONS</h2>
+                <p class="muted" style="margin-bottom:20px;">Select a local developer-themed mini-game station to boot offline. High scores persist in session cache.</p>
+                
+                <!-- 4-Column top aligned card selector grid -->
+                <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:14px; width:100%; align-items:start;">
+                  <div class="arcade-selection-card" onclick="bootArcadeGame('snake')">
+                    <div class="arcade-card-icon">🐍</div>
+                    <h4>Git Commit Snake</h4>
+                    <p>Guide your git branch to ingest commits and dodge conflicts.</p>
+                    <span class="arcade-card-hs">Best: <b id="hs-snake">0</b></span>
+                  </div>
+                  <div class="arcade-selection-card" onclick="bootArcadeGame('runner')">
+                    <div class="arcade-card-icon">🏃</div>
+                    <h4>Data Lane Runner</h4>
+                    <p>Lane dodge descending malware blocks and compile buffer memory.</p>
+                    <span class="arcade-card-hs">Best: <b id="hs-runner">0</b></span>
+                  </div>
+                  <div class="arcade-selection-card" onclick="bootArcadeGame('decrypt')">
+                    <div class="arcade-card-icon">🔑</div>
+                    <h4>Terminal Decrypt</h4>
+                    <p>Deductive security passcode hacking console simulation.</p>
+                    <span class="arcade-card-hs">Best: <b id="hs-decrypt">0</b></span>
+                  </div>
+                  <div class="arcade-selection-card" onclick="bootArcadeGame('sweeper')">
+                    <div class="arcade-card-icon">💣</div>
+                    <h4>Hex Sweeper</h4>
+                    <p>Audit memory address arrays to isolate hidden malware cells.</p>
+                    <span class="arcade-card-hs">Best: <b id="hs-sweeper">0</b></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Game Arena View -->
+              <div id="arcade-arena-view" style="display:none; flex-direction:column; height:100%; position:relative; overflow:hidden;">
+                <!-- Header panel inside arena -->
+                <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.2); padding:10px 16px; border-bottom:1px solid var(--border); flex-shrink:0;">
+                  <span id="arena-game-title" style="font-family:var(--display); font-size:12px; color:var(--accent); font-weight:700;">GAME STATION</span>
+                  <div style="display:flex; gap:8px;">
+                    <span style="font-family:var(--mono); font-size:11px; color:var(--text);">Score: <b id="arena-current-score" style="color:var(--accent)">0</b></span>
+                    <span style="color:var(--muted); font-size:11px;">|</span>
+                    <span style="font-family:var(--mono); font-size:11px; color:var(--muted);">Personal Best: <b id="arena-high-score">0</b></span>
+                  </div>
+                  <button class="btn-ghost" onclick="quitArcadeArena()" style="font-size:10px; padding:3px 8px;">✕ Quit Game</button>
+                </div>
+                
+                <!-- Visual Canvas Wrapper -->
+                <div style="flex:1; display:flex; align-items:center; justify-content:center; background:#121214; overflow:hidden;" id="arcade-canvas-wrapper">
+                  <canvas id="arcade-canvas" width="400" height="400" style="background:#1e1e24; box-shadow:0 4px 12px rgba(0,0,0,0.5); display:none; max-width:100%; max-height:100%;"></canvas>
+                  
+                  <!-- Fallback Decrypt text inputs UI -->
+                  <div id="arcade-game-decrypt" class="arcade-game-container" style="display:none; flex-direction:column; width:100%; height:100%; padding:20px; font-family:var(--mono); font-size:12px;">
+                    <div id="decrypt-console" style="flex:1; background:#0c0f12; border:1px solid var(--border); border-radius:4px; padding:12px; overflow-y:auto; margin-bottom:12px; color:#38bdf8; line-height:1.5;"></div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                      <span>&gt; ENTER PASSCODE:</span>
+                      <input id="decrypt-input" type="text" style="flex:1; font-family:var(--mono); background:#0c0f12; color:#38bdf8; border:1px solid var(--border);" autocomplete="off"/>
+                      <button class="btn-primary" id="decrypt-enter-btn" style="padding:8px 16px;">DECRYPT</button>
+                    </div>
+                  </div>
+
+                  <!-- Fallback Sweeper DOM UI -->
+                  <div id="arcade-game-sweeper" class="arcade-game-container" style="display:none; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%;">
+                    <div style="display:flex; justify-content:space-between; width:100%; max-width:380px; font-family:var(--mono); font-size:11.5px; color:var(--text); margin-bottom:10px;">
+                      <span>Threats Flagged: <b id="sweeper-flagged" style="color:var(--red)">0</b> / <b id="sweeper-total-mines" style="color:var(--red)">10</b></span>
+                      <span>Revealed Cells: <b id="sweeper-revealed" style="color:var(--accent)">0</b> / 90</span>
+                    </div>
+                    <div id="sweeper-board" style="display:grid; grid-template-columns:repeat(10, 32px); grid-template-rows:repeat(10, 32px); gap:3px; background:#121214; padding:8px; border:2px solid var(--border); border-radius:6px;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Control Deck & Information -->
+            <div class="card" style="display:flex; flex-direction:column; padding:16px; border-color:var(--border); font-family:var(--mono); font-size:11px; line-height:1.6; overflow-y:auto;">
+              <h3 style="font-family:var(--display); color:var(--accent); font-size:12px; margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:6px; letter-spacing:1px;">🕹 CONTROLLER INSTRUCTIONS</h3>
+              <div id="arcade-instruction-content" style="flex:1;"></div>
+              <div style="border-top:1px solid var(--border); padding-top:12px; margin-top:12px; display:flex; flex-direction:column; gap:8px; flex-shrink:0;">
+                <button class="btn-primary" id="arcade-reset-btn" style="width:100%; font-size:11px; padding:8px 0; font-family:var(--mono); font-weight:bold;">🎮 RESTART STATION</button>
+              </div>
             </div>
           </div>
+        </section>
 
-          <!-- Game 4: Hex Malware Sweeper -->
-          <div id="arcade-game-sweeper" class="arcade-game-container" style="display:none; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%;">
-            <div style="display:flex; justify-content:space-between; width:100%; max-width:380px; font-family:var(--mono); font-size:11.5px; color:var(--text); margin-bottom:10px;">
-              <span>Threats Flagged: <b id="sweeper-flagged" style="color:var(--red)">0</b> / <b id="sweeper-total-mines" style="color:var(--red)">10</b></span>
-              <span>Revealed Cells: <b id="sweeper-revealed" style="color:var(--green)">0</b> / 90</span>
-            </div>
-            <div id="sweeper-board" style="display:grid; grid-template-columns:repeat(10, 32px); grid-template-rows:repeat(10, 32px); gap:3px; background:#0f172a; padding:8px; border:2px solid #334155; border-radius:6px;"></div>
-          </div>
+      </main>
+    </div> <!-- end of main-content-pane -->
+  </div> <!-- end of app-workspace -->
 
-        </div>
-
-        <!-- Right Column: Control Deck & Information -->
-        <div class="card" style="display:flex; flex-direction:column; padding:16px; border-color:var(--border); font-family:var(--mono); font-size:11px; line-height:1.6; overflow-y:auto;">
-          <h3 style="font-family:var(--display); color:var(--cyan); font-size:12px; margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:6px; letter-spacing:1px;">🕹 CONTROLLER INSTRUCTIONS</h3>
-          
-          <div id="arcade-instruction-content" style="flex:1;">
-            <!-- Instructions populated dynamically in JS -->
-          </div>
-
-          <div style="border-top:1px solid var(--border); padding-top:12px; margin-top:12px; display:flex; flex-direction:column; gap:8px; flex-shrink:0;">
-            <button class="btn-primary" id="arcade-reset-btn" style="width:100%; font-size:11px; padding:8px 0; font-family:var(--mono); font-weight:bold;">🎮 RESTART STATION</button>
-          </div>
-        </div>
-
-      </div>
-
-    </section>
+  <!-- 5. PINNED BOTTOM STATUS BAR -->
+  <footer class="status-bar-bottom">
+    <div class="status-bar-left">
+      <span class="status-indicator-dot"></span>
+      <span class="status-bar-text" id="status-bar-node-text">NODE ONLINE</span>
+      <span class="status-bar-sep">|</span>
+      <span>v1.2.0</span>
+      <span class="status-bar-sep">|</span>
+      <span>api :: localhost:5000</span>
+    </div>
+    <div class="status-bar-right">
+      <span>Developer: Hitesh Solanki</span>
+      <span class="status-bar-sep">|</span>
+      <a href="/docs" target="_blank">Docs ↗</a>
+      <span class="status-bar-sep">|</span>
+      <a href="/logs" target="_blank">Logs ↗</a>
+    </div>
+  </footer>
 
   <!-- Quest modal -->
   <div class="modal-overlay" id="quest-modal">
@@ -993,14 +1046,14 @@
   <div class="modal-overlay" id="update-modal">
     <div class="modal" style="width: 500px;">
       <div class="modal-head">
-        <h3 style="color:var(--amber); text-shadow:0 0 10px rgba(255,181,71,0.3);">⚡ System Update Available</h3>
+        <h3 style="color:var(--accent);">⚡ System Update Available</h3>
         <button id="close-update-modal" class="icon-btn">✕</button>
       </div>
       <div style="font-size:12px; margin-bottom:14px; line-height:1.5;">
         A new update is ready for DevHunt. Your local data, configurations, and API settings will be completely preserved.
       </div>
       <div style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:6px; padding:12px; margin-bottom:16px;">
-        <div style="font-size:11px; font-weight:bold; color:var(--cyan); margin-bottom:6px; letter-spacing:1px;">CHANGES IN THIS VERSION:</div>
+        <div style="font-size:11px; font-weight:bold; color:var(--accent); margin-bottom:6px; letter-spacing:1px;">CHANGES IN THIS VERSION:</div>
         <div style="max-height:180px; overflow-y:auto;">
           <ul id="modal-update-commits-list" style="margin:0; padding-left:16px; font-family:var(--mono); font-size:11.5px; color:var(--text); line-height:1.5;"></ul>
         </div>
@@ -1009,7 +1062,7 @@
         <button class="btn-ghost" id="cancel-update-btn">Later</button>
         <button class="btn-primary" id="modal-apply-update-btn" style="font-weight:700;">Update Now</button>
       </div>
-      <div id="modal-update-progress" style="display:none; margin-top:12px; font-size:11px; color:var(--cyan); font-family:var(--mono);">
+      <div id="modal-update-progress" style="display:none; margin-top:12px; font-size:11px; color:var(--accent); font-family:var(--mono);">
         <span class="streaming-cursor">▌</span> Downloading and installing update...
       </div>
     </div>
@@ -1019,7 +1072,7 @@
   <div class="modal-overlay" id="notification-detail-modal">
     <div class="modal" style="width: 550px;">
       <div class="modal-head">
-        <h3 id="notif-detail-title" style="color:var(--green); text-shadow:0 0 10px rgba(0,255,163,0.3);">Notification Details</h3>
+        <h3 id="notif-detail-title" style="color:var(--accent);">Notification Details</h3>
         <button id="close-notif-detail-modal" class="icon-btn">✕</button>
       </div>
       <div id="notif-detail-meta" style="font-size:11px; color:var(--muted); margin-bottom:14px; font-family:var(--mono);">
@@ -1028,12 +1081,12 @@
       <div style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:6px; padding:14px; margin-bottom:16px;">
         <div id="notif-detail-message" style="font-size:12.5px; line-height:1.6; color:var(--text); white-space:pre-wrap; max-height:220px; overflow-y:auto; font-family:var(--mono);"></div>
         <div id="notif-detail-metadata-container" style="display:none; margin-top:14px; border-top:1px dashed var(--border); padding-top:12px;">
-          <div style="font-size:10px; font-weight:bold; color:var(--cyan); margin-bottom:6px; letter-spacing:1px; font-family:var(--mono);">LOG METADATA (RAW JSON):</div>
+          <div style="font-size:10px; font-weight:bold; color:var(--accent); margin-bottom:6px; letter-spacing:1px; font-family:var(--mono);">LOG METADATA (RAW JSON):</div>
           <pre id="notif-detail-metadata" style="margin:0; font-family:var(--mono); font-size:11px; color:var(--muted); overflow-x:auto; background:rgba(0,0,0,0.2); padding:10px; border-radius:4px; max-height:150px; overflow-y:auto;"></pre>
         </div>
       </div>
       <div style="display:flex; justify-content:flex-end; gap:10px;">
-        <button class="btn-ghost" id="btn-close-notif-detail">Close</button>
+        <button class="btn-close-notif-detail btn-ghost" id="btn-close-notif-detail">Close</button>
         <button class="btn-primary" id="btn-action-notif-detail" style="display:none;">Action</button>
       </div>
     </div>
