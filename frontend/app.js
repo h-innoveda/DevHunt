@@ -2460,8 +2460,12 @@ async function loadProfileAndSettings() {
     // Font parameters loading and live variables override
     const fontEditor = settings.font_family_editor || 'JetBrains Mono';
     const fontTerminal = settings.font_family_terminal || 'JetBrains Mono';
+    const fontSystem = settings.font_family_system || 'Inter';
     const sizeEditor = settings.font_size_editor || 14;
     const sizeTerminal = settings.font_size_terminal || 13;
+
+    const systemFamilySelect = document.getElementById('font-family-system');
+    if (systemFamilySelect) systemFamilySelect.value = fontSystem;
 
     const editorFamilySelect = document.getElementById('font-family-editor');
     const editorSizeSlider = document.getElementById('font-size-editor');
@@ -2483,6 +2487,7 @@ async function loadProfileAndSettings() {
     document.documentElement.style.setProperty('--editor-font-family', fontEditor);
     document.documentElement.style.setProperty('--terminal-font-size', sizeTerminal + 'px');
     document.documentElement.style.setProperty('--terminal-font-family', fontTerminal);
+    document.body.style.setProperty('--display', fontSystem);
 
     // Canvas Particles Animation toggles
     const particlesCheckbox = document.getElementById('toggle-canvas-particles');
@@ -5412,6 +5417,14 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   // Typography Customization Listeners
+  const systemFamily = document.getElementById('font-family-system');
+  if (systemFamily) {
+    systemFamily.addEventListener('change', async (e) => {
+      document.body.style.setProperty('--display', e.target.value);
+      await saveSettingsAPI({ font_family_system: e.target.value });
+    });
+  }
+
   const editorFamily = document.getElementById('font-family-editor');
   const editorSize = document.getElementById('font-size-editor');
   const editorSizeVal = document.getElementById('font-size-editor-val');

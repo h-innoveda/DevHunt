@@ -84,6 +84,7 @@ class ProfileManager:
                 "font_size_terminal": 13,
                 "font_family_editor": "JetBrains Mono",
                 "font_family_terminal": "JetBrains Mono",
+                "font_family_system": "Inter",
                 "canvas_particles": True,
                 "sound_effects": True,
                 "temperature": 0.7,
@@ -137,6 +138,8 @@ class ProfileManager:
                     data["font_family_editor"] = "JetBrains Mono"
                 if "font_family_terminal" not in data:
                     data["font_family_terminal"] = "JetBrains Mono"
+                if "font_family_system" not in data:
+                    data["font_family_system"] = "Inter"
                 if "canvas_particles" not in data:
                     data["canvas_particles"] = True
                 if "sound_effects" not in data:
@@ -186,7 +189,7 @@ class ProfileManager:
             'read_notifications', 'dismissed_notifications', 'feature_toggles', 'theme',
             'terminal_username', 'terminal_hostname', 'terminal_prompt_symbol',
             'terminal_sound', 'font_size_editor', 'font_size_terminal',
-            'font_family_editor', 'font_family_terminal', 'canvas_particles',
+            'font_family_editor', 'font_family_terminal', 'font_family_system', 'canvas_particles',
             'sound_effects', 'temperature', 'max_tokens', 'system_prompt',
             'shortcuts'
         ]
