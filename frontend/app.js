@@ -811,7 +811,16 @@ window.sendQuickQuery = (queryText) => {
 const expandedDays = new Set();
 
 window.toggleRoadmapDay = (event, dayNum) => {
-  if (event.target.tagName === 'BUTTON' || event.target.tagName === 'A' || event.target.closest('button') || event.target.closest('a')) {
+  if (
+    event.target.tagName === 'BUTTON' ||
+    event.target.tagName === 'A' ||
+    event.target.tagName === 'INPUT' ||
+    event.target.closest('button') ||
+    event.target.closest('a') ||
+    event.target.closest('input') ||
+    event.target.closest('.cmd-copy-btn') ||
+    event.target.closest('.script-copy-btn')
+  ) {
     return;
   }
 
@@ -829,6 +838,24 @@ window.toggleRoadmapDay = (event, dayNum) => {
     const toggleIcon = card.querySelector('.node-toggle-icon');
     if (toggleIcon) toggleIcon.textContent = '▲';
   }
+};
+
+window.copyToClipboard = (event, text) => {
+  event.stopPropagation();
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.currentTarget || event.target;
+    const originalText = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => {
+      btn.textContent = originalText;
+    }, 1500);
+  }).catch(err => {
+    console.error('Failed to copy to clipboard', err);
+  });
+};
+
+window.toggleTaskChecked = (checkbox, dayNum, taskIdx) => {
+  localStorage.setItem(`task-${dayNum}-${taskIdx}`, checkbox.checked ? 'true' : 'false');
 };
 
 window.addRoadmapQuest = async (event, taskTitle, dayNum, dayTitle) => {
@@ -896,62 +923,149 @@ async function loadRoadmap() {
         totalDays++;
         if (day.status === 'completed') completedDays++;
 
-        const topicsBadges = (day.topics || []).map(t => `<span>${t}</span>`).join('');
+        const maxTagsToShow = 3;
+        const slicedTopics = (day.topics || []).slice(0, maxTagsToShow);
+        let topicsBadges = slicedTopics.map(t => `<span class="node-topic-tag">${t}</span>`).join('');
+        if ((day.topics || []).length > maxTagsToShow) {
+          topicsBadges += `<span class="node-topic-tag">+${day.topics.length - maxTagsToShow} more</span>`;
+        }
+
         const rCount = day.resources ? day.resources.length : 0;
         const tCount = day.tasks ? day.tasks.length : 0;
         const isExpanded = expandedDays.has(day.day);
 
+        let displayStatus = day.status || 'pending';
+        if (day.day === path.current_day && displayStatus === 'pending') {
+          displayStatus = 'active';
+        }
+
+        const leftStripHtml = `<div class="node-left-strip status-${displayStatus}"></div>`;
+        const dayBadgeHtml = `<div class="node-day-badge">DAY ${String(day.day).padStart(2, '0')}</div>`;
+        const statusBadgeHtml = `<span class="node-status-badge status-${displayStatus}">${displayStatus}</span>`;
+
         return `
-          <div class="node ${day.status || 'upcoming'} ${isExpanded ? 'expanded' : ''}" data-day="${day.day}" onclick="toggleRoadmapDay(event, ${day.day})">
-            <div class="node-header">
-              <div class="node-header-main">
-                <div class="node-day">DAY ${String(day.day).padStart(2, '0')}</div>
-                <div class="node-title">${day.title}</div>
+          <div class="node ${isExpanded ? 'expanded' : ''}" data-day="${day.day}">
+            ${leftStripHtml}
+            <div class="node-header" onclick="toggleRoadmapDay(event, ${day.day})">
+              <div class="node-main-info">
+                ${dayBadgeHtml}
+                <div class="node-header-center">
+                  <div class="node-title">${day.title}</div>
+                  <div class="node-topics-list">${topicsBadges}</div>
+                </div>
+                <div class="node-header-right">
+                  <span class="node-meta-pill">⏱ ${day.estimated_time || 60}m</span>
+                  <span class="node-meta-pill">📚 ${rCount} resources</span>
+                  <span class="node-meta-pill">✅ ${tCount} tasks</span>
+                  ${statusBadgeHtml}
+                </div>
               </div>
               <div class="node-toggle-icon">${isExpanded ? '▲' : '▼'}</div>
             </div>
-            <div class="node-topics">${topicsBadges}</div>
-            <div class="node-meta">⏱ ${day.estimated_time || 60}m · 🔗 ${rCount} resource(s) · ✓ ${tCount} task(s)</div>
             
             <div class="node-details">
-              <div class="detail-section">
-                <h4>What to Learn</h4>
-                <ul>
-                  ${(day.topics || []).map(t => `<li>${t}</li>`).join('') || '<li class="muted">No topics listed</li>'}
-                </ul>
+              <!-- Column 1: Overview & Commands -->
+              <div style="display:flex; flex-direction:column; gap:16px;">
+                <div>
+                  <div class="detail-section-title">📘 Overview</div>
+                  <div class="day-explanation">${day.explanation || 'Master the essential skills and concepts for this day.'}</div>
+                  <div class="node-topics-list" style="margin-bottom:12px;">${(day.topics || []).map(t => `<span class="node-topic-tag">${t}</span>`).join('')}</div>
+                </div>
+                
+                <div>
+                  <div class="detail-section-title">⌨️ Commands to Master</div>
+                  ${day.commands && day.commands.length > 0 ? `
+                    <table class="cmd-table">
+                      <thead>
+                        <tr>
+                          <th>Command</th>
+                          <th>Description</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${day.commands.map(cmd => `
+                          <tr>
+                            <td><code class="cmd-code" title="${cmd.cmd}">${cmd.cmd}</code></td>
+                            <td class="cmd-desc">${cmd.desc}</td>
+                            <td class="cmd-actions">
+                              <button class="cmd-copy-btn" onclick="copyToClipboard(event, '${cmd.cmd.replace(/'/g, "\\'")}')">Copy</button>
+                            </td>
+                          </tr>
+                        `).join('')}
+                      </tbody>
+                    </table>
+                  ` : `<div class="muted" style="font-size:11px;">No commands defined for this day.</div>`}
+                </div>
               </div>
               
-              <div class="detail-section">
-                <h4>Study Resources</h4>
-                <ul>
-                  ${(day.resources || []).map(r => {
-          const isLink = r.url && (r.url.startsWith('http://') || r.url.startsWith('https://'));
-          return `
-                      <li>
-                        ${isLink ? `<a href="${r.url}" target="_blank" class="resource-link">🔗 ${r.title}</a>` : `<span class="resource-text">🔗 ${r.title} (${r.url || 'No URL'})</span>`}
-                      </li>
-                    `;
-        }).join('') || '<li class="muted">No resources listed</li>'}
-                </ul>
+              <!-- Column 2: Practice on KillerCoda -->
+              <div style="display:flex; flex-direction:column; gap:16px;">
+                <div>
+                  <div class="detail-section-title">🧪 Practice Playground</div>
+                  <p style="font-size:11.5px; line-height:1.4; margin-bottom:12px; color:var(--text);">
+                    Practice in an interactive sandbox. Log in to KillerCoda, click below, and paste the setup script into your terminal.
+                  </p>
+                  <a href="${day.killercoda_url || 'https://killercoda.com/'}" target="_blank" class="killercoda-btn">Open KillerCoda Playground ↗</a>
+                  
+                  ${day.setup_script ? `
+                    <div class="script-container">
+                      <div class="script-header">
+                        <span>Setup Script</span>
+                        <button class="script-copy-btn" onclick="copyToClipboard(event, '${day.setup_script.replace(/'/g, "\\'").replace(/\r?\n/g, '\\n')}')">Copy</button>
+                      </div>
+                      <pre class="script-pre"><code>${day.setup_script}</code></pre>
+                    </div>
+                  ` : ''}
+                </div>
+                
+                <div>
+                  <div class="detail-section-title">📚 Study Resources</div>
+                  <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px;">
+                    ${(day.resources || []).map(r => {
+                      const isLink = r.url && (r.url.startsWith('http://') || r.url.startsWith('https://'));
+                      return `
+                        <li style="font-size:11.5px;">
+                          ${isLink ? `<a href="${r.url}" target="_blank" class="resource-link">🔗 ${r.title}</a>` : `<span class="resource-text">🔗 ${r.title} (${r.url || 'No URL'})</span>`}
+                        </li>
+                      `;
+                    }).join('') || '<li class="muted">No resources listed</li>'}
+                  </ul>
+                </div>
               </div>
               
-              <div class="detail-section">
-                <h4>Hands-on Quests</h4>
-                <ul>
-                  ${(day.tasks || []).map(t => `
-                    <li>
-                      <span class="task-text">${t}</span>
-                      <button class="btn-ghost btn-xs btn-add-quest" onclick="addRoadmapQuest(event, '${t.replace(/'/g, "\\'")}', ${day.day}, '${day.title.replace(/'/g, "\\'")}')">+ Add Quest</button>
-                    </li>
-                  `).join('') || '<li class="muted">No tasks listed</li>'}
-                </ul>
+              <!-- Column 3: Hands-on Quests -->
+              <div style="display:flex; flex-direction:column; justify-content:space-between; height:100%; gap:16px;">
+                <div>
+                  <div class="detail-section-title">✅ Hands-on Quests</div>
+                  <div class="task-checklist">
+                    ${(day.tasks || []).map((t, tIdx) => {
+                      const isChecked = localStorage.getItem(`task-${day.day}-${tIdx}`) === 'true';
+                      const taskId = `task-${day.day}-${tIdx}`;
+                      return `
+                        <div class="task-item-row">
+                          <input type="checkbox" id="${taskId}" ${isChecked ? 'checked' : ''} onchange="toggleTaskChecked(this, ${day.day}, ${tIdx})">
+                          <label for="${taskId}">
+                            <span class="task-checkbox-custom"></span>
+                            <div style="display:flex; flex-direction:column; gap:6px; flex:1;">
+                              <span class="task-title-text">${t}</span>
+                              <div>
+                                <button class="btn btn-ghost btn-xs btn-add-quest" onclick="addRoadmapQuest(event, '${t.replace(/'/g, "\\'")}', ${day.day}, '${day.title.replace(/'/g, "\\'")}')">+ Add Quest Board</button>
+                              </div>
+                            </div>
+                          </label>
+                        </div>
+                      `;
+                    }).join('') || '<div class="muted">No tasks listed</div>'}
+                  </div>
+                </div>
+                
+                <div class="node-action-buttons">
+                  ${day.status !== 'completed' ? `<button class="node-action-btn btn-complete" onclick="event.stopPropagation(); updateRoadmapDay(${day.day}, 'completed')">✓ Complete Day</button>` : ''}
+                  ${day.status === 'completed' ? `<button class="node-action-btn btn-reset" onclick="event.stopPropagation(); updateRoadmapDay(${day.day}, 'pending')">↺ Reset Day</button>` : ''}
+                  ${day.status !== 'skipped' ? `<button class="node-action-btn btn-skip" onclick="event.stopPropagation(); updateRoadmapDay(${day.day}, 'skipped')">⤼ Skip Day</button>` : ''}
+                </div>
               </div>
-            </div>
-            
-            <div class="node-actions">
-              ${day.status !== 'completed' ? `<button class="btn-ghost" onclick="updateRoadmapDay(${day.day}, 'completed')">✓ Complete</button>` : ''}
-              ${day.status === 'completed' ? `<button class="btn-ghost" onclick="updateRoadmapDay(${day.day}, 'pending')">↺ Reset</button>` : ''}
-              ${day.status !== 'skipped' ? `<button class="btn-ghost" onclick="updateRoadmapDay(${day.day}, 'skipped')">⤼ Skip</button>` : ''}
             </div>
           </div>
         `;
@@ -959,7 +1073,13 @@ async function loadRoadmap() {
 
       const phaseHtml = `
         <div class="phase">
-          <div class="phase-title">${phase.title.toUpperCase()}</div>
+          <div class="phase-header">
+            <span class="phase-badge">Phase ${pIdx + 1}</span>
+            <div class="phase-info">
+              <div class="phase-title">${phase.title}</div>
+              <div class="phase-desc">${phase.description || ''}</div>
+            </div>
+          </div>
           <div class="timeline">
             ${daysHtml}
           </div>

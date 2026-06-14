@@ -25,7 +25,16 @@ class LearningPath:
                         {
                             "day": 1,
                             "title": "Linux Commands & Scripting",
+                            "explanation": "Linux CLI navigation and scripting forms the bedrock of DevOps. Knowing how to move around, write basic automations, and manage permissions saves hours of manual configuration.",
                             "topics": ["CLI navigation", "file permissions", "pipes & redirects", "basic bash scripts"],
+                            "commands": [
+                                {"cmd": "ls -la", "desc": "List all files including hidden files with details"},
+                                {"cmd": "chmod +x script.sh", "desc": "Grant execution permission to a script"},
+                                {"cmd": "grep -i 'error' app.log", "desc": "Search logs case-insensitively for errors"},
+                                {"cmd": "tar -czf logs.tar.gz /var/log", "desc": "Compress log directory into a gzipped tarball"}
+                            ],
+                            "killercoda_url": "https://killercoda.com/pawelpiwosz/scenario/linux-basics",
+                            "setup_script": "mkdir -p /tmp/practice && cd /tmp/practice\necho 'Creating dummy logs...'\necho 'ERROR: Database connection failed' > app.log\necho 'INFO: User logged in' >> app.log\necho 'SUCCESS: Query completed' >> app.log\necho \"echo 'Hello World automated!'\" > script.sh\nchmod +x script.sh\nclear\necho 'Linux playground environment is ready!'",
                             "resources": [
                                 {"title": "Linux Journey", "url": "https://linuxjourney.com/"},
                                 {"title": "Bash Scripting Cheat Sheet", "url": "https://devhints.io/bash"}
@@ -37,7 +46,16 @@ class LearningPath:
                         {
                             "day": 2,
                             "title": "Git & Collaborative Workflows",
+                            "explanation": "Version control is the heart of collaborative development and deployment. Understanding branching strategies, merge conflicts, and hooks ensures clean code integration.",
                             "topics": ["Git branching", "rebase vs merge", "resolving conflicts", "GitHub Actions basics"],
+                            "commands": [
+                                {"cmd": "git checkout -b feature/auth", "desc": "Create and switch to a new branch"},
+                                {"cmd": "git merge main", "desc": "Merge main branch into the current active branch"},
+                                {"cmd": "git rebase main", "desc": "Rebase current branch on top of main"},
+                                {"cmd": "git diff branch1..branch2", "desc": "Show changes between two branches"}
+                            ],
+                            "killercoda_url": "https://killercoda.com/git",
+                            "setup_script": "git init my-project && cd my-project\ngit config --global user.email 'you@example.com'\ngit config --global user.name 'Your Name'\necho 'Initial Content' > readme.md\ngit add readme.md && git commit -m 'initial commit'\ngit checkout -b feature-test\necho 'Feature Content' >> readme.md\ngit add readme.md && git commit -m 'add feature content'\ngit checkout main\necho 'Main Content' >> readme.md\ngit add readme.md && git commit -m 'add conflicting main content'\nclear\necho 'Git playground ready! Branch conflict prepared on main branch.'",
                             "resources": [
                                 {"title": "Git Branching Game", "url": "https://learngitbranching.js.org/"}
                             ],
@@ -48,7 +66,16 @@ class LearningPath:
                         {
                             "day": 3,
                             "title": "DevOps Networking Essentials",
+                            "explanation": "Understanding DNS, HTTP, and load balancing helps debug connectivity issues between microservices, configure secure gateways, and manage routing.",
                             "topics": ["TCP/IP stack", "DNS resolution", "HTTP/HTTPS protocols", "Load Balancers"],
+                            "commands": [
+                                {"cmd": "dig +short google.com", "desc": "Query DNS record for domain"},
+                                {"cmd": "curl -Iv https://httpbin.org/get", "desc": "Inspect HTTP response headers"},
+                                {"cmd": "netstat -tuln", "desc": "List all listening TCP and UDP ports"},
+                                {"cmd": "nslookup google.com", "desc": "Resolve domain name to IP address"}
+                            ],
+                            "killercoda_url": "https://killercoda.com/",
+                            "setup_script": "echo 'Starting a lightweight Python HTTP server on port 8000...'\npython3 -m http.server 8000 &\nsleep 2\ncurl http://localhost:8000\necho 'Use curl or netstat to examine active connections!'",
                             "resources": [
                                 {"title": "DNS in One Picture", "url": "https://dnsimple.com/how-dns-works"}
                             ],
@@ -65,7 +92,16 @@ class LearningPath:
                         {
                             "day": 4,
                             "title": "Docker Core Concepts",
+                            "explanation": "Containers isolate applications and their environments, making execution consistent from developer laptops to production servers.",
                             "topics": ["Docker images vs containers", "Dockerfile optimization", "Docker volumes & networking"],
+                            "commands": [
+                                {"cmd": "docker build -t app:v1 .", "desc": "Build Docker image from Dockerfile"},
+                                {"cmd": "docker run -d -p 8080:80 --name web nginx", "desc": "Run Nginx container in background"},
+                                {"cmd": "docker exec -it web bash", "desc": "Open interactive shell inside container"},
+                                {"cmd": "docker volume create my-vol", "desc": "Create a persistent Docker volume"}
+                            ],
+                            "killercoda_url": "https://killercoda.com/docker",
+                            "setup_script": "echo 'Setting up Docker challenge directory...'\nmkdir -p docker-app && cd docker-app\ncat << 'EOF' > Dockerfile\nFROM nginx:alpine\nRUN echo \"<h1>Docker Practice</h1>\" > /usr/share/nginx/html/index.html\nEOF\nclear\necho 'Dockerfile environment setup complete.'",
                             "resources": [
                                 {"title": "Docker Documentation Guide", "url": "https://docs.docker.com/get-started/"}
                             ],
@@ -76,7 +112,16 @@ class LearningPath:
                         {
                             "day": 5,
                             "title": "Docker Compose",
+                            "explanation": "Multi-container applications require orchestrating databases, backends, and frontends. Docker Compose lets you define and run them with a single YAML config.",
                             "topics": ["Multi-container orchestration", "compose environment files", "service dependencies"],
+                            "commands": [
+                                {"cmd": "docker-compose up -d", "desc": "Start all services in Compose file in background"},
+                                {"cmd": "docker-compose down -v", "desc": "Stop containers and remove associated volumes"},
+                                {"cmd": "docker-compose logs -f", "desc": "Follow real-time logs of all services"},
+                                {"cmd": "docker-compose ps", "desc": "List status of all compose-managed containers"}
+                            ],
+                            "killercoda_url": "https://killercoda.com/docker",
+                            "setup_script": "mkdir -p compose-project && cd compose-project\ncat << 'EOF' > docker-compose.yml\nversion: '3'\nservices:\n  web:\n    image: nginx:alpine\n    ports:\n      - \"8081:80\"\n  db:\n    image: redis:alpine\nEOF\nclear\necho 'docker-compose.yml file created! run docker-compose up -d to launch.'",
                             "resources": [
                                 {"title": "Awesome Docker Compose Templates", "url": "https://github.com/docker/awesome-compose"}
                             ],
@@ -87,7 +132,15 @@ class LearningPath:
                         {
                             "day": 6,
                             "title": "CI/CD & Jenkins/GitHub Actions",
+                            "explanation": "Automation of builds, tests, and deployments reduces human error and shortens the release loop, enabling rapid feedback on code changes.",
                             "topics": ["CI/CD pipelines", "build automation", "declarative syntax", "artifact storage"],
+                            "commands": [
+                                {"cmd": "git commit --allow-empty -m 'Trigger CI'", "desc": "Trigger pipeline via commit"},
+                                {"cmd": "gh run list", "desc": "List recent workflow runs from GitHub CLI"},
+                                {"cmd": "gh run watch", "desc": "Watch status of active pipeline run"}
+                            ],
+                            "killercoda_url": "https://killercoda.com/",
+                            "setup_script": "mkdir -p .github/workflows && cd .github/workflows\ncat << 'EOF' > main.yml\nname: CI\non: [push]\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v2\n      - name: Test\n        run: echo \"Testing application...\"\nEOF\nclear\necho 'Sample GitHub Actions workflow prepared!'",
                             "resources": [
                                 {"title": "GitHub Actions Docs", "url": "https://docs.github.com/en/actions"}
                             ],
@@ -104,7 +157,16 @@ class LearningPath:
                         {
                             "day": 7,
                             "title": "Kubernetes Architecture & Pods",
+                            "explanation": "Kubernetes scales container management. Pods are the smallest deployable units in K8s, containing one or more tightly-coupled containers sharing resources.",
                             "topics": ["Control plane components", "kubelet & kube-proxy", "Pods and namespaces"],
+                            "commands": [
+                                {"cmd": "kubectl get pods -A", "desc": "List all pods across all namespaces"},
+                                {"cmd": "kubectl describe pod web-pod", "desc": "Show detailed status of a specific pod"},
+                                {"cmd": "kubectl apply -f pod.yaml", "desc": "Create or update resources from a YAML file"},
+                                {"cmd": "kubectl logs web-pod", "desc": "Retrieve logs for a running container in a pod"}
+                            ],
+                            "killercoda_url": "https://killercoda.com/kubernetes",
+                            "setup_script": "cat << 'EOF' > pod.yaml\napiVersion: v1\nkind: Pod\nmetadata:\n  name: my-nginx\nspec:\n  containers:\n  - name: nginx\n    image: nginx:alpine\n    ports:\n    - containerPort: 80\nEOF\nclear\necho 'pod.yaml created. Run: kubectl apply -f pod.yaml to test.'",
                             "resources": [
                                 {"title": "Kubernetes Interactive Tutorial", "url": "https://kubernetes.io/docs/tutorials/"}
                             ],
@@ -115,7 +177,16 @@ class LearningPath:
                         {
                             "day": 8,
                             "title": "K8s Deployments & Services",
+                            "explanation": "Deployments manage replica counts and rolling updates, while Services provide stable IP addresses and load balancing to route traffic to dynamic Pods.",
                             "topics": ["ReplicaSets", "rolling updates", "ClusterIP, NodePort, and LoadBalancer services"],
+                            "commands": [
+                                {"cmd": "kubectl get deployments", "desc": "List deployments in the active namespace"},
+                                {"cmd": "kubectl scale deployment web --replicas=3", "desc": "Scale a deployment to 3 replica pods"},
+                                {"cmd": "kubectl expose deployment web --type=NodePort --port=80", "desc": "Expose web deployment via NodePort"},
+                                {"cmd": "kubectl rollout status deployment/web", "desc": "Check rolling update progress"}
+                            ],
+                            "killercoda_url": "https://killercoda.com/kubernetes",
+                            "setup_script": "cat << 'EOF' > deployment.yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: my-web\nspec:\n  replicas: 2\n  selector:\n    matchLabels:\n      app: web\n  template:\n    metadata:\n      labels:\n        app: web\n    spec:\n      containers:\n      - name: nginx\n        image: nginx:alpine\n        ports:\n        - containerPort: 80\nEOF\nclear\necho 'deployment.yaml generated! run kubectl apply -f deployment.yaml'",
                             "resources": [
                                 {"title": "Kubernetes Services Explained", "url": "https://kubernetes.io/docs/concepts/services-networking/service/"}
                             ],
@@ -126,7 +197,16 @@ class LearningPath:
                         {
                             "day": 9,
                             "title": "Infrastructure as Code with Terraform",
+                            "explanation": "Writing infrastructure as code enables auditing, versioning, and repeatable environments. Terraform tracks state to make changes incremental and safe.",
                             "topics": ["Declarative infra", "Terraform providers & state", "HCL variables & outputs"],
+                            "commands": [
+                                {"cmd": "terraform init", "desc": "Initialize backend and download required providers"},
+                                {"cmd": "terraform plan", "desc": "Show execution plan listing proposed resource changes"},
+                                {"cmd": "terraform apply -auto-approve", "desc": "Apply config changes automatically without confirmation prompt"},
+                                {"cmd": "terraform destroy", "desc": "Tear down and delete all resources managed by Terraform"}
+                            ],
+                            "killercoda_url": "https://killercoda.com/",
+                            "setup_script": "mkdir -p terraform-demo && cd terraform-demo\ncat << 'EOF' > main.tf\nterraform {\n  required_providers {\n    local = {\n      source  = \"hashicorp/local\"\n      version = \"~> 2.0\"\n    }\n  }\n}\nresource \"local_file\" \"welcome\" {\n  filename = \"${path.module}/welcome.txt\"\n  content  = \"Welcome to Terraform Practice on KillerCoda!\"\n}\nEOF\nclear\necho 'Terraform configuration main.tf generated inside terraform-demo/'",
                             "resources": [
                                 {"title": "Terraform HashiCorp Learn", "url": "https://learn.hashicorp.com/terraform"}
                             ],
@@ -143,7 +223,16 @@ class LearningPath:
                         {
                             "day": 10,
                             "title": "DevOps Interview Q&A & System Design",
+                            "explanation": "Redundant architectures, horizontal scaling, and backup policies form the basis of DevOps system design. Practice articulating these trade-offs clearly.",
                             "topics": ["DevOps lifecycle", "troubleshooting exercises", "high availability designs"],
+                            "commands": [
+                                {"cmd": "uptime", "desc": "Show how long the system has been running and load averages"},
+                                {"cmd": "df -h", "desc": "Display disk space usage in human-readable format"},
+                                {"cmd": "free -h", "desc": "Check memory statistics and swap utilization"},
+                                {"cmd": "journalctl -xe", "desc": "View kernel and system daemon logs with explanations"}
+                            ],
+                            "killercoda_url": "https://killercoda.com/",
+                            "setup_script": "echo 'Simulating high-memory load tasks...' && free -h",
                             "resources": [
                                 {"title": "DevOps Interview Questions Guide", "url": "https://github.com/bregman-arie/devops-exercises"}
                             ],
@@ -186,7 +275,11 @@ class LearningPath:
             f"        {{\n"
             f"          \"day\": 1,\n"
             f"          \"title\": \"Daily topic title\",\n"
+            f"          \"explanation\": \"2-3 sentences of why this day's topic matters\",\n"
             f"          \"topics\": [\"topic 1\", \"topic 2\"],\n"
+            f"          \"commands\": [{{\"cmd\": \"ls -la\", \"desc\": \"Brief description of what cmd does\"}}],\n"
+            f"          \"killercoda_url\": \"https://killercoda.com/... direct scenario link or main site\",\n"
+            f"          \"setup_script\": \"multiline bash script setup string\",\n"
             f"          \"resources\": [{{\"title\": \"resource name\", \"url\": \"http... or type description\"}}],\n"
             f"          \"tasks\": [\"task 1\", \"task 2\"],\n"
             f"          \"estimated_time\": 60,\n"

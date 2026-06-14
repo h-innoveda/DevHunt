@@ -1,77 +1,148 @@
 {
-    "goal": "Forward Deploy Engineer",
-    "current_day": 2,
+    "goal": "Become a proficient DevOps Engineer with strong skills in Linux, Docker, Kubernetes, and CI/CD.",
+    "current_day": 1,
     "phases": [
         {
-            "title": "Phase 1: Foundations",
-            "description": "Master the command line, version control, and core networking.",
+            "title": "Phase 1: Linux & Git Foundations for DevOps",
+            "description": "This phase solidifies essential Linux command-line skills and advanced Git practices crucial for any DevOps role, ensuring a strong base for subsequent topics.",
             "days": [
                 {
                     "day": 1,
-                    "title": "Linux Commands & Scripting",
+                    "title": "Advanced Linux Command-Line & Filesystem",
+                    "explanation": "Mastering the Linux command line is fundamental for managing servers, automating tasks, and interacting with containerized environments. Understanding filesystem navigation and manipulation is key to efficient operations.",
                     "topics": [
-                        "CLI navigation",
-                        "file permissions",
-                        "pipes & redirects",
-                        "basic bash scripts"
+                        "Advanced `find` and `grep` usage",
+                        "Piping and redirection (`|`, `>`, `>>`, `2>&1`)",
+                        "Process management (`ps`, `top`, `kill`)",
+                        "Disk usage analysis (`df`, `du`)"
                     ],
-                    "resources": [
+                    "commands": [
                         {
-                            "title": "Linux Journey",
-                            "url": "https://linuxjourney.com/"
+                            "cmd": "find . -type f -name '*.log' -exec ls -lh {} \\;",
+                            "desc": "Finds all '.log' files and lists them with long format"
                         },
                         {
-                            "title": "Bash Scripting Cheat Sheet",
-                            "url": "https://devhints.io/bash"
+                            "cmd": "ps aux | grep nginx",
+                            "desc": "Lists all processes and filters for 'nginx'"
+                        },
+                        {
+                            "cmd": "du -sh /var/log",
+                            "desc": "Shows the total size of the /var/log directory"
+                        }
+                    ],
+                    "killercoda_url": "https://killercoda.com/playgrounds/scenario/ubuntu",
+                    "setup_script": "# Create some dummy files for exercises\nmkdir -p ~/test_dir/sub_dir\necho 'line1\\nline2 error\\nline3' > ~/test_dir/file1.txt\necho 'lineA\\nlineB warn\\nlineC' > ~/test_dir/sub_dir/file2.log\necho 'another log' > ~/test_dir/file3.log",
+                    "resources": [
+                        {
+                            "title": "Linux Command Line Cheatsheet",
+                            "url": "https://www.ostechnix.com/wp-content/uploads/2016/11/Linux-commands-cheat-sheet.pdf"
+                        },
+                        {
+                            "title": "Mastering find command",
+                            "url": "https://www.linode.com/docs/guides/how-to-use-find-command-on-linux/"
                         }
                     ],
                     "tasks": [
-                        "Write a script to automate log compression",
-                        "Configure user groups and permissions"
+                        "Practice using `find` to locate specific files by name, type, and size.",
+                        "Use `grep` with regular expressions to search for patterns in log files.",
+                        "Monitor system processes and understand how to terminate them safely."
                     ],
                     "estimated_time": 60,
-                    "status": "completed"
+                    "status": "pending"
                 },
                 {
                     "day": 2,
-                    "title": "Git & Collaborative Workflows",
+                    "title": "Linux Permissions, Users & Basic Networking",
+                    "explanation": "Understanding user and file permissions is vital for security and access control in server environments. Basic networking commands help diagnose connectivity issues and manage network interfaces, essential for distributed systems.",
                     "topics": [
-                        "Git branching",
-                        "rebase vs merge",
-                        "resolving conflicts",
-                        "GitHub Actions basics"
+                        "File permissions (`chmod`, `chown`)",
+                        "User and group management (`useradd`, `usermod`, `groupadd`)",
+                        "SSH key-based authentication",
+                        "Basic networking (`ip`, `netstat`, `ping`, `curl`)"
                     ],
+                    "commands": [
+                        {
+                            "cmd": "chmod 755 myscript.sh",
+                            "desc": "Sets read/write/execute for owner, read/execute for group and others"
+                        },
+                        {
+                            "cmd": "sudo useradd -m newuser",
+                            "desc": "Creates a new user with a home directory"
+                        },
+                        {
+                            "cmd": "ip a",
+                            "desc": "Displays network interface information"
+                        },
+                        {
+                            "cmd": "curl -I google.com",
+                            "desc": "Sends an HTTP HEAD request to google.com"
+                        }
+                    ],
+                    "killercoda_url": "https://killercoda.com/playgrounds/scenario/ubuntu",
+                    "setup_script": "# Create a dummy file and directory for permission exercises\ntouch ~/test_file.txt\nmkdir ~/test_dir_perms\n# Ensure you have sudo access for user management if performing locally",
                     "resources": [
                         {
-                            "title": "Git Branching Game",
-                            "url": "https://learngitbranching.js.org/"
+                            "title": "Linux File Permissions Explained",
+                            "url": "https://www.linux.com/training/understanding-linux-file-permissions/"
+                        },
+                        {
+                            "title": "Basic Networking Commands",
+                            "url": "https://www.geeksforgeeks.org/linux-networking-commands/"
                         }
                     ],
                     "tasks": [
-                        "Create a repo, create conflict, merge and resolve it",
-                        "Setup a simple pre-commit hook"
+                        "Experiment with `chmod` and `chown` to change file and directory permissions.",
+                        "Practice creating a new user and assigning them to a group.",
+                        "Use `ping`, `ip`, and `curl` to check network connectivity and IP configuration."
                     ],
                     "estimated_time": 60,
                     "status": "pending"
                 },
                 {
                     "day": 3,
-                    "title": "DevOps Networking Essentials",
+                    "title": "Git Advanced Concepts & Branching Strategies",
+                    "explanation": "Git is the backbone of modern software development and DevOps. Beyond basic commits, understanding advanced branching, merging, and collaboration workflows is crucial for managing code in teams and CI/CD pipelines.",
                     "topics": [
-                        "TCP/IP stack",
-                        "DNS resolution",
-                        "HTTP/HTTPS protocols",
-                        "Load Balancers"
+                        "Branching and merging (`git branch`, `git merge`)",
+                        "Rebasing (`git rebase`)",
+                        "Stashing changes (`git stash`)",
+                        "Resolving merge conflicts",
+                        "Gitflow workflow overview"
                     ],
+                    "commands": [
+                        {
+                            "cmd": "git checkout -b feature/new-feature",
+                            "desc": "Creates and switches to a new branch"
+                        },
+                        {
+                            "cmd": "git merge main",
+                            "desc": "Merges the 'main' branch into the current branch"
+                        },
+                        {
+                            "cmd": "git rebase main",
+                            "desc": "Rebases the current branch onto 'main'"
+                        },
+                        {
+                            "cmd": "git stash",
+                            "desc": "Temporarily saves uncommitted changes"
+                        }
+                    ],
+                    "killercoda_url": "https://killercoda.com/playgrounds/scenario/git",
+                    "setup_script": "git init my_repo\ncd my_repo\necho 'initial content' > file1.txt\ngit add .\ngit commit -m 'Initial commit'",
                     "resources": [
                         {
-                            "title": "DNS in One Picture",
-                            "url": "https://dnsimple.com/how-dns-works"
+                            "title": "Pro Git Book (free online)",
+                            "url": "https://git-scm.com/book/en/v2"
+                        },
+                        {
+                            "title": "Git Branching Strategies",
+                            "url": "https://www.atlassian.com/git/tutorials/comparing-workflows"
                         }
                     ],
                     "tasks": [
-                        "Dig DNS records for a domain",
-                        "Run a local python server and map traffic"
+                        "Create a new branch, make changes, commit, and then merge it back to `main`.",
+                        "Experiment with `git stash` to temporarily save and reapply changes.",
+                        "Practice resolving a simple merge conflict."
                     ],
                     "estimated_time": 60,
                     "status": "pending"
@@ -79,167 +150,511 @@
             ]
         },
         {
-            "title": "Phase 2: Containerization & Automation",
-            "description": "Learn to package applications and automate server setup.",
+            "title": "Phase 2: Docker - Containerization Fundamentals",
+            "description": "This phase introduces Docker, the leading containerization platform. You'll learn to build, run, and manage containers, understanding the core concepts vital for modern application deployment.",
             "days": [
                 {
                     "day": 4,
-                    "title": "Docker Core Concepts",
+                    "title": "Docker Fundamentals: Images & Containers",
+                    "explanation": "Docker revolutionizes how applications are packaged and deployed by encapsulating them into isolated containers. Understanding images and containers is the first step to leveraging this powerful technology for consistent environments.",
                     "topics": [
-                        "Docker images vs containers",
-                        "Dockerfile optimization",
-                        "Docker volumes & networking"
+                        "What is Docker?",
+                        "Containers vs. Virtual Machines",
+                        "Running and stopping containers (`docker run`, `docker ps`, `docker stop`)",
+                        "Docker Images (`docker pull`, `docker images`)"
                     ],
+                    "commands": [
+                        {
+                            "cmd": "docker run -d -p 80:80 nginx",
+                            "desc": "Runs an Nginx container in detached mode, mapping port 80"
+                        },
+                        {
+                            "cmd": "docker ps",
+                            "desc": "Lists currently running containers"
+                        },
+                        {
+                            "cmd": "docker stop <container_id>",
+                            "desc": "Stops a running container"
+                        },
+                        {
+                            "cmd": "docker pull ubuntu:latest",
+                            "desc": "Pulls the latest Ubuntu image"
+                        }
+                    ],
+                    "killercoda_url": "https://killercoda.com/docker",
+                    "setup_script": "# Docker is typically pre-installed on Killercoda scenarios",
                     "resources": [
                         {
-                            "title": "Docker Documentation Guide",
+                            "title": "Docker Official Documentation - Get Started",
                             "url": "https://docs.docker.com/get-started/"
+                        },
+                        {
+                            "title": "What is Docker?",
+                            "url": "https://www.docker.com/resources/what-container/"
                         }
                     ],
                     "tasks": [
-                        "Write a multi-stage Dockerfile for a Node/Python app",
-                        "Mount database volume locally"
+                        "Run a simple Nginx container and access it from your browser (if using a local setup).",
+                        "Explore various `docker run` options, including detached mode and port mapping.",
+                        "Inspect container logs (`docker logs`) and processes (`docker top`)."
                     ],
-                    "estimated_time": 90,
+                    "estimated_time": 60,
                     "status": "pending"
                 },
                 {
                     "day": 5,
-                    "title": "Docker Compose",
+                    "title": "Dockerfile & Building Custom Images",
+                    "explanation": "Dockerfiles are blueprints for creating custom Docker images, enabling consistent and reproducible builds of your applications. Mastering Dockerfile syntax is crucial for packaging your own software effectively.",
                     "topics": [
-                        "Multi-container orchestration",
-                        "compose environment files",
-                        "service dependencies"
+                        "Dockerfile syntax (`FROM`, `RUN`, `COPY`, `CMD`, `EXPOSE`)",
+                        "Building images (`docker build`)",
+                        "Image layers and caching",
+                        "Best practices for Dockerfiles"
                     ],
+                    "commands": [
+                        {
+                            "cmd": "docker build -t my-app:1.0 .",
+                            "desc": "Builds an image from the Dockerfile in the current directory"
+                        },
+                        {
+                            "cmd": "docker run my-app:1.0",
+                            "desc": "Runs a container from your custom image"
+                        },
+                        {
+                            "cmd": "docker history my-app:1.0",
+                            "desc": "Shows the layers of an image"
+                        }
+                    ],
+                    "killercoda_url": "https://killercoda.com/docker/scenario/dockerfile-basics",
+                    "setup_script": "mkdir my_docker_app\ncd my_docker_app\necho 'FROM alpine:latest' > Dockerfile\necho 'CMD echo \"Hello from Docker!\"' >> Dockerfile",
                     "resources": [
                         {
-                            "title": "Awesome Docker Compose Templates",
-                            "url": "https://github.com/docker/awesome-compose"
+                            "title": "Dockerfile reference",
+                            "url": "https://docs.docker.com/engine/reference/builder/"
+                        },
+                        {
+                            "title": "Best practices for writing Dockerfiles",
+                            "url": "https://docs.docker.com/develop/develop-images/dockerfile_best-practices/"
                         }
                     ],
                     "tasks": [
-                        "Spin up a Wordpress + MySQL stack using Compose",
-                        "Define healthchecks in Compose file"
+                        "Create a simple Dockerfile to package a Python 'Hello World' script.",
+                        "Build your custom image and run a container from it.",
+                        "Experiment with different base images (e.g., `alpine`, `ubuntu`)."
                     ],
-                    "estimated_time": 90,
+                    "estimated_time": 60,
                     "status": "pending"
                 },
                 {
                     "day": 6,
-                    "title": "CI/CD & Jenkins/GitHub Actions",
+                    "title": "Docker Networking & Volumes",
+                    "explanation": "Containers need to communicate with each other and persist data. Docker networking allows containers to form isolated networks, while volumes provide a way to store and share data beyond the container's lifecycle, ensuring data integrity.",
                     "topics": [
-                        "CI/CD pipelines",
-                        "build automation",
-                        "declarative syntax",
-                        "artifact storage"
+                        "Container networking modes (bridge, host, none)",
+                        "User-defined bridge networks",
+                        "Docker volumes (`docker volume create`, `-v` flag)",
+                        "Bind mounts vs. volumes"
                     ],
+                    "commands": [
+                        {
+                            "cmd": "docker network create my-net",
+                            "desc": "Creates a new bridge network"
+                        },
+                        {
+                            "cmd": "docker run --network my-net --name webapp nginx",
+                            "desc": "Runs Nginx in the 'my-net' network"
+                        },
+                        {
+                            "cmd": "docker volume create my-data",
+                            "desc": "Creates a named Docker volume"
+                        },
+                        {
+                            "cmd": "docker run -v my-data:/app/data alpine sh -c 'echo \"Hello\" > /app/data/output.txt'",
+                            "desc": "Runs a container, mounting a volume, and writes data to it"
+                        }
+                    ],
+                    "killercoda_url": "https://killercoda.com/docker/scenario/docker-volumes",
+                    "setup_script": "# No specific setup needed, will create resources on the fly",
                     "resources": [
                         {
-                            "title": "GitHub Actions Docs",
-                            "url": "https://docs.github.com/en/actions"
+                            "title": "Docker networking overview",
+                            "url": "https://docs.docker.com/network/"
+                        },
+                        {
+                            "title": "Manage data in Docker",
+                            "url": "https://docs.docker.com/storage/"
                         }
                     ],
                     "tasks": [
-                        "Setup GitHub Action to run linter on git push",
-                        "Build and push docker image to DockerHub automatically"
+                        "Create a custom Docker network and run two containers in it, making them communicate.",
+                        "Create a named Docker volume, write data into it from a container, and verify persistence.",
+                        "Understand the difference between bind mounts and Docker volumes and when to use each."
                     ],
-                    "estimated_time": 120,
+                    "estimated_time": 60,
+                    "status": "pending"
+                },
+                {
+                    "day": 7,
+                    "title": "Docker Compose - Multi-Container Applications",
+                    "explanation": "Real-world applications often consist of multiple interconnected services (e.g., web server, database). Docker Compose allows you to define and run multi-container Docker applications with a single YAML file and a single command, simplifying complex setups.",
+                    "topics": [
+                        "Introduction to `docker-compose.yml`",
+                        "Defining services, networks, and volumes",
+                        "Running and stopping multi-container apps (`docker-compose up`, `docker-compose down`)",
+                        "Environment variables and secrets in Compose"
+                    ],
+                    "commands": [
+                        {
+                            "cmd": "docker-compose up -d",
+                            "desc": "Starts all services defined in docker-compose.yml in detached mode"
+                        },
+                        {
+                            "cmd": "docker-compose ps",
+                            "desc": "Lists services run by Docker Compose"
+                        },
+                        {
+                            "cmd": "docker-compose down",
+                            "desc": "Stops and removes containers, networks, and volumes defined in Compose file"
+                        },
+                        {
+                            "cmd": "docker-compose exec webapp bash",
+                            "desc": "Executes a command inside a running service container"
+                        }
+                    ],
+                    "killercoda_url": "https://killercoda.com/docker/scenario/docker-compose-basic",
+                    "setup_script": "mkdir my_compose_app\ncd my_compose_app\necho 'version: \"3.8\"' > docker-compose.yml\necho 'services:' >> docker-compose.yml\necho '  web:' >> docker-compose.yml\necho '    image: nginx' >> docker-compose.yml\necho '    ports:' >> docker-compose.yml\necho '      - \"80:80\"' >> docker-compose.yml",
+                    "resources": [
+                        {
+                            "title": "Docker Compose overview",
+                            "url": "https://docs.docker.com/compose/"
+                        },
+                        {
+                            "title": "Compose file version 3 reference",
+                            "url": "https://docs.docker.com/compose/compose-file/"
+                        }
+                    ],
+                    "tasks": [
+                        "Create a `docker-compose.yml` file to run a web service (Nginx) and a simple database (e.g., Redis).",
+                        "Start, stop, and restart the multi-container application using `docker-compose` commands.",
+                        "Understand how services can communicate within a Compose setup."
+                    ],
+                    "estimated_time": 60,
                     "status": "pending"
                 }
             ]
         },
         {
-            "title": "Phase 3: Orchestration & Infrastructure",
-            "description": "Learn production grade systems scaling and IaC.",
+            "title": "Phase 3: Kubernetes - Container Orchestration",
+            "description": "This phase delves into Kubernetes, the industry standard for orchestrating containerized applications. You'll learn how to deploy, scale, and manage applications across clusters, moving beyond single-machine Docker deployments.",
             "days": [
                 {
-                    "day": 7,
-                    "title": "Kubernetes Architecture & Pods",
-                    "topics": [
-                        "Control plane components",
-                        "kubelet & kube-proxy",
-                        "Pods and namespaces"
-                    ],
-                    "resources": [
-                        {
-                            "title": "Kubernetes Interactive Tutorial",
-                            "url": "https://kubernetes.io/docs/tutorials/"
-                        }
-                    ],
-                    "tasks": [
-                        "Install Minikube or Kind",
-                        "Deploy an Nginx Pod via YAML configuration"
-                    ],
-                    "estimated_time": 120,
-                    "status": "pending"
-                },
-                {
                     "day": 8,
-                    "title": "K8s Deployments & Services",
+                    "title": "Kubernetes Introduction & Minikube Setup",
+                    "explanation": "Kubernetes automates the deployment, scaling, and management of containerized applications. Starting with Minikube provides a local single-node Kubernetes cluster for hands-on learning without needing a full cloud setup.",
                     "topics": [
-                        "ReplicaSets",
-                        "rolling updates",
-                        "ClusterIP, NodePort, and LoadBalancer services"
+                        "What is Kubernetes? Why do we need it?",
+                        "Kubernetes architecture (Master/Worker Nodes, Pods, Services, Deployments)",
+                        "Installing Minikube and `kubectl`",
+                        "Basic `kubectl` commands (`kubectl get nodes`, `kubectl cluster-info`)"
                     ],
+                    "commands": [
+                        {
+                            "cmd": "minikube start",
+                            "desc": "Starts the Minikube local Kubernetes cluster"
+                        },
+                        {
+                            "cmd": "kubectl get nodes",
+                            "desc": "Lists the nodes in the cluster"
+                        },
+                        {
+                            "cmd": "kubectl cluster-info",
+                            "desc": "Displays information about the cluster"
+                        },
+                        {
+                            "cmd": "minikube status",
+                            "desc": "Checks the status of the Minikube cluster"
+                        }
+                    ],
+                    "killercoda_url": "https://killercoda.com/kubernetes/scenario/minikube",
+                    "setup_script": "# Minikube and kubectl are usually pre-installed in Killercoda Kubernetes scenarios.",
                     "resources": [
                         {
-                            "title": "Kubernetes Services Explained",
-                            "url": "https://kubernetes.io/docs/concepts/services-networking/service/"
+                            "title": "Kubernetes Concepts",
+                            "url": "https://kubernetes.io/docs/concepts/"
+                        },
+                        {
+                            "title": "Minikube documentation",
+                            "url": "https://minikube.sigs.k8s.io/docs/"
                         }
                     ],
                     "tasks": [
-                        "Create a Deployment with 3 replicas",
-                        "Expose deployment using ClusterIP and port-forward to test"
+                        "Start your Minikube cluster and verify its status.",
+                        "Use `kubectl` to interact with the cluster and view basic information.",
+                        "Understand the roles of master and worker nodes in a Kubernetes cluster."
                     ],
-                    "estimated_time": 120,
+                    "estimated_time": 60,
                     "status": "pending"
                 },
                 {
                     "day": 9,
-                    "title": "Infrastructure as Code with Terraform",
+                    "title": "Pods & Deployments",
+                    "explanation": "Pods are the smallest deployable units in Kubernetes, encapsulating one or more containers. Deployments manage the desired state of Pods, enabling declarative updates and ensuring high availability for your applications.",
                     "topics": [
-                        "Declarative infra",
-                        "Terraform providers & state",
-                        "HCL variables & outputs"
+                        "Pods: definition and lifecycle",
+                        "YAML for Kubernetes manifests",
+                        "Deployments: creating, updating, and rolling back",
+                        "Labels and Selectors"
                     ],
+                    "commands": [
+                        {
+                            "cmd": "kubectl apply -f my-pod.yaml",
+                            "desc": "Creates/updates resources defined in a YAML file"
+                        },
+                        {
+                            "cmd": "kubectl get pods",
+                            "desc": "Lists all pods in the current namespace"
+                        },
+                        {
+                            "cmd": "kubectl describe pod <pod_name>",
+                            "desc": "Shows detailed information about a specific pod"
+                        },
+                        {
+                            "cmd": "kubectl logs <pod_name>",
+                            "desc": "Fetches logs for a pod"
+                        }
+                    ],
+                    "killercoda_url": "https://killercoda.com/kubernetes/scenario/deployments-pods",
+                    "setup_script": "cat <<EOF > my-deployment.yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: nginx-deployment\nspec:\n  selector:\n    matchLabels:\n      app: nginx\n  replicas: 2\n  template:\n    metadata:\n      labels:\n        app: nginx\n    spec:\n      containers:\n      - name: nginx\n        image: nginx:latest\n        ports:\n        - containerPort: 80\nEOF",
                     "resources": [
                         {
-                            "title": "Terraform HashiCorp Learn",
-                            "url": "https://learn.hashicorp.com/terraform"
+                            "title": "Kubernetes Pods",
+                            "url": "https://kubernetes.io/docs/concepts/workloads/pods/"
+                        },
+                        {
+                            "title": "Kubernetes Deployments",
+                            "url": "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/"
                         }
                     ],
                     "tasks": [
-                        "Deploy a local Docker container using Terraform",
-                        "Configure state locking or local file backend"
+                        "Create a YAML manifest for a simple Nginx deployment with 2 replicas.",
+                        "Deploy the application using `kubectl apply` and verify the pods are running.",
+                        "Practice scaling the deployment up and down using `kubectl scale`."
                     ],
-                    "estimated_time": 90,
+                    "estimated_time": 60,
+                    "status": "pending"
+                },
+                {
+                    "day": 10,
+                    "title": "Services & Basic Ingress (Exposing Applications)",
+                    "explanation": "Services provide stable network endpoints for your Pods, abstracting away their dynamic nature. Ingress manages external access to services within a cluster, allowing HTTP/S routing from outside the cluster to internal services.",
+                    "topics": [
+                        "Kubernetes Services: ClusterIP, NodePort, LoadBalancer",
+                        "Exposing deployments with Services",
+                        "Basic Ingress controller and Ingress resource",
+                        "Accessing applications via Minikube (`minikube service`)"
+                    ],
+                    "commands": [
+                        {
+                            "cmd": "kubectl expose deployment nginx-deployment --port=80 --type=NodePort",
+                            "desc": "Creates a NodePort service for the Nginx deployment"
+                        },
+                        {
+                            "cmd": "kubectl get services",
+                            "desc": "Lists all services"
+                        },
+                        {
+                            "cmd": "minikube service nginx-deployment --url",
+                            "desc": "Gets the URL to access the service via Minikube"
+                        }
+                    ],
+                    "killercoda_url": "https://killercoda.com/kubernetes/scenario/services-and-ingress",
+                    "setup_script": "cat <<EOF > my-service.yaml\napiVersion: v1\nkind: Service\nmetadata:\n  name: my-nginx-service\nspec:\n  selector:\n    app: nginx\n  ports:\n    - protocol: TCP\n      port: 80\n      targetPort: 80\n  type: NodePort # Or ClusterIP, LoadBalancer\nEOF\nkubectl apply -f my-deployment.yaml # Assuming deployment from Day 9 is present",
+                    "resources": [
+                        {
+                            "title": "Kubernetes Services",
+                            "url": "https://kubernetes.io/docs/concepts/services-networking/service/"
+                        },
+                        {
+                            "title": "Kubernetes Ingress",
+                            "url": "https://kubernetes.io/docs/concepts/services-networking/ingress/"
+                        }
+                    ],
+                    "tasks": [
+                        "Create a `NodePort` service for your Nginx deployment.",
+                        "Access the Nginx application using `minikube service`.",
+                        "Understand when to use `ClusterIP`, `NodePort`, and `LoadBalancer` service types."
+                    ],
+                    "estimated_time": 60,
+                    "status": "pending"
+                },
+                {
+                    "day": 11,
+                    "title": "ConfigMaps & Secrets (Configuration Management)",
+                    "explanation": "ConfigMaps and Secrets are Kubernetes objects that allow you to decouple configuration data and sensitive information from your application code. This improves portability, security, and maintainability of your deployments.",
+                    "topics": [
+                        "ConfigMaps for non-sensitive configuration data",
+                        "Secrets for sensitive data (e.g., passwords, API keys)",
+                        "Mounting ConfigMaps and Secrets as files or environment variables",
+                        "Best practices for managing configuration"
+                    ],
+                    "commands": [
+                        {
+                            "cmd": "kubectl create configmap my-config --from-literal=config_key=config_value",
+                            "desc": "Creates a ConfigMap from a literal value"
+                        },
+                        {
+                            "cmd": "kubectl create secret generic my-secret --from-literal=api_key=my_super_secret",
+                            "desc": "Creates a generic Secret from a literal value"
+                        },
+                        {
+                            "cmd": "kubectl get configmaps",
+                            "desc": "Lists ConfigMaps"
+                        },
+                        {
+                            "cmd": "kubectl describe secret my-secret",
+                            "desc": "Describes a secret (value is base64 encoded)"
+                        }
+                    ],
+                    "killercoda_url": "https://killercoda.com/kubernetes/scenario/configmaps-secrets",
+                    "setup_script": "cat <<EOF > pod-with-config.yaml\napiVersion: v1\nkind: Pod\nmetadata:\n  name: config-pod\nspec:\n  containers:\n    - name: my-container\n      image: busybox\n      command: [\"sh\", \"-c\", \"echo \\$MY_ENV_VAR && sleep 3600\"]\n      env:\n        - name: MY_ENV_VAR\n          valueFrom:\n            configMapKeyRef:\n              name: my-config\n              key: config_key\nEOF",
+                    "resources": [
+                        {
+                            "title": "Kubernetes ConfigMaps",
+                            "url": "https://kubernetes.io/docs/concepts/configuration/configmap/"
+                        },
+                        {
+                            "title": "Kubernetes Secrets",
+                            "url": "https://kubernetes.io/docs/concepts/configuration/secret/"
+                        }
+                    ],
+                    "tasks": [
+                        "Create a ConfigMap and inject its data into a Pod as an environment variable.",
+                        "Create a Secret and mount it as a file inside a Pod.",
+                        "Understand why Secrets are base64 encoded, but not truly encrypted at rest by default."
+                    ],
+                    "estimated_time": 60,
                     "status": "pending"
                 }
             ]
         },
         {
-            "title": "Phase 4: Interview & Production Readiness",
-            "description": "Refine architectures and practice common DevOps interview topics.",
+            "title": "Phase 4: Automation & CI/CD Fundamentals",
+            "description": "This phase introduces fundamental concepts of automation using Ansible and the basics of Continuous Integration/Continuous Delivery (CI/CD) with a focus on GitHub Actions, essential for modern DevOps practices.",
             "days": [
                 {
-                    "day": 10,
-                    "title": "DevOps Interview Q&A & System Design",
+                    "day": 12,
+                    "title": "Introduction to Ansible (Basic Playbook)",
+                    "explanation": "Ansible is an open-source automation tool used for configuration management, application deployment, and task automation. Learning its declarative language allows for efficient and reproducible infrastructure management.",
                     "topics": [
-                        "DevOps lifecycle",
-                        "troubleshooting exercises",
-                        "high availability designs"
+                        "Ansible architecture (Control Node, Managed Nodes, Inventory)",
+                        "Writing a simple Ansible Playbook (YAML)",
+                        "Running ad-hoc commands with Ansible",
+                        "Common Ansible modules (e.g., `apt`, `yum`, `service`, `copy`)"
                     ],
+                    "commands": [
+                        {
+                            "cmd": "ansible all -m ping -i inventory.ini",
+                            "desc": "Pings all hosts in the inventory to check connectivity"
+                        },
+                        {
+                            "cmd": "ansible-playbook my_playbook.yaml -i inventory.ini",
+                            "desc": "Executes an Ansible playbook"
+                        }
+                    ],
+                    "killercoda_url": "https://killercoda.com/ansible",
+                    "setup_script": "echo '[local]' > inventory.ini\necho 'localhost ansible_connection=local' >> inventory.ini\n\ncat <<EOF > my_playbook.yaml\n- name: Install Nginx on localhost\n  hosts: local\n  become: yes\n  tasks:\n    - name: Update apt cache\n      apt: update_cache=yes\n    - name: Install Nginx\n      apt: name=nginx state=present\n    - name: Start Nginx service\n      service: name=nginx state=started\nEOF",
                     "resources": [
                         {
-                            "title": "DevOps Interview Questions Guide",
-                            "url": "https://github.com/bregman-arie/devops-exercises"
+                            "title": "Ansible Documentation - Getting Started",
+                            "url": "https://docs.ansible.com/ansible/latest/getting_started/index.html"
+                        },
+                        {
+                            "title": "Ansible 101 by Jeff Geerling",
+                            "url": "https://www.ansible.com/blog/ansible-101-learn-ansible-basics-in-5-minutes"
                         }
                     ],
                     "tasks": [
-                        "Architect a resilient three-tier web application",
-                        "Review 15 common interview scenarios"
+                        "Set up a basic Ansible inventory targeting your local machine.",
+                        "Write a playbook to install a package (e.g., `nginx`) on your local machine.",
+                        "Run the playbook and verify the installation."
                     ],
-                    "estimated_time": 120,
+                    "estimated_time": 60,
+                    "status": "pending"
+                },
+                {
+                    "day": 13,
+                    "title": "CI/CD Principles & GitHub Actions Intro",
+                    "explanation": "CI/CD (Continuous Integration/Continuous Delivery) is a methodology that automates software delivery. GitHub Actions provides a flexible and powerful way to build, test, and deploy code directly from your GitHub repository, making it an excellent starting point for CI/CD.",
+                    "topics": [
+                        "CI/CD concepts: integration, delivery, deployment",
+                        "GitHub Actions workflow structure (YAML)",
+                        "Events, jobs, steps, and actions",
+                        "Creating a simple 'Hello World' workflow"
+                    ],
+                    "commands": [
+                        {
+                            "cmd": "git push",
+                            "desc": "Triggers GitHub Actions workflow after committing and pushing changes"
+                        }
+                    ],
+                    "killercoda_url": "https://killercoda.com/github-actions/scenario/github-actions-intro",
+                    "setup_script": "mkdir -p .github/workflows\ncat <<EOF > .github/workflows/hello-world.yaml\nname: Hello World CI\n\non:\n  push:\n    branches:\n      - main\n\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - name: Checkout code\n        uses: actions/checkout@v3\n      - name: Run a one-line script\n        run: echo \"Hello, GitHub Actions!\"\n      - name: Run a multi-line script\n        run |\n          echo Add other actions to build, test, and deploy your project.\n          echo For example, you can use the setup-node action to set up a Node.js environment.\nEOF",
+                    "resources": [
+                        {
+                            "title": "What is CI/CD?",
+                            "url": "https://www.redhat.com/en/topics/devops/what-is-ci-cd"
+                        },
+                        {
+                            "title": "GitHub Actions Documentation",
+                            "url": "https://docs.github.com/en/actions"
+                        }
+                    ],
+                    "tasks": [
+                        "Create a new GitHub repository.",
+                        "Set up a basic GitHub Actions workflow that runs on push to `main` and simply prints a message.",
+                        "Push changes and observe the workflow execution in the GitHub Actions tab."
+                    ],
+                    "estimated_time": 60,
+                    "status": "pending"
+                },
+                {
+                    "day": 14,
+                    "title": "Basic Scripting for DevOps (Shell/Python)",
+                    "explanation": "Scripting is indispensable for automating repetitive tasks, gluing together tools, and creating custom solutions in a DevOps environment. Basic proficiency in shell scripting and Python allows for powerful automation.",
+                    "topics": [
+                        "Shell scripting basics (`bash`): variables, conditionals, loops",
+                        "Python scripting for automation: `os` module, `subprocess` module",
+                        "Error handling in scripts",
+                        "Using scripts in CI/CD pipelines"
+                    ],
+                    "commands": [
+                        {
+                            "cmd": "./myscript.sh",
+                            "desc": "Executes a shell script"
+                        },
+                        {
+                            "cmd": "python my_script.py",
+                            "desc": "Executes a Python script"
+                        }
+                    ],
+                    "killercoda_url": "https://killercoda.com/playgrounds/scenario/python",
+                    "setup_script": "cat <<EOF > myscript.sh\n#!/bin/bash\nNAME=\"World\"\nif [ -n \"$1\" ]; then\n  NAME=\"$1\"\nfi\necho \"Hello, $NAME from Bash!\"\nEOF\nchmod +x myscript.sh\n\ncat <<EOF > my_script.py\nimport sys\n\ndef greet(name=\"World\"):\n    print(f\"Hello, {name} from Python!\")\n\nif __name__ == \"__main__\":\n    if len(sys.argv) > 1:\n        greet(sys.argv[1])\n    else:\n        greet()\nEOF",
+                    "resources": [
+                        {
+                            "title": "Bash Scripting Tutorial",
+                            "url": "https://ryanstutorials.net/bash-scripting-tutorial/"
+                        },
+                        {
+                            "title": "Python for DevOps (real python)",
+                            "url": "https://realpython.com/python-for-devops/"
+                        }
+                    ],
+                    "tasks": [
+                        "Write a shell script that takes an argument and prints a personalized greeting.",
+                        "Write a Python script to perform a simple system command (e.g., list files in a directory).",
+                        "Consider how these scripts could be integrated into a GitHub Actions workflow."
+                    ],
+                    "estimated_time": 60,
                     "status": "pending"
                 }
             ]
