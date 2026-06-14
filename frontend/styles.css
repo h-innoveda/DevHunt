@@ -82,6 +82,7 @@ body.theme-devil {
   --amber: #fbbf24;
   --red: #f87171;
   --accent: #f4f4f5;
+  --accent-rgb: 244, 244, 245;
   --glow-green: none;
   --glow-cyan: none;
   --mono: 'JetBrains Mono', ui-monospace, monospace;
@@ -113,6 +114,22 @@ body.theme-devil .status-bar-bottom {
   background: #16161a !important;
   color: #f4f4f5 !important;
   border-top: 1px solid rgba(244, 244, 245, 0.15) !important;
+}
+
+body.theme-devil .dropdown-link:hover {
+  color: #121214 !important;
+}
+
+body.theme-devil .phase-badge {
+  color: #121214 !important;
+}
+
+body.theme-devil .target-day-badge {
+  color: #121214 !important;
+}
+
+body.theme-devil .chat-input .btn-primary {
+  color: #121214 !important;
 }
 
 

@@ -4661,9 +4661,9 @@ function drawDailyChart(canvasId, days, messages) {
   
   const isNeon = document.body.classList.contains('theme-neon');
   const isDevil = document.body.classList.contains('theme-devil');
-  const chartColor = isLight ? '#4f46e5' : (isNeon ? '#34d399' : (isDevil ? '#dc2626' : '#6366f1'));
-  const chartColorLight = isLight ? 'rgba(79, 70, 229, 0.15)' : (isNeon ? '#34d39933' : (isDevil ? 'rgba(220, 38, 38, 0.15)' : 'rgba(99, 102, 241, 0.15)'));
-  const chartLineColor = isLight ? '#4f46e5cc' : (isNeon ? '#34d399bb' : (isDevil ? '#dc2626cc' : '#6366f1cc'));
+  const chartColor = isLight ? '#4f46e5' : (isNeon ? '#34d399' : (isDevil ? '#f4f4f5' : '#6366f1'));
+  const chartColorLight = isLight ? 'rgba(79, 70, 229, 0.15)' : (isNeon ? '#34d39933' : (isDevil ? 'rgba(244, 244, 245, 0.15)' : 'rgba(99, 102, 241, 0.15)'));
+  const chartLineColor = isLight ? '#4f46e5cc' : (isNeon ? '#34d399bb' : (isDevil ? '#f4f4f5cc' : '#6366f1cc'));
 
   if (!messages.length || Math.max(...messages) === 0) {
     ctx.fillStyle = emptyColor;
@@ -4844,7 +4844,7 @@ async function loadTerminalStats() {
       '#6366f1', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#14b8a6', '#f43f5e'
     ];
     const STATS_PALETTE_DEVIL = [
-      '#dc2626', '#b91c1c', '#991b1b', '#7f1d1d', '#f87171', '#ef4444', '#fca5a5', '#fecdd3'
+      '#f4f4f5', '#e4e4e7', '#cbd5e1', '#94a3b8', '#64748b', '#475569', '#334155', '#1e293b'
     ];
 
     const palette = isLight ? STATS_PALETTE_LIGHT : (isNeon ? STATS_PALETTE_NEON : (isDevil ? STATS_PALETTE_DEVIL : STATS_PALETTE_SLATE));
@@ -4868,7 +4868,7 @@ async function loadTerminalStats() {
     const keyReqs = d.key_workload.map(k => k.requests);
     const KEY_COLORS = isLight 
       ? ['#4f46e5', '#10b981', '#f59e0b', '#8b5cf6'] 
-      : (isNeon ? ['#38bdf8', '#60a5fa', '#a78bfa', '#f472b6'] : (isDevil ? ['#dc2626', '#b91c1c', '#991b1b', '#fbbf24'] : ['#6366f1', '#10b981', '#f59e0b', '#8b5cf6']));
+      : (isNeon ? ['#38bdf8', '#60a5fa', '#a78bfa', '#f472b6'] : (isDevil ? ['#f4f4f5', '#cbd5e1', '#94a3b8', '#475569'] : ['#6366f1', '#10b981', '#f59e0b', '#8b5cf6']));
     drawBarChart('chart-keys', keyLabels, keyReqs, KEY_COLORS);
 
     const keyLegend = document.getElementById('key-legend');
@@ -4897,7 +4897,7 @@ async function loadTerminalStats() {
     const aiCount = d.role_split['assistant'] || 0;
     const donutColors = isLight 
       ? ['#10b981', '#4f46e5'] 
-      : (isNeon ? ['#34d399', '#38bdf8'] : (isDevil ? ['#dc2626', '#b91c1c'] : ['#10b981', '#6366f1']));
+      : (isNeon ? ['#34d399', '#38bdf8'] : (isDevil ? ['#f4f4f5', '#475569'] : ['#10b981', '#6366f1']));
     drawDonutChart('chart-role', [userCount, aiCount], ['User', 'AI'], donutColors);
     const roleLegend = document.getElementById('role-legend');
     if (roleLegend) {
