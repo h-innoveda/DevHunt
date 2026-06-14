@@ -64,6 +64,11 @@ DevHunt has transitioned to a professional, slate-gray IDE-like workspace with s
 
 ### 1. Multi-Theme Architecture
 * **Industrial Slate (Default)**: A premium, dark slate-gray design with clean blue accents, monospaced text, and subtle micro-animations. Bypasses background particle canvas updates when active to optimize CPU performance.
+* **Devil Version (Refined)**:
+  - Designed as a highly legible, dark charcoal layout featuring premium off-white/silver accents, replacing the legacy bright neon red highlights.
+  - The logo title text `DevHunt - Devil Version` in the topbar renders in clean white (`#f4f4f5`) instead of red.
+  - The bottom status bar uses a dark charcoal background (`#16161a`) with a subtle white top border.
+  - Integrates custom grayscale, silver, and slate grey charts (bar graphs, donut split charts, and activity line plots) in the Stats dashboard panel to eliminate red glare.
 * **Cyberpunk Neon**: The legacy neon-green/cyan theme with glows and active `#dragon-bg` canvas background loops.
 * **Minimalist Light (Polished)**:
   - Theme variables are tuned to use a premium Indigo accent (`#4f46e5`) instead of bright cyan.
