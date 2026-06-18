@@ -3,222 +3,330 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Platform: Windows | macOS | Linux](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
+[![Docker: Available](https://img.shields.io/badge/Docker-Available-2496ED.svg)](https://hub.docker.com/r/hitessolanki/dev-hunt)
 
-DevHunt is a local-first, self-hosted developer productivity workspace. Designed for absolute privacy, it combines **Streaming Chat**, a **Knowledge Base (RAG)**, **Quest Board (Todo Kanban)**, and a **Learning Path generator** into a single cohesive system powered by free-tier Gemini API keys and local embedding pipelines.
+**DevHunt** is a local-first, self-hosted developer productivity workspace. Designed for absolute privacy, it combines **Streaming Chat**, a **Knowledge Base (RAG)**, **Quest Board (Todo Kanban)**, and a **Learning Path generator** into a single cohesive system powered by free-tier Gemini API keys and local embedding pipelines.
 
-No subscriptions. No third-party data tracking. Everything is stored on your machine.
+> **No subscriptions. No third-party data tracking. Everything is stored on your machine.**
 
 ---
 
 ## 🚀 Key Features
 
-*   **🛠️ Self-Healing Setup**: Run a single command (`run.bat` or `run.sh`) to verify Python 3.10+, check virtual environment health (auto-rebuilds if broken), and use a fast dependency checker to skip installation checks if satisfied.
-*   **🖥️ Hunt Terminal CLI**: Run cross-platform shell commands, manage todos, test API keys, view memory, and check notifications via the `hunt` command-line utility directly in the browser.
-*   **🗺️ Interactive Roadmap Path & Quest Sync**: Generate custom learning roadmaps. Expand cards to view daily milestones, study resources, reference badges, and use the quick `+ Add Quest` shortcut to directly add tasks to your Quest Board.
-*   **🧠 Long-Term AI Memory**: Automatically aggregates and saves facts, user details, and preferences from conversation history to SQLite. View and edit facts directly on the settings page.
-*   **📡 System Messages & Git Auto-Updater**: Dedicated announcements tab that displays software updates, git pull releases, and local warnings. Automatically checks and pulls updates.
-*   **🔄 Intelligent Key Rotation**: Register multiple Gemini API keys. DevHunt performs round-robin rotation, handles 429 rate limit cooldowns, and bypasses faulty keys seamlessly.
-*   **🧠 Natural Quest Board & Assistant Redesign**: Manage tasks organically in chat. The AI assistant has a completely redesigned interface with asymmetric message bubbles, a rounded input pill, a clickable Day curriculum target card linked directly to the Hunt Path (with auto-expand/scroll/glow redirection), and custom styled Quick Quest checklists.
-*   **📚 Personal Knowledge Base & Analyst (RAG)**: Index notes, PDFs, or scrape URLs. Includes a **Split-Screen Document Analyst** side-by-side workspace inside the **Intel Vault** with source-grounded RAG chat sessions.
-*   **🌐 Upgraded URL Ingestion Scraper**: Scrape web documentation pages with protocol auto-prepending, customizable user-agent browser header masking, and self-signed SSL verification fallback bypasses.
-*   **📊 Comprehensive Activity Logging**: Every action (chat messages, terminal commands, Quest Board changes, startup checks) is logged to SQLite with level and category filters (`chat`, `todo`, `terminal`, `updates`, etc.) from a live developer logs dashboard.
-*   **🎮 Offline Game Arcade**: A local-first suite of developer-themed games (Git Commit Snake, Data Lane Runner, Terminal Decrypt, Hex Malware Sweeper) running on canvas with custom non-blocking overlays and unified keyboard event controls.
-*   **📐 Layout Polish & Sidebar Minimize**: Minimize the left navigation sidebar to an icon-only column via a settings toggle, top hamburger button, or global `Ctrl + B`/`Cmd + B` keyboard hotkey. Independently scrollable navigation list that pins Brand header and status footer. Duplicate top panel tabs bar is hidden (`display: none`) to maximize vertical code editing space.
-*   **⚙️ Feature Access Switches**: Enable/disable workspace modules (Music Player, Quest Board, Intel Vault, Doc Forensics, Game Arcade) with automatic homepage routing fallbacks.
-*   **💻 Integrated Workspace IDE & Editor**: Collapsible File Explorer tree (recursive scans filtering `.git`, `node_modules`, etc.). File Explorer automatically collapses on non-editor tabs. Features monospaced code editing pane with scroll-synchronized line numbers, multi-tab editing workspace (with local storage draft recovery every 4 seconds), context menus (create, rename, delete files/folders), document outlines (for JS, Py, HTML, MD), document indentation formatter (`Shift+Alt+F`), and floating Find & Replace. Easily mount local directories temporarily via the **Browser File System Access API** (`Ctrl+Alt+O` to open folder, `Ctrl+O` for file).
-*   **📟 Split-Screen Integrated Terminal**: Toggle an integrated bottom terminal panel inside the editor workspace (via header button or keyboard settings). Executes both built-in `hunt` commands and **native host system commands** (e.g. `npm`, `git`, `python`, `ipconfig`) using your host shell with synchronized CWD prompts.
-*   **🔌 Host CLI DevTerminal Launcher**: Connect to the running DevHunt backend terminal session directly from your host command line window by running `hunter -dt` (or `hunter.bat -dt` on Windows).
-*   **🎨 Multi-Theme System**: Instantly switch between the default **Industrial Slate** theme (professional dark slate-gray), the high-contrast **Minimalist Light** theme (polished with premium Indigo `#4f46e5` accents, white inputs, Indigo/gray chat bubbles, and white Kanban cards), the **Devil Version** theme (polished dark charcoal layout with premium off-white/silver accents, a dark charcoal status bar, and custom grayscale/silver canvas charts in the Stats dashboard), and the **Cyberpunk Neon** theme. Includes theme-aware canvas charts that auto-adjust grids, text, and colors, and client-side canvas loop suspension when dark/light themes are active to save CPU cycles.
-*   **🔤 Typography & UI Font Selection**: Customize the overall interface layout typography via the settings menu. Supports 8 beautiful Google Fonts (Inter, Outfit, Roboto, Fira Sans, IBM Plex Sans, Orbitron, Caveat, JetBrains Mono, or client OS System Default). Custom system instructions textareas automatically inherit the selected UI font family dynamically.
+- **🛠️ Self-Healing Setup** — Auto-verify Python, rebuild venv, skip dependency checks on re-runs
+- **🖥️ Hunt Terminal CLI** — Cross-platform shell commands, todo management, API testing
+- **🗺️ Interactive Learning Paths** — AI-generated learning roadmaps with daily milestones
+- **🧠 Long-Term Memory** — Consolidated facts & preferences from conversations to SQLite
+- **📡 Auto-Updater** — Git pull releases with announcements tab
+- **🔄 Key Rotation** — Multiple Gemini API keys with round-robin & rate-limit handling
+- **📚 Knowledge Base (RAG)** — Index PDFs/notes, split-screen document analysis
+- **🌐 URL Scraper** — Web documentation ingestion with SSL fallback
+- **📊 Activity Logging** — Comprehensive SQLite logs with filters (chat, terminal, todos)
+- **🎮 Game Arcade** — Developer-themed offline games with canvas rendering
+- **📐 Layout Customization** — Collapsible sidebar, tabbed editing, code formatting
+- **🎨 Multi-Theme** — Industrial Slate, Minimalist Light, Devil Version, Cyberpunk Neon
+- **🔤 Custom Fonts** — 8 Google Fonts with dynamic UI typography selection
 
 ---
 
-## 🛠️ System Requirements
+## 📋 System Requirements
 
-Before setting up DevHunt, ensure your local environment satisfies the following:
+### Required
+- **OS**: Windows 10/11, macOS Big Sur+, or Ubuntu 20.04+
+- **Python**: 3.10 or higher
+- **Internet**: Required for Gemini API communication
+- **Browser**: Chrome, Edge, Firefox, or Safari
 
-### Software Requirements
-*   **OS**: Windows 10/11, macOS Big Sur+, or Ubuntu 20.04+
-*   **Python**: Version `3.10` or higher
-*   **Internet Connection**: Required for initial setup and communicating with the Gemini API.
-*   **Web Browser**: Chrome, Edge, Firefox, or Safari (launcher scripts open your default browser).
+### Optional (for Docker)
+- **Docker**: Latest version (for containerized deployment)
+- **Docker Compose**: For multi-container orchestration
 
 ---
 
-## 🔌 Setup & Quickstart
+## ⚡ Quick Start
 
-DevHunt is designed to require zero manual Python environment configuration.
+### Option A: Native Installation (Development)
 
-### The Easiest Way: Automated Launchers
+1. **Clone Repository**
+   ```bash
+   git clone https://github.com/h-innoveda/DevHunt.git
+   cd web-hunt
+   ```
 
-1.  **Clone the Repository**:
-    ```bash
-    git clone https://github.com/hitehsolanki2006/DevHunt.git
-    cd Local-AI
-    ```
+2. **Run Launcher**
+   
+   **Windows:**
+   ```cmd
+   run.bat
+   ```
+   
+   **macOS/Linux:**
+   ```bash
+   chmod +x run.sh && ./run.sh
+   ```
 
-2.  **Run the Launcher**:
-    *   **Windows**: Double-click `run.bat` or run:
-        ```cmd
-        run.bat
-        ```
-    *   **macOS / Linux**: Set execute permissions and run:
-        ```bash
-        chmod +x run.sh
-        ./run.sh
-        ```
+3. **Register API Key**
+   - Get free key: [Google AI Studio](https://aistudio.google.com/app/apikey)
+   - Navigate to Settings → Register Key
 
-    > [!NOTE]
-    > **What the Launcher Does:**
-    > 1. Checks if Python 3.10+ is installed and present in your system PATH (outputs helper guide and official links if missing).
-    > 2. Validates existing virtual environment health (automatically deletes and recreates `backend/venv` if broken or corrupted).
-    > 3. Runs a fast dependency checker (`check_requirements.py`) to skip pip install on subsequent launches.
-    > 4. Installs and upgrades all required modules from `backend/requirements.txt` with a pip upgrade fail-safe.
-    > 5. Launches the Flask backend server and automatically opens DevHunt in your default browser.
+4. **Connect CLI (Optional)**
+   ```cmd
+   hunter.bat -dt     # Windows
+   ./hunter -dt       # macOS/Linux
+   ```
 
-3.  **Register your Gemini API Key**:
-    *   Get a free key from the [Google AI Studio Console](https://aistudio.google.com/app/apikey).
-    *   Open the DevHunt dashboard at `http://localhost:5000`.
-    *   Navigate to **Settings & Nodes** in the sidebar, paste your key, and click **+ Register Key**.
+### Option B: Docker Deployment (Production)
 
-4.  **Connect via Host Command Line (Optional)**:
-    *   To execute commands in the DevHunt workspace directly from your native Command Prompt, PowerShell, or terminal window, open a new window and run:
-        *   **Windows**: `hunter.bat -dt`
-        *   **macOS / Linux**: `./hunter -dt`
+1. **Build & Run**
+   ```bash
+   docker build -t hitessolanki/dev-hunt:latest .
+   docker run -d -p 1225:8080 --name dev-hunt hitessolanki/dev-hunt:latest
+   ```
+   
+   Open: `http://localhost:1225`
 
-### Manual Installation (Optional fallback)
+2. **Docker Compose (Persistent)**
+   ```yaml
+   version: '3.8'
+   services:
+     dev-hunt:
+       image: hitessolanki/dev-hunt:latest
+       container_name: dev-hunt
+       ports:
+         - "1225:8080"
+       volumes:
+         - dev-hunt-data:/app/backend/data
+         - dev-hunt-uploads:/app/backend/uploads
+       environment:
+         - PYTHONUNBUFFERED=1
+       restart: unless-stopped
+   volumes:
+     dev-hunt-data:
+     dev-hunt-uploads:
+   ```
+   
+   ```bash
+   docker-compose up -d
+   ```
 
-If you prefer to set up your environment manually:
-```bash
-# 1. Navigate to backend and setup venv
-cd backend
-python -m venv venv
+3. **Docker Image Info**
+   - Base: `python:3.11-slim` (~70–90 MB)
+   - Runtime: tesseract, poppler (~50–150 MB)
+   - Python packages: ~350–600 MB
+   - **Final size: ~534.9 MB compressed**
+   - Multi-stage build (builder discarded)
 
-# 2. Activate venv & install dependencies
-# On Windows:
-venv\Scripts\activate
-pip install -r requirements.txt
-# On macOS/Linux:
-source venv/bin/activate
-pip install -r requirements.txt
-
-# 3. Launch the server
-python app.py
-```
+4. **Push to Docker Hub**
+   ```bash
+   docker push hitessolanki/dev-hunt:latest
+   ```
 
 ---
 
 ## 📁 Repository Structure
 
 ```
-Local-AI/
+web-hunt/
 ├── backend/
-│   ├── app.py                # Flask API application entry point
-│   ├── config.py             # App paths, settings constants, and AES secrets
-│   ├── requirements.txt      # Python modules list
-│   ├── check_requirements.py # Fast dependency verification script
-│   ├── hunter_cli.py         # Host command prompt CLI connector client
-│   └── core/
-│       ├── chat_engine.py    # SSE stream generation & tag extraction logic
-│       ├── rag_pipeline.py   # Vector ingestion, URLs parser, & DB matching
-│       ├── key_manager.py    # Stateful round-robin API key rotation
-│       ├── todo_manager.py   # SQLite CRUD operations for Quest board
-│       ├── learning_path.py  # AI roadmap compilation
-│       ├── update_manager.py # Git auto-updater and check client
-│       ├── terminal_engine.py# Hunt Terminal CLI execution logic
-│       ├── memory_manager.py # AI long-term consolidated memory manager
-│       ├── profile_manager.py# User profile & settings manager
-│       ├── analytics.py      # Local usage & streak calculations
-│       └── db.py             # SQLite connection pools & schema setup
-├── docs/                     # System and module documentation guide
-│   ├── roadmap.md            # Collapsible study roadmap completed & future milestones
-│   ├── hunt_terminal_docs.md # Hunt terminal emulator commands detailed specification
-│   ├── app_endpoints.md      # Full listing of backend HTTP REST/SSE endpoints
-│   ├── arcade_and_layout.md  # Arcade design, canvas overlays, and minimize sidebar specification
-│   └── ...
+│   ├── app.py                      # Flask API (40+ endpoints)
+│   ├── config.py                   # Configuration & encryption
+│   ├── requirements.txt             # Python dependencies
+│   ├── check_requirements.py        # Fast dependency checker
+│   ├── hunter_cli.py               # CLI connection client
+│   ├── core/
+│   │   ├── chat_engine.py          # SSE streaming & tag extraction
+│   │   ├── rag_pipeline.py         # Vector ingestion & search
+│   │   ├── key_manager.py          # API key rotation
+│   │   ├── todo_manager.py         # Quest board CRUD
+│   │   ├── learning_path.py        # AI roadmap generation
+│   │   ├── update_manager.py       # Git auto-updater
+│   │   ├── terminal_engine.py      # Hunt CLI execution
+│   │   ├── memory_manager.py       # Long-term memory
+│   │   ├── profile_manager.py      # User settings
+│   │   ├── analytics.py            # Usage & streaks
+│   │   ├── document_analyzer.py    # Document processing
+│   │   ├── intent_detector.py      # Intent classification
+│   │   ├── logger.py               # Activity logging
+│   │   ├── model_selector.py       # Model selection
+│   │   └── db.py                   # SQLite management
+│   └── data/
+│       └── learning_path.json      # Default learning paths
 ├── frontend/
-│   ├── index.html            # Core user interface
-│   ├── logs.html             # System logs debugger dashboard
-│   ├── app.js                # SSE receivers, state handlers, & rendering
-│   └── styles.css            # Custom CSS themes & glassmorphism styling
-├── run.bat                   # Automated Windows launcher
-├── run.sh                    # Automated macOS/Linux launcher
-├── hunter.bat                # Host console connection batch file (Windows)
-├── hunter                    # Host console connection shell script (Unix)
-└── README.md
+│   ├── index.html                  # Main UI
+│   ├── logs.html                   # Logs dashboard
+│   ├── docs.html                   # Documentation
+│   ├── app.js                      # SSE handlers & state
+│   ├── arcade.js                   # Game canvas logic
+│   ├── styles.css                  # Themes & styling
+│   └── assets/                     # Images & resources
+├── docs/
+│   ├── api_analysis.md             # API security analysis
+│   ├── app_endpoints.md            # Endpoint documentation
+│   ├── chat_engine.md              # Chat system docs
+│   ├── memory_manager.md           # Memory system docs
+│   ├── terminal_engine.md          # Terminal docs
+│   ├── hunt_terminal_docs.md       # CLI commands reference
+│   └── roadmap.md                  # Development roadmap
+├── run.bat                         # Windows launcher
+├── run.sh                          # Unix launcher
+├── hunter.bat                      # Windows CLI connector
+├── hunter                          # Unix CLI connector
+├── notifications.json              # System notifications
+└── README.md                       # This file
 ```
 
 ---
 
-## 📡 Core API Reference
+## 🔌 API Endpoints
 
-### Chat & Streams
-*   `POST /api/chat`: Processes synchronous chat messages (optional `source_id`).
-*   `POST /api/chat/stream`: Initiates an SSE token stream for user messages, returning real-time response chunks and Quest Board status updates (optional `source_id`).
-*   `GET /api/chat/sessions`: Lists all unique chat sessions in SQLite, returning timestamps and previews.
-*   `GET /api/chat/history`: Retrieves chat session database records.
-*   `DELETE /api/chat/history`: Clears session history from the database.
+DevHunt provides 40+ REST/SSE endpoints organized by domain:
 
-### Key Management
-*   `GET /api/keys`: Lists registered keys (masked).
-*   `POST /api/keys`: Encrypts and saves a new Gemini API key.
-*   `DELETE /api/keys/<id>`: Deletes a key from storage.
-*   `POST /api/keys/<id>/test`: Live test connection to Gemini API.
+### Chat Endpoints
+- `POST /api/chat` — Synchronous chat
+- `POST /api/stream` — Streaming chat with SSE
+- `GET /api/chat/history` — Conversation history
 
-### Workspace IDE
-*   `GET /api/ide/files`: Returns a JSON file tree of the local workspace (filtering system files).
-*   `GET /api/ide/file`: Reads relative path content (with directory traversal guard checks).
-*   `POST /api/ide/file`: Writes edits to a relative path on disk (auto-creates folders).
+### Knowledge Base (RAG)
+- `POST /api/rag/ingest` — Index documents
+- `POST /api/rag/query` — Search knowledge base
+- `GET /api/rag/sources` — List indexed sources
+
+### Terminal
+- `POST /api/terminal/run` — Execute commands
+- `GET /api/terminal/cwd` — Get current directory
+- `POST /api/terminal/navigate` — Change directory
+
+### IDE / File Management
+- `GET /api/ide/file` — Read file
+- `POST /api/ide/file` — Write file
+- `POST /api/ide/delete` — Delete file
+- `POST /api/ide/rename` — Rename file
+- `GET /api/ide/tree` — File tree
+
+### Todo / Quest Board
+- `GET /api/todo/list` — Get todos
+- `POST /api/todo/create` — Create todo
+- `PATCH /api/todo/:id` — Update todo
+- `DELETE /api/todo/:id` — Delete todo
+
+### Analytics
+- `GET /api/analytics/stats` — Usage statistics
+- `GET /api/analytics/streaks` — Activity streaks
+
+See [docs/app_endpoints.md](docs/app_endpoints.md) for complete documentation.
 
 ---
 
-## 📖 Module & Functions Documentation
+## 🔐 Security Features
 
-Comprehensive documentation describing every single function, parameters, outputs, and internal execution pipelines is available in the [docs/](file:///d:/My%20projects/Local-AI/docs/) directory:
-
-*   [roadmap.md](file:///d:/My%20projects/Local-AI/docs/roadmap.md): Completed milestones (roadmaps, document analyst, scraper upgrades) and future architectural layout.
-*   [hunt_terminal_docs.md](file:///d:/My%20projects/Local-AI/docs/hunt_terminal_docs.md): Comprehensive reference guide of all available `hunt` terminal CLI commands.
-*   [check_requirements.py](file:///d:/My%20projects/Local-AI/docs/check_requirements.md): Package version matching & system path verification.
-*   [todo_manager.py](file:///d:/My%20projects/Local-AI/docs/todo_manager.md): CRUD transactions for Quest Board tasks.
-*   [chat_engine.py](file:///d:/My%20projects/Local-AI/docs/chat_engine.md): SSE streaming, key rotation, and context aggregation.
-*   [terminal_engine.py](file:///d:/My%20projects/Local-AI/docs/terminal_engine.md): Hunt Terminal CLI pipeline and subcommand handlers.
-*   [update_manager.py](file:///d:/My%20projects/Local-AI/docs/update_manager.md): Auto-updater checks and git operations.
-*   [memory_manager.py](file:///d:/My%20projects/Local-AI/docs/memory_manager.md): Asynchronous AI core memory consolidator.
-*   [auxiliary_core.md](file:///d:/My%20projects/Local-AI/docs/auxiliary_core.md): Profile metrics, local analytics, key masking, and database pools.
-*   [app_endpoints.md](file:///d:/My%20projects/Local-AI/docs/app_endpoints.md): Full listing of all HTTP endpoints in the backend.
-*   [arcade_and_layout.md](file:///d:/My%20projects/Local-AI/docs/arcade_and_layout.md): Game Arcade canvas, non-blocking overlays, and sidebar layout configuration.
+- **Path Traversal Prevention** — Validated file access with `os.path.realpath()`
+- **Command Injection Prevention** — Shell=False subprocess execution with operator validation
+- **Request Size Limits** — 32MB max payload to prevent DoS
+- **Encrypted API Keys** — Fernet encryption for stored credentials
+- **Non-Root Docker User** — Container runs as appuser
+- **CORS Configuration** — Configurable origin restrictions
+- **Debug Mode Disabled** — Production-ready default settings
 
 ---
 
-## 🤝 How to Contribute
+## 📚 Documentation
 
-We welcome contributions of all forms: bug fixes, UI enhancements, features, and documentation updates.
+- **[API Endpoints](docs/app_endpoints.md)** — Full REST/SSE endpoint reference
+- **[Chat Engine](docs/chat_engine.md)** — Streaming & message handling
+- **[Terminal Engine](docs/terminal_engine.md)** — Command execution & navigation
+- **[Hunt CLI](docs/hunt_terminal_docs.md)** — Command-line interface reference
+- **[Memory Manager](docs/memory_manager.md)** — Long-term memory system
+- **[Roadmap](docs/roadmap.md)** — Development milestones
 
-### Development Workflow
+---
 
-1.  **Fork the Repo** and create a feature branch:
-    ```bash
-    git checkout -b feature/amazing-new-feature
-    ```
-2.  **Backend Rules**:
-    *   Keep modules inside `backend/core/` structured and single-purpose.
-    *   Maintain clean SQLite transactions and close connections correctly inside helper functions.
-3.  **Frontend Rules**:
-    *   Keep styling inside `frontend/styles.css` clean, clean variables, and ensure responsive design.
-    *   Handle asynchronous state changes gracefully in `frontend/app.js`.
-4.  **Open a Pull Request**: Submit your changes to the main repository for review.
+## 🔄 Troubleshooting
+
+### Port Already in Use
+```bash
+# Windows
+netstat -ano | findstr :5000
+taskkill /PID <PID> /F
+
+# macOS/Linux
+lsof -i :5000
+kill -9 <PID>
+```
+
+### Virtual Environment Issues
+```bash
+# Rebuild venv
+rm -rf backend/venv
+python -m venv backend/venv
+source backend/venv/bin/activate  # or venv\Scripts\activate on Windows
+pip install -r backend/requirements.txt
+```
+
+### Docker Issues
+```bash
+# View logs
+docker logs dev-hunt
+
+# Rebuild image
+docker build --no-cache -t hitessolanki/dev-hunt:latest .
+
+# Check container status
+docker ps -a
+```
+
+### Python Version Error
+```bash
+# Verify Python version
+python --version
+
+# If not 3.10+, download from https://www.python.org/
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ---
 
 ## 📄 License
 
-DevHunt is open-source software released under the [MIT License](LICENSE).
+This project is licensed under the MIT License — see LICENSE file for details.
 
 ---
 
-## 👥 Created By
+## 💬 Support
 
-**Hitesh Solanki**
-*   **Website**: [hiteshsolanki.in](https://hiteshsolanki.in)
-*   **Email**: solankihiteshpankajbhai7@gmail.com
-*   **Mobile**: +91 9327810431
+For issues, questions, or suggestions:
+
+- **Issues**: [GitHub Issues](https://github.com/h-innoveda/DevHunt/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/h-innoveda/DevHunt/discussions)
+- **Email**: hitesh.innoveda@gmail.com
+
+---
+
+## 🎯 Roadmap
+
+- [ ] PostgreSQL migration (SQLite → PostgreSQL)
+- [ ] Redis caching layer
+- [ ] Authentication system
+- [ ] Microservices architecture
+- [ ] WebSocket support
+- [ ] Advanced analytics dashboard
+- [ ] Team collaboration features
+- [ ] Mobile companion app
+
+See [docs/roadmap.md](docs/roadmap.md) for detailed milestones.
+
+---
+
+**Made with ❤️ by [DevHunt Team](https://github.com/h-innoveda)**
+
+Last updated: June 2026 | Version: 1.0.0

@@ -21,6 +21,7 @@ from core.update_manager import UpdateManager
 
 app = Flask(__name__, static_folder='../frontend', static_url_path='')
 CORS(app, resources={r"/api/*": {"origins": "*"}})
+app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024  # 32 MB max request size
 terminal_engine = TerminalEngine()
 
 # ── Static pages ──────────────────────────────────────────────────────────────
@@ -546,7 +547,8 @@ def get_document_analysis_endpoint(source_id):
 def serve_analysis_image_endpoint(filename):
     try:
         from flask import send_from_directory
-        return send_from_directory(UPLOADS_DIR, filename)
+        safe_name = os.path.basename(filename)
+        return send_from_directory(UPLOADS_DIR, safe_name)
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -965,12 +967,19 @@ def run_terminal_command():
     cwd = data.get('cwd', '').strip()
     if not command:
         return jsonify({"success": False, "error": "Command is required"}), 400
+
+    safe_cwd = WORKSPACE_BASE
+    if cwd:
+        safe_path = get_safe_workspace_path(cwd)
+        if safe_path and os.path.isdir(safe_path):
+            safe_cwd = safe_path
+
     try:
-        output, new_cwd = terminal_engine.execute(command, cwd)
-        logger.info("terminal", f"Executed command: {command}", {"cwd": cwd, "new_cwd": new_cwd})
+        output, new_cwd = terminal_engine.execute(command, safe_cwd)
+        logger.info("terminal", f"Executed command: {command}", {"cwd": safe_cwd, "new_cwd": new_cwd})
         return jsonify({"success": True, "output": output, "cwd": new_cwd})
     except Exception as e:
-        logger.error("terminal", f"Command failed: {command} - {e}", {"cwd": cwd, "error": str(e)})
+        logger.error("terminal", f"Command failed: {command} - {e}", {"cwd": safe_cwd, "error": str(e)})
         return jsonify({"success": False, "error": str(e)}), 500
 
 
@@ -1518,6 +1527,23 @@ if os.path.basename(os.path.dirname(WORKSPACE_DIR)) == 'backend':
 if not os.path.exists(WORKSPACE_DIR):
     os.makedirs(WORKSPACE_DIR, exist_ok=True)
 
+WORKSPACE_BASE = os.path.realpath(WORKSPACE_DIR)
+
+def get_safe_workspace_path(rel_path):
+    if not rel_path:
+        return None
+    if os.path.isabs(rel_path):
+        candidate = os.path.realpath(rel_path)
+    else:
+        candidate = os.path.realpath(os.path.join(WORKSPACE_BASE, rel_path))
+    try:
+        if os.path.commonpath([WORKSPACE_BASE, candidate]) != WORKSPACE_BASE:
+            return None
+    except ValueError:
+        return None
+    return candidate
+
+
 def get_project_tree(root_dir):
     ignored_dirs = {'.git', 'venv', '.vscode', '__pycache__', 'node_modules', '.gemini'}
     ignored_files = {'.DS_Store', 'desktop.ini'}
@@ -1559,9 +1585,8 @@ def ide_read_file():
     if not rel_path:
         return jsonify({"success": False, "error": "Path required"}), 400
     
-    # Secure path to prevent directory traversal
-    abs_path = os.path.abspath(os.path.join(WORKSPACE_DIR, rel_path))
-    if not abs_path.startswith(os.path.abspath(WORKSPACE_DIR)):
+    abs_path = get_safe_workspace_path(rel_path)
+    if not abs_path:
         return jsonify({"success": False, "error": "Access denied"}), 403
         
     if not os.path.exists(abs_path) or os.path.isdir(abs_path):
@@ -1583,9 +1608,8 @@ def ide_save_file():
     if not rel_path:
         return jsonify({"success": False, "error": "Path required"}), 400
         
-    # Secure path to prevent directory traversal
-    abs_path = os.path.abspath(os.path.join(WORKSPACE_DIR, rel_path))
-    if not abs_path.startswith(os.path.abspath(WORKSPACE_DIR)):
+    abs_path = get_safe_workspace_path(rel_path)
+    if not abs_path:
         return jsonify({"success": False, "error": "Access denied"}), 403
         
     try:
@@ -1683,7 +1707,10 @@ def ide_replace_files():
 
         paths = []
         if files_to_modify:
-            paths = [os.path.abspath(os.path.join(WORKSPACE_DIR, p)) for p in files_to_modify]
+            for p in files_to_modify:
+                abs_path = get_safe_workspace_path(p)
+                if abs_path:
+                    paths.append(abs_path)
         else:
             exclude_dirs = {'.git', 'node_modules', 'venv', '__pycache__', '.idea', '.vscode'}
             exclude_exts = {'.png', '.jpg', '.jpeg', '.gif', '.ico', '.pdf', '.zip', '.tar', '.gz', '.mp3', '.wav', '.ogg', '.pyc'}
@@ -1790,8 +1817,8 @@ def ide_create_item():
     item_type = data.get('type', 'file')
     if not rel_path:
         return jsonify({"success": False, "error": "Path required"}), 400
-    abs_path = os.path.abspath(os.path.join(WORKSPACE_DIR, rel_path))
-    if not abs_path.startswith(os.path.abspath(WORKSPACE_DIR)):
+    abs_path = get_safe_workspace_path(rel_path)
+    if not abs_path:
         return jsonify({"success": False, "error": "Access denied"}), 403
     try:
         if item_type == 'directory':
@@ -1811,8 +1838,8 @@ def ide_delete_item():
     rel_path = data.get('path', '').strip()
     if not rel_path:
         return jsonify({"success": False, "error": "Path required"}), 400
-    abs_path = os.path.abspath(os.path.join(WORKSPACE_DIR, rel_path))
-    if not abs_path.startswith(os.path.abspath(WORKSPACE_DIR)):
+    abs_path = get_safe_workspace_path(rel_path)
+    if not abs_path:
         return jsonify({"success": False, "error": "Access denied"}), 403
     try:
         if os.path.isdir(abs_path):
@@ -1832,9 +1859,9 @@ def ide_rename_item():
     new_path = data.get('new_path', '').strip()
     if not old_path or not new_path:
         return jsonify({"success": False, "error": "Paths required"}), 400
-    abs_old = os.path.abspath(os.path.join(WORKSPACE_DIR, old_path))
-    abs_new = os.path.abspath(os.path.join(WORKSPACE_DIR, new_path))
-    if not abs_old.startswith(os.path.abspath(WORKSPACE_DIR)) or not abs_new.startswith(os.path.abspath(WORKSPACE_DIR)):
+    abs_old = get_safe_workspace_path(old_path)
+    abs_new = get_safe_workspace_path(new_path)
+    if not abs_old or not abs_new:
         return jsonify({"success": False, "error": "Access denied"}), 403
     try:
         os.rename(abs_old, abs_new)
@@ -1846,4 +1873,4 @@ def ide_rename_item():
 # ── ENTRY POINT ───────────────────────────────────────────────────────────────
 if __name__ == '__main__':
     logger.info("system", "DevHunt server starting")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)

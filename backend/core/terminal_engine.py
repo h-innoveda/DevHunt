@@ -241,9 +241,13 @@ class TerminalEngine:
             
             try:
                 import html
+                args = self.parse_arguments(cmd_line)
+                if any(op in args for op in [';', '&', '|', '>', '<', '&&', '||']):
+                    return self.format_red("Error: Shell operators are not allowed in terminal commands."), current_dir
+
                 res = subprocess.run(
-                    cmd_line,
-                    shell=True,
+                    args,
+                    shell=False,
                     cwd=current_dir,
                     capture_output=True,
                     text=True,
